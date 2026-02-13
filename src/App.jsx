@@ -1,9 +1,21 @@
+import { AppRoutes } from "./routes/AppRoutes";
+import { ToastContainer } from "react-toastify";
+import { useAuthContext } from "./contexts/AppContext";
+import "react-toastify/dist/ReactToastify.css";
+import { GlobalLoader } from "./components/ui/GlobalLoader";
+
 const App = () => {
-  return (
-    <div className="flex items-center justify-between">
-      <h1>Building Web Application</h1>
-    </div>
-  );
+    const { loading } = useAuthContext();
+
+    if (loading) {
+        return <GlobalLoader />;
+    }
+    return (
+        <>
+            <AppRoutes />
+            <ToastContainer />
+        </>
+    );
 };
 
 export default App;
