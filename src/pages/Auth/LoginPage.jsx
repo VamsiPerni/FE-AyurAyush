@@ -1,98 +1,68 @@
 import { useState } from "react";
-import { PuffLoader } from "react-spinners";
-import {
-    showErrorToast,
-    showSuccessToast,
-} from "../../utils/toastMessageHelper";
-import { Link, useNavigate } from "react-router";
-import { useAuthContext } from "../../contexts/AppContext";
-import { axiosInstance } from "../../axios/axiosInstance";
+import { Link } from "react-router";
+import { useAuth } from "../../hooks/useAuth";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Card } from "../../components/ui/Card";
+import { Stethoscope } from "lucide-react";
 
 const LoginPage = () => {
-    const [loggingInUser, setLoggingInUser] = useState(false);
-    const { handleSetUser } = useAuthContext();
-    const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loading } = useAuth();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await login(email, password);
+  };
 
-        try {
-            setLoggingInUser(true);
-
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-
-            const response = await axiosInstance.post("/auth/login", {
-                email,
-                password,
-            });
-
-            const result = await response.data;
-
-            if (response.status === 200) {
-                showSuccessToast("Login Success!");
-
-                const roles = result.data.roles;
-
-                handleSetUser({
-                    isLoggedIn: true,
-                    roles,
-                });
-
-                if (roles.length === 1) {
-                    navigate(`/${roles[0]}/dashboard`);
-                } else {
-                    navigate("/choose-role");
-                }
-            } else {
-                showErrorToast(result.message);
-            }
-        } catch (err) {
-            showErrorToast(`Unable to login: ${err.message}`);
-        } finally {
-            setLoggingInUser(false);
-        }
-    };
-
-    return (
-        <div className="flex flex-col gap-6 items-center justify-center p-8">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex gap-4 items-center">
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        name="email"
-                        required
-                        className="border border-amber-700 px-2 py-1 rounded-md"
-                    />
-                </div>
-
-                <div className="flex gap-4 items-center">
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        name="password"
-                        required
-                        className="border border-amber-700 px-2 py-1 rounded-md"
-                    />
-                </div>
-
-                {loggingInUser ? (
-                    <div className="flex justify-center p-6">
-                        <PuffLoader size={40} />
-                    </div>
-                ) : (
-                    <button className="self-center bg-amber-600 px-4 py-1 rounded-md text-white hover:bg-amber-700 transition">
-                        Login
-                    </button>
-                )}
-            </form>
-
-            <Link to="/signup" className="underline text-blue-600">
-                Don't have an account? Signup here
-            </Link>
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <Card className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 bg-[#065A82]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Stethoscope size={28} className="text-[#065A82]" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
+          <p className="text-sm text-gray-500 mt-1">Sign in to AyurAyush</p>
         </div>
-    );
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
+
+          <Button type="submit" className="w-full" loading={loading}>
+            Sign In
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-[#065A82] font-medium hover:underline"
+          >
+            Sign up here
+          </Link>
+        </p>
+      </Card>
+    </div>
+  );
 };
 
 export { LoginPage };

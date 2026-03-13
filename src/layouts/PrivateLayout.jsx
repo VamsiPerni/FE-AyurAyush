@@ -1,13 +1,7 @@
-import { Outlet } from "react-router";
-import { Navbar } from "../components/Navbar";
+import { PublicLayout } from "./PublicLayout";
 
-const PrivateLayout = () => {
-    return (
-        <div className="min-h-screen">
-            <Navbar />
-            <Outlet />
-        </div>
-    );
-};
+// Currently identical to PublicLayout.
+// When private routes need a different layout (sidebar, different nav, etc.), customize here.
+const PrivateLayout = PublicLayout;
 
 export { PrivateLayout };
