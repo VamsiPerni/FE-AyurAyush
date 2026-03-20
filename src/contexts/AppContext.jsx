@@ -5,88 +5,88 @@ import { showErrorToast, showSuccessToast } from "../utils/toastMessageHelper";
 const AuthContext = createContext();
 
 const AppProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    isLoggedIn: false,
-    roles: [],
-    activeRole: null,
-    loading: true,
-  });
-
-  const [logoutLoading, setLogoutLoading] = useState(false);
-
-  const checkAuth = async () => {
-    try {
-      const response = await axiosInstance.get("/auth/me");
-
-      const roles = response.data.data.roles;
-      setUser({
-        isLoggedIn: true,
-        roles,
-        activeRole: roles.length === 1 ? roles[0] : null,
-        loading: false,
-      });
-    } catch (err) {
-      setUser({
+    const [user, setUser] = useState({
         isLoggedIn: false,
         roles: [],
         activeRole: null,
-        loading: false,
-      });
+        loading: true,
+    });
 
-      // Not logged in — this is expected on initial load
-    }
-  };
+    const [logoutLoading, setLogoutLoading] = useState(false);
 
-  const handleSetUser = (data) => {
-    setUser((prev) => ({
-      ...prev,
-      ...data,
-      loading: false,
-    }));
-  };
+    const checkAuth = async () => {
+        try {
+            const response = await axiosInstance.get("/auth/me");
 
-  const setActiveRole = (role) => {
-    setUser((prev) => ({ ...prev, activeRole: role }));
-  };
+            const roles = response.data.data.roles;
+            setUser({
+                isLoggedIn: true,
+                roles,
+                activeRole: roles.length === 1 ? roles[0] : null,
+                loading: false,
+            });
+        } catch (err) {
+            setUser({
+                isLoggedIn: false,
+                roles: [],
+                activeRole: null,
+                loading: false,
+            });
 
-  const handleLogout = async () => {
-    try {
-      setLogoutLoading(true);
+            console.log("------🔴Erorr in CheckAuth-----", err.message);
+        }
+    };
 
-      await axiosInstance.get("/auth/logout");
+    const handleSetUser = (data) => {
+        setUser((prev) => ({
+            ...prev,
+            ...data,
+            loading: false,
+        }));
+    };
 
-      showSuccessToast("Logout successful!");
+    const setActiveRole = (role) => {
+        setUser((prev) => ({ ...prev, activeRole: role }));
+    };
 
-      setUser({
-        isLoggedIn: false,
-        roles: [],
-        activeRole: null,
-        loading: false,
-      });
-    } catch (err) {
-      showErrorToast(err.response?.data?.message || "Logout failed");
-    } finally {
-      setLogoutLoading(false);
-    }
-  };
+    const handleLogout = async () => {
+        try {
+            setLogoutLoading(true);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+            await axiosInstance.get("/auth/logout");
 
-  return (
-    <AuthContext.Provider
-      value={{
-        ...user,
-        handleSetUser,
-        setActiveRole,
-        handleLogout,
-        logoutLoading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+            showSuccessToast("Logout successful!");
+
+            setUser({
+                isLoggedIn: false,
+                roles: [],
+                activeRole: null,
+                loading: false,
+            });
+        } catch (err) {
+            showErrorToast(err.response?.data?.message || "Logout failed");
+        } finally {
+            setLogoutLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    return (
+        <AuthContext.Provider
+            value={{
+                ...user,
+                handleSetUser,
+                setActiveRole,
+                handleLogout,
+                logoutLoading,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 const useAuthContext = () => useContext(AuthContext);
