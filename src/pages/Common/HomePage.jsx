@@ -61,7 +61,7 @@ const HomePage = () => {
                                 <Button
                                     size="lg"
                                     variant="outline"
-                                    className="bg-white text-[#065A82] border-white hover:bg-white/90"
+                                    className="bg-[#0B4F6C] text-[#F5FBFF] border-[#7EC8E3] hover:bg-[#093E55]"
                                 >
                                     Go to Dashboard <ArrowRight size={16} />
                                 </Button>
@@ -71,7 +71,7 @@ const HomePage = () => {
                                 <Link to="/signup">
                                     <Button
                                         size="lg"
-                                        className="bg-white text-[#065A82] hover:bg-white/90"
+                                        className="bg-[#0B4F6C] text-[#F5FBFF] border border-[#7EC8E3] hover:bg-[#093E55]"
                                     >
                                         Get Started <ArrowRight size={16} />
                                     </Button>
@@ -80,7 +80,7 @@ const HomePage = () => {
                                     <Button
                                         size="lg"
                                         variant="outline"
-                                        className="border-white/50 text-white hover:bg-white/10"
+                                        className="border-[#CFEFFF] text-[#F5FBFF] bg-white/10 hover:bg-white/20"
                                     >
                                         Sign In
                                     </Button>

@@ -30,4 +30,20 @@ export const authService = {
         );
         return response.data;
     },
+
+    forgotPassword: async (email) => {
+        const response = await axiosInstance.post("/auth/forgot-password", {
+            email,
+        });
+        return response.data;
+    },
+
+    resetPassword: async ({ email, otp, newPassword }) => {
+        const response = await axiosInstance.post("/auth/reset-password", {
+            email,
+            otp,
+            newPassword,
+        });
+        return response.data;
+    },
 };

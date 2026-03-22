@@ -5,6 +5,8 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 
 import { LoginPage } from "../pages/Auth/LoginPage";
 import { SignupPage } from "../pages/Auth/SignupPage";
+import { ForgotPasswordPage } from "../pages/Auth/ForgotPasswordPage";
+import { ResetPasswordPage } from "../pages/Auth/ResetPasswordPage";
 import { HomePage } from "../pages/Common/HomePage";
 import { NotFoundPage } from "../pages/Common/NotFoundPage";
 import { ChooseRolePage } from "../pages/Common/ChooseRolePage";
@@ -37,6 +39,11 @@ const AppRoutes = () => {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Route>
 
             <Route element={<PrivateLayout />}>
