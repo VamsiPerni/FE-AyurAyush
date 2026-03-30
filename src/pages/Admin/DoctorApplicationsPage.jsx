@@ -1,101 +1,343 @@
-import { useState, useEffect } from "react";
-import { DoctorApplicationReview } from "../../components/admin/DoctorApplicationReview";
-import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { Button } from "../../components/ui/Button";
-import { adminService } from "../../services/adminService";
-import {
-    showErrorToast,
-    showSuccessToast,
-} from "../../utils/toastMessageHelper";
-import { UserCheck, RefreshCw } from "lucide-react";
+import { useState, useEffect, useMemo } from 'react';
+import { 
+  Stethoscope, Mail, Phone, RefreshCw, AlertCircle, Award, 
+  Briefcase, Banknote, CheckCircle, XCircle 
+} from 'lucide-react';
+import { adminService } from '../../services/adminService';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+import { Modal } from '../../components/ui/Modal';
+import { Textarea } from '../../components/ui/Textarea';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { CardSkeleton } from '../../components/ui/Skeleton';
+import { showErrorToast, showSuccessToast } from '../../utils/toastMessageHelper';
+
+const filterCategories = [
+  { id: 'all', label: 'All Applications' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'rejected', label: 'Rejected' },
+];
 
 const DoctorApplicationsPage = () => {
-    const [applications, setApplications] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [activeTab, setActiveTab] = useState('pending'); // Default to pending queue
+  
+  // Rejection Modal State
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-    const loadApplications = async () => {
-        try {
-            setLoading(true);
-            const result = await adminService.getDoctorApplications();
-            setApplications(result.data?.applications || []);
-        } catch {
-            showErrorToast("Failed to load doctor applications");
-        } finally {
-            setLoading(false);
-        }
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const result = await adminService.getDoctorApplications();
+      setApplications(result.data?.applications || result.data || []);
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to sync doctor application registry.';
+      setError(message);
+      showErrorToast(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const handleApprove = async (id) => {
+    if (!window.confirm('Are you certain you want to officially approve this practitioner into the system?')) return;
+    try {
+      setIsProcessing(true);
+      await adminService.approveDoctorApplication(id);
+      showSuccessToast('Doctor application approved successfully.');
+      loadApplications();
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || 'Failed to approve application.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const openRejectModal = (id) => {
+    setRejectingId(id);
+    setRejectReason('');
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!rejectReason.trim()) {
+      showErrorToast('A formalized rejection reason is highly critical for compliance.');
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      await adminService.rejectDoctorApplication(rejectingId, rejectReason);
+      showSuccessToast('Application dynamically rejected and candidate notified.');
+      setRejectModalOpen(false);
+      loadApplications();
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || 'Failed to reject applicant securely.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      const status = (app.status || 'pending').toLowerCase();
+      if (activeTab === 'all') return true;
+      if (activeTab === 'pending') return status === 'pending';
+      if (activeTab === 'approved') return status === 'approved';
+      if (activeTab === 'rejected') return status === 'rejected';
+      return true;
+    });
+  }, [applications, activeTab]);
+
+  const counts = useMemo(() => {
+    return {
+      all: applications.length,
+      pending: applications.filter(a => (a.status || 'pending') === 'pending').length,
+      approved: applications.filter(a => a.status === 'approved').length,
+      rejected: applications.filter(a => a.status === 'rejected').length,
     };
+  }, [applications]);
 
-    useEffect(() => {
-        loadApplications();
-    }, []);
+  const getInitials = (nameStr) => {
+    if (!nameStr) return '?';
+    return nameStr.charAt(0).toUpperCase();
+  };
 
-    const handleApprove = async (id) => {
-        try {
-            await adminService.approveDoctorApplication(id);
-            showSuccessToast("Doctor application approved!");
-            setApplications((prev) =>
-                prev.map((a) =>
-                    (a.applicationId || a._id) === id
-                        ? { ...a, status: "approved" }
-                        : a,
-                ),
-            );
-        } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to approve");
-        }
-    };
-
-    const handleReject = async (id) => {
-        try {
-            await adminService.rejectDoctorApplication(id);
-            showSuccessToast("Doctor application rejected");
-            setApplications((prev) =>
-                prev.map((a) =>
-                    (a.applicationId || a._id) === id
-                        ? { ...a, status: "rejected" }
-                        : a,
-                ),
-            );
-        } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to reject");
-        }
-    };
-
+  // 1. Loading State
+  if (loading) {
     return (
-        <div className="max-w-4xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <UserCheck size={24} className="text-[#065A82]" />
-                    Doctor Applications
-                </h1>
-                <Button variant="outline" size="sm" onClick={loadApplications}>
-                    <RefreshCw size={14} /> Refresh
-                </Button>
-            </div>
-
-            {loading ? (
-                <LoadingSkeleton type="card" count={3} />
-            ) : applications.length === 0 ? (
-                <EmptyState
-                    icon="users"
-                    title="No doctor applications"
-                    description="No pending applications at this time"
-                />
-            ) : (
-                <div className="space-y-4">
-                    {applications.map((app) => (
-                        <DoctorApplicationReview
-                            key={app.applicationId || app._id}
-                            application={app}
-                            onApprove={handleApprove}
-                            onReject={handleReject}
-                        />
-                    ))}
-                </div>
-            )}
+      <div className="max-w-7xl mx-auto space-y-6 pb-8">
+        <PageHeader title="Doctor Applications" subtitle="Reviewing prospective clinical candidate records..." />
+        <div className="flex gap-2">
+           <div className="w-24 h-8 bg-neutral-200 rounded-full animate-pulse" />
+           <div className="w-24 h-8 bg-neutral-200 rounded-full animate-pulse" />
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+           <CardSkeleton />
+           <CardSkeleton />
+           <CardSkeleton />
+        </div>
+      </div>
     );
+  }
+
+  // 2. Error State
+  if (error && applications.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto py-12">
+        <EmptyState
+          icon={AlertCircle}
+          title="Registry Synchronization Error"
+          description={error}
+          action={<Button icon={RefreshCw} onClick={loadApplications}>Retry Fetch</Button>}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in">
+      <PageHeader
+        title="Doctor Applications"
+        subtitle={`System tracking ${counts.all} total onboarding record${counts.all !== 1 ? 's' : ''}`}
+        action={
+          <Button variant="outline" icon={RefreshCw} onClick={loadApplications}>
+            Refresh Sync
+          </Button>
+        }
+      />
+
+      {/* Control Navigation Filters Layout */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {filterCategories.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveTab(cat.id)}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border
+              ${activeTab === cat.id 
+                ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
+                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:text-neutral-900'
+              }
+            `}
+          >
+            {cat.label}
+            <span className={`
+              px-2 py-0.5 rounded-full text-xs font-bold shrink-0
+              ${activeTab === cat.id 
+                ? 'bg-primary-500/30 text-white' 
+                : 'bg-neutral-100 text-neutral-500'
+              }
+            `}>
+              {counts[cat.id]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Grid Execution block (Card grid - Explicitly avoid Tables per spec) */}
+      {filteredApplications.length === 0 ? (
+         <div className="py-24 bg-neutral-50 rounded-2xl border border-neutral-100 mt-6 text-center">
+            <div className="w-16 h-16 bg-neutral-200/50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Stethoscope className="w-8 h-8 text-neutral-400" />
+            </div>
+            <h3 className="text-xl font-bold text-neutral-800 mb-2">No {activeTab !== 'all' ? activeTab : ''} applications active</h3>
+            <p className="text-neutral-500 max-w-sm mx-auto">There are no onboarding profiles matching the selected filter logic parameters currently.</p>
+         </div>
+      ) : (
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredApplications.map(app => {
+               const id = app._id || app.applicationId || app.id;
+               const status = (app.status || 'pending').toLowerCase();
+               const isPending = status === 'pending';
+               
+               return (
+                 <Card key={id} className="overflow-hidden flex flex-col shadow-sm border border-neutral-200 hover:shadow-md transition-shadow group">
+                   
+                   {/* Personal Info Header */}
+                   <div className="bg-primary-50/40 p-5 border-b border-primary-100/50 relative">
+                     <div className="absolute top-4 right-4">
+                       <Badge type="status" value={status} />
+                     </div>
+                     <div className="flex flex-col items-center text-center mt-2">
+                       <div className="w-16 h-16 rounded-full bg-primary-100 text-primary-700 font-bold text-xl flex items-center justify-center border-4 border-white shadow-sm ring-1 ring-primary-50">
+                          {getInitials(app.name)}
+                       </div>
+                       <h3 className="text-lg font-bold text-neutral-900 mt-3 tracking-tight">Dr. {app.name || 'Unknown'}</h3>
+                       <p className="text-sm text-primary-700 font-medium">{app.specialization || 'General Practitioner'}</p>
+                     </div>
+                   </div>
+
+                   {/* Core Clinical Parameters */}
+                   <CardContent className="p-5 flex-1 flex flex-col text-sm text-neutral-600 gap-y-4">
+                      
+                      <div className="space-y-2 pb-4 border-b border-neutral-100">
+                         <div className="flex items-center gap-2">
+                           <Mail className="w-4 h-4 text-neutral-400 shrink-0" />
+                           <span className="truncate">{app.email || 'No email provided'}</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <Phone className="w-4 h-4 text-neutral-400 shrink-0" />
+                           <span>{app.phone || app.phoneNumber || 'No phone provided'}</span>
+                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pb-2 border-b border-neutral-100">
+                         <div>
+                           <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1 mt-1">
+                             <Briefcase className="w-3.5 h-3.5" /> Experience
+                           </div>
+                           <p className="font-semibold text-neutral-800">{app.experience ? `${app.experience} Years` : 'Not Set'}</p>
+                         </div>
+                         <div>
+                           <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1 mt-1">
+                             <Banknote className="w-3.5 h-3.5" /> Est. Fee
+                           </div>
+                           <p className="font-semibold text-success-700">{app.consultationFee ? `₹${app.consultationFee}` : 'Free'}</p>
+                         </div>
+                      </div>
+
+                      <div className="pt-2">
+                         <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">
+                           <Award className="w-3.5 h-3.5" /> Qualifications
+                         </div>
+                         <p className="text-neutral-800 font-medium line-clamp-2">{app.qualification || app.qualifications || 'No qualifications listed.'}</p>
+                      </div>
+
+                   </CardContent>
+
+                   {/* Action Footer Binding */}
+                   {isPending ? (
+                     <div className="p-4 bg-neutral-50 border-t border-neutral-100 flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          icon={XCircle} 
+                          onClick={() => openRejectModal(id)} 
+                          className="flex-1 bg-white text-neutral-600 hover:text-red-700 hover:border-red-200 hover:bg-red-50"
+                          disabled={isProcessing}
+                        >
+                          Reject
+                        </Button>
+                        <Button 
+                          variant="success" 
+                          icon={CheckCircle} 
+                          onClick={() => handleApprove(id)} 
+                          className="flex-1"
+                          disabled={isProcessing}
+                        >
+                          Approve
+                        </Button>
+                     </div>
+                   ) : (
+                     <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-100 text-center">
+                        <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                           Processed Application
+                        </p>
+                     </div>
+                   )}
+                 </Card>
+               )
+            })}
+         </div>
+      )}
+
+      {/* Secure Reason Validation Modal Layout */}
+      <Modal
+        isOpen={rejectModalOpen}
+        onClose={() => !isProcessing && setRejectModalOpen(false)}
+        title="Reject Application"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-neutral-600">
+            Please provide a specific clinical or administrative reason for this application denial. The physician will be notified immediately.
+          </p>
+          <Textarea 
+            placeholder="E.g., Missing valid clinical certification records, Specialization quota completed..."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            disabled={isProcessing}
+            required
+            rows={4}
+          />
+          <div className="flex items-center gap-3 pt-4 border-t border-neutral-100 mt-6 pb-1">
+            <Button 
+              variant="outline" 
+              onClick={() => setRejectModalOpen(false)} 
+              disabled={isProcessing}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleRejectSubmit} 
+              loading={isProcessing}
+              className="flex-1"
+            >
+              Confirm Rejection
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+    </div>
+  );
 };
 
 export { DoctorApplicationsPage };
+export default DoctorApplicationsPage;

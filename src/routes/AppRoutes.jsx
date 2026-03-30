@@ -7,6 +7,7 @@ import { LoginPage } from "../pages/Auth/LoginPage";
 import { SignupPage } from "../pages/Auth/SignupPage";
 import { ForgotPasswordPage } from "../pages/Auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/Auth/ResetPasswordPage";
+import { ChangePasswordPage } from "../pages/Auth/ChangePasswordPage";
 import { HomePage } from "../pages/Common/HomePage";
 import { NotFoundPage } from "../pages/Common/NotFoundPage";
 import { ChooseRolePage } from "../pages/Common/ChooseRolePage";
@@ -16,7 +17,6 @@ import { ChatbotPage } from "../pages/Patient/ChatbotPage";
 import { BookAppointmentPage } from "../pages/Patient/BookAppointmentPage";
 import { MyAppointmentsPage } from "../pages/Patient/MyAppointmentsPage";
 import { AppointmentDetailsPage } from "../pages/Patient/AppointmentDetailsPage";
-import { ApplyDoctorRolePage } from "../pages/Patient/ApplyDoctorRolePage";
 import { PatientProfilePage } from "../pages/Patient/PatientProfilePage";
 
 import { DoctorDashboardPage } from "../pages/Doctor/DoctorDashboardPage";
@@ -31,6 +31,7 @@ import { DoctorApplicationsPage } from "../pages/Admin/DoctorApplicationsPage";
 import { ManageDoctorsPage } from "../pages/Admin/ManageDoctorsPage";
 import { DoctorAvailabilityPage } from "../pages/Admin/DoctorAvailabilityPage";
 import { OfflineBookingPage } from "../pages/Admin/OfflineBookingPage";
+import { CreateDoctorAccountPage } from "../pages/Admin/CreateDoctorAccountPage";
 
 const AppRoutes = () => {
     return (
@@ -47,6 +48,15 @@ const AppRoutes = () => {
             </Route>
 
             <Route element={<PrivateLayout />}>
+                <Route
+                    path="/change-password"
+                    element={
+                        <ProtectedRoute allowMustChangePasswordBypass>
+                            <ChangePasswordPage />
+                        </ProtectedRoute>
+                    }
+                />
+
                 <Route
                     path="/choose-role"
                     element={
@@ -94,14 +104,6 @@ const AppRoutes = () => {
                     element={
                         <ProtectedRoute allowedRoles={["patient"]}>
                             <AppointmentDetailsPage />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/patient/apply-doctor-role"
-                    element={
-                        <ProtectedRoute allowedRoles={["patient"]}>
-                            <ApplyDoctorRolePage />
                         </ProtectedRoute>
                     }
                 />
@@ -186,6 +188,14 @@ const AppRoutes = () => {
                     element={
                         <ProtectedRoute allowedRoles={["admin"]}>
                             <ManageDoctorsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/doctors/create"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <CreateDoctorAccountPage />
                         </ProtectedRoute>
                     }
                 />

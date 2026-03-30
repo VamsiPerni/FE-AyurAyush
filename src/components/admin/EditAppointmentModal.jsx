@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { TimeSlotPicker } from "../patient/TimeSlotPicker";
-import { patientService } from "../../services/patientService";
+import { adminService } from "../../services/adminService";
 import { showErrorToast } from "../../utils/toastMessageHelper";
 
 const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
@@ -35,7 +35,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
 
     const loadDoctors = async () => {
         try {
-            const result = await patientService.getDoctors("");
+            const result = await adminService.getDoctors("");
             setDoctors(result.data?.doctors || []);
         } catch {
             showErrorToast("Failed to load doctors");
@@ -45,7 +45,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
     const loadSlots = async (doctorId, date) => {
         try {
             setSlotsLoading(true);
-            const result = await patientService.getAvailableSlots(
+            const result = await adminService.getDoctorAvailableSlots(
                 doctorId,
                 date,
             );
@@ -110,7 +110,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
                     <select
                         value={selectedDoctorId}
                         onChange={(e) => setSelectedDoctorId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
                     >
                         <option value="">Select a doctor</option>
                         {doctors.map((doc) => (
@@ -134,7 +134,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
                         min={getMinDate()}
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
                     />
                 </div>
 
@@ -157,7 +157,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
                         placeholder="Add any notes..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
                         rows={3}
                     />
                 </div>

@@ -77,8 +77,8 @@ const AppointmentApprovalCard = ({
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     {/* Patient info */}
                     <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-[#065A82]/10 flex items-center justify-center flex-shrink-0">
-                            <User size={18} className="text-[#065A82]" />
+                        <div className="w-10 h-10 rounded-full bg-primary-600/10 flex items-center justify-center flex-shrink-0">
+                            <User size={18} className="text-primary-600" />
                         </div>
                         <div>
                             <p className="font-medium text-gray-900">
@@ -124,7 +124,7 @@ const AppointmentApprovalCard = ({
                         </Button>
                         <Button
                             size="sm"
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => setShowEditModal(true)}
                         >
                             Edit & Approve

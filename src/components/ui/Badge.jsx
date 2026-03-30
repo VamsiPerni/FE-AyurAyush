@@ -1,43 +1,42 @@
-const badgeVariants = {
-    pending_admin_approval: "bg-amber-100 text-amber-800 border-amber-200",
-    confirmed: "bg-green-100 text-green-800 border-green-200",
-    completed: "bg-blue-100 text-blue-800 border-blue-200",
-    cancelled: "bg-gray-100 text-gray-600 border-gray-200",
-    rejected: "bg-red-100 text-red-800 border-red-200",
-    emergency: "bg-red-100 text-red-700 border-red-300",
-    normal: "bg-teal-100 text-teal-800 border-teal-200",
-    active: "bg-green-100 text-green-700 border-green-200",
-    pending: "bg-amber-100 text-amber-800 border-amber-200",
-    approved: "bg-green-100 text-green-800 border-green-200",
-    info: "bg-blue-100 text-blue-700 border-blue-200",
-    warning: "bg-amber-100 text-amber-700 border-amber-200",
-    success: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    danger: "bg-red-100 text-red-700 border-red-200",
+const statusConfig = {
+  pending_admin_approval: { label: 'Pending Approval', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  confirmed:              { label: 'Confirmed',        className: 'bg-green-50 text-green-700 border-green-200' },
+  completed:              { label: 'Completed',        className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  cancelled:              { label: 'Cancelled',        className: 'bg-neutral-50 text-neutral-600 border-neutral-200' },
+  rejected:               { label: 'Rejected',         className: 'bg-red-50 text-red-700 border-red-200' },
+  emergency:              { label: 'Emergency',        className: 'bg-red-50 text-red-700 border-red-200' },
+  active:                 { label: 'Active',           className: 'bg-green-50 text-green-700 border-green-200' },
+  pending:                { label: 'Pending',          className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  approved:               { label: 'Approved',         className: 'bg-green-50 text-green-700 border-green-200' },
+  info:                   { label: 'Info',             className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  warning:                { label: 'Warning',          className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  success:                { label: 'Success',          className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
 };
 
-const statusLabels = {
-    pending_admin_approval: "Pending Approval",
-    confirmed: "Confirmed",
-    completed: "Completed",
-    cancelled: "Cancelled",
-    rejected: "Rejected",
-    emergency: "Emergency",
-    normal: "Normal",
-    active: "Active",
-    pending: "Pending",
-    approved: "Approved",
+const queueConfig = {
+  normal:      { label: 'Normal',      className: 'bg-neutral-50 text-neutral-600 border-neutral-200' },
+  ayurveda:    { label: 'Ayurvedic',   className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  panchakarma: { label: 'Panchakarma', className: 'bg-purple-50 text-purple-700 border-purple-200' },
 };
 
-const Badge = ({ variant = "info", children, className = "", dot = false }) => {
-    const text = children || statusLabels[variant] || variant;
-    return (
-        <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeVariants[variant] || badgeVariants.info} ${className}`}
-        >
-            {dot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
-            {text}
-        </span>
-    );
-};
+const Badge = ({ type = 'status', value, variant, size = 'md', dot = false, children, className = '' }) => {
+  const resolvedValue = value ?? variant ?? 'info';
+  const config = type === 'queue' ? queueConfig : statusConfig;
+  const resolved = config[resolvedValue] || { label: resolvedValue, className: 'bg-neutral-50 text-neutral-600 border-neutral-200' };
+  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
+  const label = children || resolved.label;
 
+  return (
+    <span className={`
+      inline-flex items-center gap-1.5 font-semibold rounded-md border
+      ${sizeClass} ${resolved.className} ${className}
+    `}>
+      {(dot || resolvedValue === 'emergency') && (
+        <span className={`w-1.5 h-1.5 rounded-full bg-current ${resolvedValue === 'emergency' ? 'animate-pulse' : ''}`} />
+      )}
+      {label}
+    </span>
+  );
+};
 export { Badge };
+export default Badge;

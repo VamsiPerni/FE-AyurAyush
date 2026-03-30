@@ -1,133 +1,109 @@
-import { Card, CardHeader, CardTitle } from "../ui/Card";
-import { Badge } from "../ui/Badge";
-import {
-    Brain,
-    Activity,
-    Thermometer,
-    UserCheck,
-    FileText,
-    AlertTriangle,
-} from "lucide-react";
+import { Sparkles, AlertTriangle } from "lucide-react";
 
 const AISummaryViewer = ({ summary, className = "" }) => {
     if (!summary) return null;
 
-    const getSeverityColor = (severity) => {
-        if (severity <= 3) return "bg-green-500";
-        if (severity <= 6) return "bg-amber-500";
-        return "bg-red-500";
-    };
+    const {
+        symptoms = [],
+        severity = 0,
+        urgencyLevel = "normal",
+        recommendedSpecialist = "",
+        detailedSummary,
+    } = summary;
 
-    const getUrgencyVariant = (level) => {
-        if (level === "emergency") return "emergency";
-        if (level === "urgent") return "warning";
-        return "success";
-    };
+    const numericSeverity = Number.isFinite(Number(severity))
+        ? Math.max(0, Math.min(10, Number(severity)))
+        : 0;
+    const isUrgent = urgencyLevel === "emergency" || numericSeverity >= 8;
+    const barColor =
+        numericSeverity >= 8
+            ? "from-red-400 to-red-600"
+            : numericSeverity >= 5
+              ? "from-amber-400 to-orange-500"
+              : "from-green-400 to-emerald-500";
 
     return (
-        <Card className={className}>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Brain size={18} className="text-[#065A82]" />
-                    AI Medical Summary
-                </CardTitle>
-            </CardHeader>
-
-            <div className="space-y-4">
-                {/* Urgency & Severity */}
-                <div className="flex items-center gap-4 flex-wrap">
-                    <div className="flex items-center gap-2">
-                        <AlertTriangle size={14} className="text-gray-400" />
-                        <span className="text-sm text-gray-500">Urgency:</span>
-                        <Badge
-                            variant={getUrgencyVariant(summary.urgencyLevel)}
-                        >
-                            {summary.urgencyLevel?.toUpperCase()}
-                        </Badge>
-                    </div>
-
-                    {summary.severity && (
-                        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                            <Activity size={14} className="text-gray-400" />
-                            <span className="text-sm text-gray-500">
-                                Severity:
-                            </span>
-                            <div className="flex items-center gap-2 flex-1">
-                                <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-                                    <div
-                                        className={`h-2.5 rounded-full transition-all ${getSeverityColor(summary.severity)}`}
-                                        style={{
-                                            width: `${summary.severity * 10}%`,
-                                        }}
-                                    />
-                                </div>
-                                <span className="text-sm font-semibold text-gray-700">
-                                    {summary.severity}/10
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Symptoms */}
-                {summary.symptoms?.length > 0 && (
-                    <div>
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <Thermometer size={14} className="text-gray-400" />
-                            <span className="text-sm font-medium text-gray-700">
-                                Symptoms
-                            </span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                            {summary.symptoms.map((s, i) => (
-                                <span
-                                    key={i}
-                                    className="bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-1 rounded-full text-xs font-medium"
-                                >
-                                    {s}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+        <div
+            className={`rounded-xl p-5 border ${isUrgent ? "bg-linear-to-br from-red-50 to-orange-50 border-red-200" : "bg-linear-to-br from-primary-50 to-emerald-50 border-primary-100"} ${className}`}
+        >
+            <div className="flex items-center gap-2 mb-4">
+                {isUrgent ? (
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                ) : (
+                    <Sparkles className="w-4 h-4 text-primary-600" />
                 )}
-
-                {/* Duration */}
-                {summary.duration && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="font-medium">Duration:</span>
-                        <span>{summary.duration}</span>
-                    </div>
-                )}
-
-                {/* Recommended Specialist */}
-                {summary.recommendedSpecialist && (
-                    <div className="flex items-center gap-2 bg-[#065A82]/5 p-3 rounded-lg">
-                        <UserCheck size={16} className="text-[#065A82]" />
-                        <span className="text-sm text-gray-600">
-                            Recommended Specialist:
-                        </span>
-                        <span className="text-sm font-semibold text-[#065A82]">
-                            {summary.recommendedSpecialist}
-                        </span>
-                    </div>
-                )}
-
-                {/* Detailed Summary */}
-                {summary.detailedSummary && (
-                    <div>
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <FileText size={14} className="text-gray-400" />
-                            <span className="text-sm font-medium text-gray-700">
-                                Detailed Summary
-                            </span>
-                        </div>
-                        <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg">
-                            {summary.detailedSummary}
-                        </p>
-                    </div>
-                )}
+                <h3
+                    className={`text-sm font-semibold ${isUrgent ? "text-red-800" : "text-primary-800"}`}
+                >
+                    AI Pre-Consultation Summary
+                </h3>
             </div>
-        </Card>
+
+            <div className="mb-4">
+                <div className="flex justify-between text-xs text-neutral-600 mb-1.5">
+                    <span className="font-medium">Severity Score</span>
+                    <span className="font-bold text-neutral-800">
+                        {numericSeverity}/10
+                    </span>
+                </div>
+                <div className="h-2.5 bg-white/80 rounded-full overflow-hidden">
+                    <div
+                        className={`h-full rounded-full bg-linear-to-r ${barColor} transition-all duration-500`}
+                        style={{ width: `${numericSeverity * 10}%` }}
+                    />
+                </div>
+            </div>
+
+            {symptoms.length > 0 && (
+                <div className="mb-4">
+                    <p className="text-xs font-medium text-neutral-600 mb-2">
+                        Reported Symptoms
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {symptoms.map((symptom, index) => (
+                            <span
+                                key={`${symptom}-${index}`}
+                                className="px-2.5 py-1 text-xs font-medium rounded-md bg-white/90 border border-neutral-200 text-neutral-700"
+                            >
+                                {symptom}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/80 rounded-lg p-3">
+                    <p className="text-[11px] text-neutral-500 font-medium uppercase tracking-wide mb-1">
+                        Urgency
+                    </p>
+                    <p
+                        className={`text-sm font-bold ${urgencyLevel === "emergency" ? "text-red-700" : "text-neutral-800"}`}
+                    >
+                        {urgencyLevel}
+                    </p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-3">
+                    <p className="text-[11px] text-neutral-500 font-medium uppercase tracking-wide mb-1">
+                        Specialist
+                    </p>
+                    <p className="text-sm font-bold text-neutral-800">
+                        {recommendedSpecialist || "General"}
+                    </p>
+                </div>
+            </div>
+
+            {detailedSummary && (
+                <div className="mt-4 bg-white/60 rounded-lg p-3">
+                    <p className="text-[11px] text-neutral-500 font-medium uppercase tracking-wide mb-1">
+                        Summary
+                    </p>
+                    <p className="text-sm text-neutral-700 leading-relaxed">
+                        {detailedSummary}
+                    </p>
+                </div>
+            )}
+        </div>
     );
 };
 

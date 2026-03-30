@@ -1,46 +1,35 @@
-import {
-    Inbox,
-    Search,
-    Calendar,
-    MessageSquare,
-    Users,
-    FileX,
-} from "lucide-react";
+import { Inbox, Search, Calendar, MessageSquare, Users, FileX } from 'lucide-react';
+import Button from './Button';
 
 const icons = {
-    inbox: Inbox,
-    search: Search,
-    calendar: Calendar,
-    chat: MessageSquare,
-    users: Users,
-    file: FileX,
+  inbox: Inbox,
+  search: Search,
+  calendar: Calendar,
+  chat: MessageSquare,
+  users: Users,
+  file: FileX,
 };
 
-const EmptyState = ({
-    icon = "inbox",
-    title = "No data found",
-    description = "",
-    action,
-    className = "",
-}) => {
-    const Icon = icons[icon] || Inbox;
+const EmptyState = ({ icon: IconProp, title, description, action, actionLabel, actionIcon, className = '' }) => {
+  const Icon = typeof IconProp === 'string' ? (icons[IconProp] || Inbox) : (IconProp || null);
 
-    return (
-        <div
-            className={`flex flex-col items-center justify-center py-12 px-4 ${className}`}
-        >
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Icon size={28} className="text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">{title}</h3>
-            {description && (
-                <p className="text-sm text-gray-500 text-center max-w-sm mb-4">
-                    {description}
-                </p>
-            )}
-            {action && action}
+  return (
+    <div className={`flex flex-col items-center justify-center py-16 text-center ${className}`}>
+      {Icon && (
+        <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+          <Icon className="w-7 h-7 text-neutral-400" />
         </div>
-    );
+      )}
+      <h3 className="text-base font-semibold text-neutral-700 mb-1">{title}</h3>
+      {description && (
+        <p className="text-sm text-neutral-500 max-w-sm mb-6">{description}</p>
+      )}
+      {action && typeof action === 'function' && actionLabel && (
+        <Button onClick={action} icon={actionIcon}>{actionLabel}</Button>
+      )}
+      {action && typeof action !== 'function' && action}
+    </div>
+  );
 };
-
 export { EmptyState };
+export default EmptyState;

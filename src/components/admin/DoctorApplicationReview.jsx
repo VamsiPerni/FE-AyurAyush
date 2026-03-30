@@ -26,8 +26,8 @@ const DoctorApplicationReview = ({ application, onApprove, onReject }) => {
         <Card className="flex flex-col gap-3">
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-[#065A82]/10 flex items-center justify-center">
-                        <User size={20} className="text-[#065A82]" />
+                    <div className="w-11 h-11 rounded-full bg-primary-600/10 flex items-center justify-center">
+                        <User size={20} className="text-primary-600" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-gray-900">

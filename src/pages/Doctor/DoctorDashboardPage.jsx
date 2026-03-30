@@ -1,159 +1,160 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
-import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
-import { TodaySchedule } from "../../components/doctor/TodaySchedule";
-import { doctorService } from "../../services/doctorService";
-import { showErrorToast } from "../../utils/toastMessageHelper";
-import {
-    CalendarCheck,
-    Calendar,
-    Users,
-    Activity,
-    Stethoscope,
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { 
+  CalendarCheck, Clock, CheckCircle, Users, 
+  RefreshCw, ClipboardList, AlertCircle, FileText
+} from 'lucide-react';
+import { doctorService } from '../../services/doctorService';
+import { useAuthContext } from '../../contexts/AppContext';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { StatCard } from '../../components/shared/StatCard';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { StatsSkeleton, TableSkeleton } from '../../components/ui/Skeleton';
+import { AppointmentRow } from '../../components/doctor/AppointmentRow';
+import { showErrorToast } from '../../utils/toastMessageHelper';
 
 const DoctorDashboardPage = () => {
-    const navigate = useNavigate();
-    const [dashboard, setDashboard] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { name } = useAuthContext();
+  const doctorName = name || 'Doctor';
 
-    useEffect(() => {
-        loadDashboard();
-    }, []);
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    const loadDashboard = async () => {
-        try {
-            const result = await doctorService.getDashboard();
-            setDashboard(result.data?.data || result.data);
-        } catch {
-            showErrorToast("Failed to load dashboard");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="max-w-6xl mx-auto px-4 py-6">
-                <LoadingSkeleton type="card" count={4} />
-            </div>
-        );
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const result = await doctorService.getDashboard();
+      setDashboard(result.data?.data || result.data || {});
+    } catch (err) {
+      const message = 'Unable to load doctor dashboard. Please try again.';
+      setError(message);
+      showErrorToast(message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const stats = dashboard?.stats || {};
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
+  // 1. Loading State
+  if (loading) {
     return (
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
-            {/* Welcome */}
-            <div className="bg-gradient-to-r from-[#065A82] to-[#1C7293] rounded-2xl p-6 text-white">
-                <h1 className="text-2xl font-bold mb-1">Doctor Dashboard 🩺</h1>
-                <p className="text-white/80 text-sm">
-                    Manage your appointments and patients
-                </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                    {
-                        label: "Today's Appointments",
-                        value: stats.todayAppointments ?? 0,
-                        icon: CalendarCheck,
-                        color: "#065A82",
-                    },
-                    {
-                        label: "Total Appointments",
-                        value: stats.totalAppointments ?? 0,
-                        icon: Calendar,
-                        color: "#1C7293",
-                    },
-                    {
-                        label: "Total Patients",
-                        value: stats.totalPatients ?? 0,
-                        icon: Users,
-                        color: "#02C39A",
-                    },
-                    {
-                        label: "Completed",
-                        value: stats.completedAppointments ?? 0,
-                        icon: Activity,
-                        color: "#7C3AED",
-                    },
-                ].map((s) => (
-                    <Card key={s.label}>
-                        <div className="flex items-center gap-3">
-                            <div
-                                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                                style={{ backgroundColor: `${s.color}15` }}
-                            >
-                                <s.icon size={18} style={{ color: s.color }} />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {s.value}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                    {s.label}
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Quick Links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                    onClick={() => navigate("/doctor/today")}
-                    className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#065A82] transition text-left"
-                >
-                    <div className="w-12 h-12 rounded-full bg-[#065A82]/10 flex items-center justify-center">
-                        <CalendarCheck size={22} className="text-[#065A82]" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-gray-900">
-                            Today's Schedule
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            View and manage today's appointments
-                        </p>
-                    </div>
-                </button>
-
-                <button
-                    onClick={() => navigate("/doctor/appointments")}
-                    className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#1C7293] transition text-left"
-                >
-                    <div className="w-12 h-12 rounded-full bg-[#1C7293]/10 flex items-center justify-center">
-                        <Stethoscope size={22} className="text-[#1C7293]" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-gray-900">
-                            All Appointments
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            Browse appointment history
-                        </p>
-                    </div>
-                </button>
-            </div>
-
-            {/* Today's Schedule */}
-            <TodaySchedule
-                appointments={dashboard?.todayAppointments || []}
-                onViewAppointment={(id) =>
-                    navigate(`/doctor/appointments/${id}`)
-                }
-            />
-        </div>
+      <div className="space-y-8">
+        <PageHeader title={`Welcome back, Dr. ${doctorName}`} subtitle="Manage your appointments and patient care" />
+        <StatsSkeleton count={4} />
+        <Card className="p-6">
+          <TableSkeleton rows={4} columns={3} />
+        </Card>
+      </div>
     );
+  }
+
+  // 2. Error State
+  if (error) {
+    return (
+      <div className="py-12">
+        <EmptyState
+          icon={AlertCircle}
+          title="Failed to load dashboard"
+          description={error}
+          action={<Button icon={RefreshCw} onClick={loadDashboard}>Try Again</Button>}
+        />
+      </div>
+    );
+  }
+
+  // 3. Data Extraction
+  const stats = dashboard?.stats || {};
+  const todayAppointments = dashboard?.todayAppointments || [];
+
+  return (
+    <div className="space-y-8 pb-8">
+      <PageHeader
+        title={`Welcome back, Dr. ${doctorName}`}
+        subtitle="Track schedules, appointments, and patient workload"
+        action={
+          <Button icon={CalendarCheck} onClick={() => navigate('/doctor/today')}>
+            Today's Schedule
+          </Button>
+        }
+      />
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="Today's Appointments"
+          value={stats.todayAppointments ?? stats.today ?? 0}
+          icon={CalendarCheck}
+          variant="default"
+        />
+        <StatCard
+          label="Pending"
+          value={stats.pendingAppointments ?? stats.pending ?? 0}
+          icon={Clock}
+          variant="warning"
+        />
+        <StatCard
+          label="Completed Today"
+          value={stats.completedAppointments ?? stats.completed ?? 0}
+          icon={CheckCircle}
+          variant="success"
+        />
+        <StatCard
+          label="Total Patients"
+          value={stats.totalPatients ?? stats.patients ?? 0}
+          icon={Users}
+          variant="info"
+        />
+      </div>
+
+      {/* Today's Appointments Grid */}
+      <Card>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-primary-600" />
+            <CardTitle>Today's Appointments</CardTitle>
+          </div>
+          {todayAppointments.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/doctor/today')}>
+              View Full Schedule
+            </Button>
+          )}
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {todayAppointments.length === 0 ? (
+            <div className="py-12">
+              <EmptyState 
+                icon={FileText} 
+                title="No appointments today" 
+                description="Your schedule is clear for today. Take a break!" 
+                action={<Button variant="outline" onClick={loadDashboard}>Refresh Flow</Button>}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col">
+              {todayAppointments.slice(0, 5).map((apt) => (
+                <AppointmentRow
+                  key={apt._id || apt.appointmentId}
+                  appointment={apt}
+                  onView={(id) => navigate(`/doctor/appointments/${id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+    </div>
+  );
 };
 
 export { DoctorDashboardPage };
+export default DoctorDashboardPage;

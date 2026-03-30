@@ -6,14 +6,6 @@ export const patientService = {
         return response.data;
     },
 
-    applyDoctorRole: async (data) => {
-        const response = await axiosInstance.post(
-            "/patient/apply-doctor-role",
-            data,
-        );
-        return response.data;
-    },
-
     getDoctors: async (specialization = "") => {
         const query = specialization
             ? `?specialization=${encodeURIComponent(specialization)}`

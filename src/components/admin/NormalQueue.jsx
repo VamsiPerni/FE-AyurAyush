@@ -65,7 +65,7 @@ const NormalQueue = ({ onRefresh }) => {
         <div className="bg-white border border-gray-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <ClipboardList size={20} className="text-[#065A82]" />
+                    <ClipboardList size={20} className="text-primary-600" />
                     <h2 className="text-lg font-bold text-gray-800">
                         📋 Normal Queue
                     </h2>

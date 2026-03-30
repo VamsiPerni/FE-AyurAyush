@@ -1,51 +1,52 @@
-import { PuffLoader } from "react-spinners";
+import { forwardRef } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const variants = {
-    primary: "bg-[#065A82] hover:bg-[#054a6b] text-white",
-    secondary: "bg-[#1C7293] hover:bg-[#165f7a] text-white",
-    success: "bg-emerald-500 hover:bg-emerald-600 text-white",
-    danger: "bg-red-500 hover:bg-red-600 text-white",
-    warning: "bg-amber-500 hover:bg-amber-600 text-white",
-    outline:
-        "border-2 border-[#065A82] text-[#065A82] hover:bg-[#065A82] hover:text-white",
-    ghost: "text-gray-600 hover:bg-gray-100",
+  primary:   'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm',
+  secondary: 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100',
+  danger:    'bg-error-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm',
+  ghost:     'text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200',
+  success:   'bg-success-600 text-white hover:bg-green-700 active:bg-green-800 shadow-sm',
 };
 
 const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base",
+  sm: 'h-8  px-3 text-xs  gap-1.5',
+  md: 'h-10 px-4 text-sm  gap-2',
+  lg: 'h-11 px-5 text-sm  gap-2',
+  xl: 'h-12 px-6 text-base gap-2.5',
 };
 
-const Button = ({
-    children,
-    variant = "primary",
-    size = "md",
-    loading = false,
-    disabled = false,
-    className = "",
-    type = "button",
-    onClick,
-    ...props
-}) => {
-    return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={disabled || loading}
-            className={`inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
-            {...props}
-        >
-            {loading ? (
-                <>
-                    <PuffLoader size={16} color="currentColor" />
-                    <span>Loading...</span>
-                </>
-            ) : (
-                children
-            )}
-        </button>
-    );
-};
+const iconSizes = { sm: 'w-3.5 h-3.5', md: 'w-4 h-4', lg: 'w-4 h-4', xl: 'w-5 h-5' };
 
+const Button = forwardRef(({
+  children, variant = 'primary', size = 'md',
+  loading = false, disabled = false,
+  icon: Icon, fullWidth = false, className = '', type = 'button', ...props
+}, ref) => (
+  <button
+    ref={ref}
+    type={type}
+    disabled={disabled || loading}
+    className={`
+      inline-flex items-center justify-center font-medium rounded-lg
+      transition-all duration-200
+      focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+      ${variants[variant]} ${sizes[size]}
+      ${fullWidth ? 'w-full' : ''}
+      ${className}
+    `}
+    {...props}
+  >
+    {loading
+      ? <Loader2 className={`${iconSizes[size]} animate-spin`} />
+      : Icon
+        ? <Icon className={iconSizes[size]} />
+        : null
+    }
+    {children}
+  </button>
+));
+Button.displayName = 'Button';
 export { Button };
+export default Button;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Card, CardHeader, CardTitle } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -27,11 +27,7 @@ const AppointmentDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(false);
 
-    useEffect(() => {
-        loadDetails();
-    }, [appointmentId]);
-
-    const loadDetails = async () => {
+    const loadDetails = useCallback(async () => {
         try {
             setLoading(true);
             const result =
@@ -42,7 +38,11 @@ const AppointmentDetailsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [appointmentId]);
+
+    useEffect(() => {
+        loadDetails();
+    }, [loadDetails]);
 
     const handleCancel = async () => {
         try {
@@ -77,7 +77,7 @@ const AppointmentDetailsPage = () => {
     if (!data) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-                <p className="text-gray-500">Appointment not found</p>
+                <p className="text-neutral-500">Appointment not found</p>
                 <Button
                     variant="ghost"
                     className="mt-4"
@@ -101,7 +101,7 @@ const AppointmentDetailsPage = () => {
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate("/patient/appointments")}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                    className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
                 >
                     <ArrowLeft size={18} />
                     <span>Back to Appointments</span>
@@ -126,29 +126,29 @@ const AppointmentDetailsPage = () => {
                     <CardTitle>Appointment Details</CardTitle>
                 </CardHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Stethoscope size={16} className="text-[#065A82]" />
+                    <div className="flex items-center gap-2 text-neutral-600">
+                        <Stethoscope size={16} className="text-primary-600" />
                         <span>
                             <span className="font-medium">Doctor:</span>{" "}
                             {doctor?.name || "N/A"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <User size={16} className="text-gray-400" />
+                    <div className="flex items-center gap-2 text-neutral-600">
+                        <User size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Specialization:</span>{" "}
                             {doctor?.specialization || "N/A"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Calendar size={16} className="text-gray-400" />
+                    <div className="flex items-center gap-2 text-neutral-600">
+                        <Calendar size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Date:</span>{" "}
                             {formatDate(appointment.date)}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Clock size={16} className="text-gray-400" />
+                    <div className="flex items-center gap-2 text-neutral-600">
+                        <Clock size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Time:</span>{" "}
                             {appointment.timeSlot}
@@ -158,7 +158,7 @@ const AppointmentDetailsPage = () => {
 
                 {(appointment.status === "pending_admin_approval" ||
                     appointment.status === "confirmed") && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="mt-4 pt-4 border-t border-neutral-100">
                         <Button
                             variant="danger"
                             size="sm"
@@ -179,17 +179,17 @@ const AppointmentDetailsPage = () => {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Pill size={18} className="text-[#065A82]" />
+                            <Pill size={18} className="text-primary-600" />
                             Prescription
                         </CardTitle>
                     </CardHeader>
 
                     {prescription.diagnosis && (
                         <div className="mb-4">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-neutral-700">
                                 Diagnosis:
                             </span>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-neutral-600 mt-1">
                                 {prescription.diagnosis}
                             </p>
                         </div>
@@ -197,7 +197,7 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.medications?.length > 0 && (
                         <div className="mb-4">
-                            <span className="text-sm font-medium text-gray-700 block mb-2">
+                            <span className="text-sm font-medium text-neutral-700 block mb-2">
                                 Medications:
                             </span>
                             <div className="space-y-2">
@@ -214,7 +214,7 @@ const AppointmentDetailsPage = () => {
                                             {med.duration}
                                         </p>
                                         {med.instructions && (
-                                            <p className="text-gray-500 text-xs mt-1">
+                                            <p className="text-neutral-500 text-xs mt-1">
                                                 {med.instructions}
                                             </p>
                                         )}
@@ -226,7 +226,7 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.tests?.length > 0 && (
                         <div className="mb-4">
-                            <span className="text-sm font-medium text-gray-700 block mb-2">
+                            <span className="text-sm font-medium text-neutral-700 block mb-2">
                                 Tests Recommended:
                             </span>
                             <div className="space-y-2">
@@ -251,10 +251,10 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.notes && (
                         <div>
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-neutral-700">
                                 Doctor's Notes:
                             </span>
-                            <p className="text-sm text-gray-600 mt-1 bg-gray-50 p-3 rounded-lg">
+                            <p className="text-sm text-neutral-600 mt-1 bg-neutral-50 p-3 rounded-lg">
                                 {prescription.notes}
                             </p>
                         </div>
@@ -267,11 +267,11 @@ const AppointmentDetailsPage = () => {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <FileText size={18} className="text-[#065A82]" />
+                            <FileText size={18} className="text-primary-600" />
                             Doctor's Notes
                         </CardTitle>
                     </CardHeader>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-neutral-600">
                         {appointment.doctorNotes}
                     </p>
                 </Card>
