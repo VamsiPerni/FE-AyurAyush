@@ -104,7 +104,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Calendar size={18} className="text-[#065A82]" />
+                    <Calendar size={18} className="text-primary-600" />
                     Doctor Availability
                 </CardTitle>
             </CardHeader>
@@ -121,8 +121,8 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                             onClick={() => toggleDay(day)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                                 availableDays.includes(day)
-                                    ? "bg-[#065A82] text-white border-[#065A82]"
-                                    : "bg-white text-gray-600 border-gray-200 hover:border-[#1C7293]"
+                                    ? "bg-primary-600 text-white border-primary-600"
+                                    : "bg-white text-gray-600 border-gray-200 hover:border-primary-500"
                             }`}
                         >
                             {day}

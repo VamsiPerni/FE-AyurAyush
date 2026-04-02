@@ -42,8 +42,8 @@ const TimeSlotPicker = ({ slots = [], selected, onSelect, loading }) => {
                             onClick={() => onSelect(slot)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
                                 selected === slot
-                                    ? "bg-[#065A82] text-white border-[#065A82] shadow-sm"
-                                    : "bg-white border-gray-200 text-gray-700 hover:border-[#1C7293] hover:text-[#1C7293]"
+                                    ? "bg-primary-600 text-white border-primary-600 shadow-sm"
+                                    : "bg-white border-gray-200 text-gray-700 hover:border-primary-500 hover:text-primary-500"
                             }`}
                         >
                             {slot}

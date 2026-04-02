@@ -6,6 +6,14 @@ export const adminService = {
         return response.data;
     },
 
+    createDoctorAccount: async (data) => {
+        const response = await axiosInstance.post(
+            "/admin/doctors/create",
+            data,
+        );
+        return response.data;
+    },
+
     getDoctorApplications: async () => {
         const response = await axiosInstance.get("/admin/doctor-applications");
         return response.data;
@@ -18,9 +26,25 @@ export const adminService = {
         return response.data;
     },
 
-    rejectDoctorApplication: async (applicationId) => {
+    rejectDoctorApplication: async (applicationId, reason = '') => {
         const response = await axiosInstance.post(
             `/admin/doctor-applications/${encodeURIComponent(applicationId)}/reject`,
+            { reason }
+        );
+        return response.data;
+    },
+
+    getDoctors: async (specialization = "") => {
+        const query = specialization
+            ? `?specialization=${encodeURIComponent(specialization)}`
+            : "";
+        const response = await axiosInstance.get(`/admin/doctors${query}`);
+        return response.data;
+    },
+
+    getDoctorAvailableSlots: async (doctorId, date) => {
+        const response = await axiosInstance.get(
+            `/admin/doctors/${encodeURIComponent(doctorId)}/available-slots?date=${encodeURIComponent(date)}`,
         );
         return response.data;
     },

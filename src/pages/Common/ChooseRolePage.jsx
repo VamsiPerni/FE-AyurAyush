@@ -1,32 +1,37 @@
 import { useNavigate } from "react-router";
 import { useAuthContext } from "../../contexts/AppContext";
-import { Card } from "../../components/ui/Card";
 import { Stethoscope, User, Shield } from "lucide-react";
 
 const roleConfig = {
     patient: {
         icon: User,
-        color: "#02C39A",
         label: "Patient",
         desc: "Book appointments & consult",
+        iconBg: "bg-success-50",
+        iconColor: "text-success-600",
+        borderHover: "hover:border-success-200",
     },
     doctor: {
         icon: Stethoscope,
-        color: "#065A82",
         label: "Doctor",
         desc: "Manage patients & schedules",
+        iconBg: "bg-primary-50",
+        iconColor: "text-primary-600",
+        borderHover: "hover:border-primary-200",
     },
     admin: {
         icon: Shield,
-        color: "#7C3AED",
         label: "Admin",
         desc: "Hospital management",
+        iconBg: "bg-warning-50",
+        iconColor: "text-warning-600",
+        borderHover: "hover:border-warning-200",
     },
 };
 
 const ChooseRolePage = () => {
     const navigate = useNavigate();
-    const { roles, handleSetUser, isLoggedIn } = useAuthContext();
+    const { roles, handleSetUser } = useAuthContext();
 
     const handleRoleSelect = (role) => {
         handleSetUser({ isLoggedIn: true, roles, activeRole: role });
@@ -37,10 +42,10 @@ const ChooseRolePage = () => {
         <div className="min-h-[80vh] flex items-center justify-center px-4">
             <div className="text-center space-y-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-neutral-900 tracking-tight">
                         Choose Your Role
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-neutral-500 mt-1">
                         You have multiple roles. Select one to continue.
                     </p>
                 </div>
@@ -53,24 +58,20 @@ const ChooseRolePage = () => {
                             <button
                                 key={role}
                                 onClick={() => handleRoleSelect(role)}
-                                className="w-48 p-6 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition hover:border-current group text-center"
-                                style={{ "--tw-border-opacity": 1 }}
+                                className={`w-48 p-6 bg-white rounded-2xl border-2 border-neutral-100 shadow-sm hover:shadow-md transition-all duration-200 group text-center ${config.borderHover}`}
                             >
                                 <div
-                                    className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-                                    style={{
-                                        backgroundColor: `${config.color}15`,
-                                    }}
+                                    className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${config.iconBg}`}
                                 >
                                     <Icon
                                         size={28}
-                                        style={{ color: config.color }}
+                                        className={config.iconColor}
                                     />
                                 </div>
-                                <p className="font-semibold text-gray-900 text-lg">
+                                <p className="font-semibold text-neutral-900 text-lg">
                                     {config.label}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-neutral-500 mt-1">
                                     {config.desc}
                                 </p>
                             </button>

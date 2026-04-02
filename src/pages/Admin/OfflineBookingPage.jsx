@@ -1,269 +1,343 @@
-import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { TimeSlotPicker } from "../../components/patient/TimeSlotPicker";
-import { adminService } from "../../services/adminService";
-import { patientService } from "../../services/patientService";
-import {
-    showErrorToast,
-    showSuccessToast,
-} from "../../utils/toastMessageHelper";
-import { UserPlus, Stethoscope } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { 
+  User, Phone, Calendar, Clock, Stethoscope, 
+  ShieldAlert, Activity, FileText, CheckCircle2 
+} from 'lucide-react';
+import { adminService } from '../../services/adminService';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { showErrorToast, showSuccessToast } from '../../utils/toastMessageHelper';
 
 const OfflineBookingPage = () => {
-    const [doctors, setDoctors] = useState([]);
-    const [form, setForm] = useState({
-        patientEmail: "",
-        doctorId: "",
-        date: "",
-        timeSlot: "",
-        symptoms: "",
-        urgencyLevel: "normal",
-        adminNotes: "",
-    });
-    const [availableSlots, setAvailableSlots] = useState([]);
-    const [slotsLoading, setSlotsLoading] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [booked, setBooked] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadDoctors();
-    }, []);
+  const [formData, setFormData] = useState({
+    patientName: '',
+    patientPhone: '',
+    doctorId: '',
+    date: '',
+    timeSlot: '',
+    urgencyLevel: 'normal'
+  });
 
-    const loadDoctors = async () => {
-        try {
-            const result = await patientService.getDoctors("");
-            setDoctors(result.data?.doctors || []);
-        } catch {
-            showErrorToast("Failed to load doctors");
-        }
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoadingDoctors(true);
+        const result = await adminService.getDoctors();
+        setDoctors(result.data?.doctors || result.data || []);
+      } catch (err) {
+        showErrorToast('Failed to load registered doctors. Please refresh.');
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
+
+  // Fetch slots whenever doctor or date changes
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!formData.doctorId || !formData.date) {
+        setAvailableSlots([]);
+        return;
+      }
+      
+      try {
+        setLoadingSlots(true);
+        const result = await adminService.getDoctorAvailableSlots(formData.doctorId, formData.date);
+        
+        // Handle array of strings or array of objects
+        const slotsArray = result.data?.availableSlots || result.data?.slots || result.data || [];
+        setAvailableSlots(slotsArray);
+        
+        // Auto-clear selected slot if it's no longer in the fetched list
+        setFormData(prev => ({ ...prev, timeSlot: '' }));
+      } catch (err) {
+        setAvailableSlots([]);
+        showErrorToast('Failed to retrieve available slots for the selected date.');
+      } finally {
+        setLoadingSlots(false);
+      }
     };
 
-    const loadSlots = async (doctorId, date) => {
-        try {
-            setSlotsLoading(true);
-            const result = await patientService.getAvailableSlots(
-                doctorId,
-                date,
-            );
-            setAvailableSlots(result.data?.availableSlots || []);
-        } catch {
-            setAvailableSlots([]);
-        } finally {
-            setSlotsLoading(false);
-        }
-    };
+    fetchSlots();
+  }, [formData.doctorId, formData.date]);
 
-    useEffect(() => {
-        if (form.doctorId && form.date) {
-            loadSlots(form.doctorId, form.date);
-            setForm((f) => ({ ...f, timeSlot: "" }));
-        }
-    }, [form.doctorId, form.date]);
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            const payload = {
-                patientEmail: form.patientEmail,
-                doctorId: form.doctorId,
-                date: form.date,
-                timeSlot: form.timeSlot,
-                urgencyLevel: form.urgencyLevel,
-            };
-            if (form.symptoms.trim()) {
-                payload.symptoms = form.symptoms
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean);
-            }
-            if (form.adminNotes.trim()) {
-                payload.adminNotes = form.adminNotes;
-            }
-            const result = await adminService.offlineBookAppointment(payload);
-            showSuccessToast("Walk-in appointment booked and confirmed!");
-            setBooked(result.data);
-        } catch (err) {
-            showErrorToast(
-                err.response?.data?.message || "Failed to book appointment",
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const getMinDate = () => {
-        return new Date().toISOString().split("T")[0];
-    };
-
-    if (booked) {
-        return (
-            <div className="max-w-lg mx-auto px-4 py-12">
-                <Card className="text-center py-10">
-                    <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Stethoscope size={28} className="text-green-600" />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">
-                        Appointment Confirmed!
-                    </h2>
-                    <div className="text-sm text-gray-600 space-y-1 mb-6">
-                        <p>
-                            Patient:{" "}
-                            {booked.patient?.name || booked.patientEmail}
-                        </p>
-                        <p>Doctor: {booked.doctor?.name}</p>
-                        <p>Specialization: {booked.specialization}</p>
-                        <p>
-                            Date: {new Date(booked.date).toLocaleDateString()}
-                        </p>
-                        <p>Time: {booked.timeSlot}</p>
-                    </div>
-                    <Button
-                        onClick={() => {
-                            setBooked(null);
-                            setForm({
-                                patientEmail: "",
-                                doctorId: "",
-                                date: "",
-                                timeSlot: "",
-                                symptoms: "",
-                                urgencyLevel: "normal",
-                                adminNotes: "",
-                            });
-                        }}
-                    >
-                        Book Another
-                    </Button>
-                </Card>
-            </div>
-        );
+  const validateField = (field, value) => {
+    switch (field) {
+      case 'patientName':
+        return value.trim() ? '' : 'Patient name is required';
+      case 'patientPhone':
+        return value.trim() ? '' : 'Contact number is required';
+      case 'doctorId':
+        return value ? '' : 'Please assign a doctor';
+      case 'date':
+        return value ? '' : 'Appointment date is required';
+      case 'timeSlot':
+        return value ? '' : 'A time slot must be selected';
+      default:
+        return '';
     }
+  };
 
-    return (
-        <div className="max-w-lg mx-auto px-4 py-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <UserPlus size={20} className="text-[#065A82]" />
-                        Offline Booking (Walk-in)
-                    </CardTitle>
-                </CardHeader>
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
-                <p className="text-sm text-gray-500 mb-6">
-                    Book an appointment for walk-in patients. This will skip the
-                    chat and auto-confirm the appointment.
-                </p>
+  const setUrgency = (level) => {
+    setFormData(prev => ({ ...prev, urgencyLevel: level }));
+  };
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input
-                        label="Patient Email"
-                        name="patientEmail"
-                        type="email"
-                        value={form.patientEmail}
-                        onChange={handleChange}
-                        placeholder="patient@example.com"
-                        required
-                    />
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+    
+    ['patientName', 'patientPhone', 'doctorId', 'date', 'timeSlot'].forEach(key => {
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        isValid = false;
+      }
+    });
+    
+    setErrors(newErrors);
+    return isValid;
+  };
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700">
-                            Doctor <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            name="doctorId"
-                            value={form.doctorId}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                        >
-                            <option value="">Select a doctor</option>
-                            {doctors.map((doc) => (
-                                <option
-                                    key={doc.doctorId || doc._id}
-                                    value={doc.doctorId || doc._id}
-                                >
-                                    Dr. {doc.name} — {doc.specialization}
-                                </option>
-                            ))}
-                        </select>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      setIsSubmitting(true);
+      await adminService.offlineBookAppointment(formData);
+      showSuccessToast('Appointment booked successfully');
+      
+      // Reset Form payload explicitly
+      setFormData({
+        patientName: '',
+        patientPhone: '',
+        doctorId: '',
+        date: '',
+        timeSlot: '',
+        urgencyLevel: 'normal'
+      });
+      setAvailableSlots([]);
+      setErrors({});
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || err.message || 'Failed to submit offline booking.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Date Constraints configurations
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getMaxDateString = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30);
+    return maxDate.toISOString().split('T')[0];
+  };
+
+  const isEmergency = formData.urgencyLevel === 'emergency';
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in">
+      <PageHeader
+        title="Offline Booking"
+        subtitle="Book appointments for walk-in patients manually overriding digital constraints."
+      />
+
+      <Card className={`border overflow-hidden shadow-sm transition-colors ${isEmergency ? 'border-red-300' : 'border-neutral-200'}`}>
+        
+        {/* Spec §15 Rule 10: Triage Warning Banner */}
+        {isEmergency && (
+           <div className="bg-red-50 py-3 px-6 border-b border-red-200 flex items-center justify-between text-red-800 animate-in slide-in-from-top-2">
+             <div className="flex items-center gap-3">
+               <ShieldAlert className="w-5 h-5 animate-pulse" />
+               <span className="font-bold tracking-tight text-sm uppercase">Emergency Protocol Activated</span>
+             </div>
+             <p className="text-xs font-semibold opacity-80 hidden sm:block">Patient will bypass standard queue restrictions dynamically.</p>
+           </div>
+        )}
+
+        <CardContent className={`p-6 sm:p-8 ${isEmergency ? 'bg-red-50/10' : ''}`}>
+          <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+
+            {/* Walk-in Identity Config */}
+            <div className="space-y-6">
+              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 border-red-100' : 'text-neutral-400 border-neutral-100'}`}>
+                <User className="w-4 h-4" /> Patient Identity
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Full Name"
+                  id="walkin-name"
+                  icon={User}
+                  placeholder="e.g. Rahul Sharma"
+                  value={formData.patientName}
+                  onChange={handleChange('patientName')}
+                  error={errors.patientName}
+                  required
+                />
+                
+                <Input
+                  label="Contact Number"
+                  id="walkin-phone"
+                  type="tel"
+                  icon={Phone}
+                  placeholder="e.g. 9876543210"
+                  value={formData.patientPhone}
+                  onChange={handleChange('patientPhone')}
+                  error={errors.patientPhone}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Clinical Parameters Configuration */}
+            <div className="space-y-6 pt-2">
+              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 border-red-100' : 'text-neutral-400 border-neutral-100'}`}>
+                <FileText className="w-4 h-4" /> Consultation Parameters
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {/* Special Priority Override */}
+                 <div className="md:col-span-2 p-5 bg-neutral-50 border border-neutral-200 rounded-xl space-y-3">
+                    <label className="block text-sm font-semibold text-neutral-800">
+                      Triage & Urgency Assessment <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                       <button
+                         type="button"
+                         onClick={() => setUrgency('normal')}
+                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${!isEmergency ? 'bg-primary-600 text-white border-primary-600 shadow-md ring-2 ring-primary-100' : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'}`}
+                       >
+                         <Activity className="w-4 h-4" /> Routine Check-up
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setUrgency('emergency')}
+                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${isEmergency ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-100' : 'bg-white text-neutral-500 border-neutral-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'}`}
+                       >
+                         <ShieldAlert className="w-4 h-4" /> Emergency Triage
+                       </button>
                     </div>
+                 </div>
 
-                    <Input
-                        label="Date"
-                        name="date"
-                        type="date"
-                        value={form.date}
-                        onChange={handleChange}
-                        min={getMinDate()}
-                        required
+                 {/* Doctor Selection */}
+                 <div className="md:col-span-2">
+                    <Select
+                      label="Assign Doctor"
+                      id="walkin-doctor"
+                      icon={Stethoscope}
+                      options={[
+                        { value: '', label: loadingDoctors ? 'Loading doctors...' : 'Select a practitioner...' },
+                        ...doctors.map(d => ({
+                           value: d._id || d.doctorId,
+                           label: `Dr. ${d.name} (${d.specialization || 'General'})`
+                        }))
+                      ]}
+                      value={formData.doctorId}
+                      onChange={handleChange('doctorId')}
+                      error={errors.doctorId}
+                      required
                     />
+                 </div>
 
-                    {form.doctorId && form.date && (
-                        <TimeSlotPicker
-                            slots={availableSlots}
-                            selected={form.timeSlot}
-                            onSelect={(slot) =>
-                                setForm({ ...form, timeSlot: slot })
-                            }
-                            loading={slotsLoading}
-                        />
-                    )}
+                 {/* Date & Slot Fetching Bindings */}
+                 <Input
+                   label="Appointment Date"
+                   id="walkin-date"
+                   type="date"
+                   min={getTodayString()}
+                   max={getMaxDateString()}
+                   icon={Calendar}
+                   value={formData.date}
+                   onChange={handleChange('date')}
+                   error={errors.date}
+                   required
+                 />
 
-                    <Input
-                        label="Symptoms (comma-separated, optional)"
-                        name="symptoms"
-                        value={form.symptoms}
-                        onChange={handleChange}
-                        placeholder="headache, fever, cough"
-                    />
+                 <div className="space-y-1.5">
+                   <label htmlFor="walkin-time" className="block text-sm font-semibold text-neutral-700">
+                     Time Slot <span className="text-red-500">*</span>
+                   </label>
+                   <div className="relative">
+                      <div className="absolute top-3 left-3 text-neutral-400 pointer-events-none">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <select
+                        id="walkin-time"
+                        value={formData.timeSlot}
+                        onChange={handleChange('timeSlot')}
+                        disabled={!formData.doctorId || !formData.date || loadingSlots}
+                        className={`w-full pl-10 appearance-none bg-white border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-xs ${errors.timeSlot ? 'border-red-300 ring-1 ring-red-300 bg-red-50/30' : 'border-neutral-300'} ${(!formData.doctorId || !formData.date) ? 'bg-neutral-100 cursor-not-allowed text-neutral-400' : 'text-neutral-800'}`}
+                      >
+                         <option value="">
+                            {!formData.doctorId || !formData.date 
+                               ? 'Select doctor & date first' 
+                               : loadingSlots 
+                                   ? 'Fetching slots...' 
+                                   : availableSlots.length === 0 
+                                       ? 'No slots available' 
+                                       : 'Select an available slot...'}
+                         </option>
+                         
+                         {availableSlots.map((slot, i) => {
+                            const val = typeof slot === 'string' ? slot : (slot.time || slot.slot);
+                            return <option key={i} value={val}>{val}</option>;
+                         })}
+                      </select>
+                      {/* Custom dropdown caret */}
+                      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-neutral-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                   </div>
+                   {errors.timeSlot && <p className="text-sm text-red-500 mt-1">{errors.timeSlot}</p>}
+                 </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700">
-                            Urgency Level
-                        </label>
-                        <select
-                            name="urgencyLevel"
-                            value={form.urgencyLevel}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                        >
-                            <option value="normal">Normal</option>
-                            <option value="emergency">Emergency 🚨</option>
-                        </select>
-                    </div>
+              </div>
+            </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700">
-                            Admin Notes (optional)
-                        </label>
-                        <textarea
-                            name="adminNotes"
-                            value={form.adminNotes}
-                            onChange={handleChange}
-                            placeholder="Additional notes..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                            rows={2}
-                        />
-                    </div>
+            {/* Validation & Submit Boundaries */}
+            <div className={`pt-6 border-t flex items-center justify-end ${isEmergency ? 'border-red-200' : 'border-neutral-100'}`}>
+               <Button 
+                  type="submit" 
+                  icon={CheckCircle2} 
+                  loading={isSubmitting}
+                  variant={isEmergency ? 'danger' : 'primary'}
+                  className="w-full sm:w-auto px-8"
+               >
+                  {isEmergency ? 'Create Emergency Booking' : 'Confirm Offline Booking'}
+               </Button>
+            </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        loading={loading}
-                        disabled={!form.timeSlot}
-                    >
-                        Book & Confirm Appointment
-                    </Button>
-                </form>
-            </Card>
-        </div>
-    );
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export { OfflineBookingPage };
+export default OfflineBookingPage;

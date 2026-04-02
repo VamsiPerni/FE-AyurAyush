@@ -119,14 +119,14 @@ const BookingModal = ({
                         <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                                 step >= s
-                                    ? "bg-[#065A82] text-white"
+                                    ? "bg-primary-600 text-white"
                                     : "bg-gray-200 text-gray-500"
                             }`}
                         >
                             {s}
                         </div>
                         <span
-                            className={`text-sm hidden sm:block ${step >= s ? "text-[#065A82] font-medium" : "text-gray-400"}`}
+                            className={`text-sm hidden sm:block ${step >= s ? "text-primary-600 font-medium" : "text-gray-400"}`}
                         >
                             {s === 1
                                 ? "Select Doctor"
@@ -136,7 +136,7 @@ const BookingModal = ({
                         </span>
                         {s < 3 && (
                             <div
-                                className={`flex-1 h-0.5 ${step > s ? "bg-[#065A82]" : "bg-gray-200"}`}
+                                className={`flex-1 h-0.5 ${step > s ? "bg-primary-600" : "bg-gray-200"}`}
                             />
                         )}
                     </div>
@@ -213,7 +213,7 @@ const BookingModal = ({
                             min={getMinDate()}
                             value={selectedDate}
                             onChange={(e) => handleDateChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
                         />
                     </div>
 

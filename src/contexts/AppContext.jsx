@@ -9,6 +9,7 @@ const AppProvider = ({ children }) => {
         isLoggedIn: false,
         roles: [],
         activeRole: null,
+        mustChangePassword: false,
         loading: true,
     });
 
@@ -19,10 +20,13 @@ const AppProvider = ({ children }) => {
             const response = await axiosInstance.get("/auth/me");
 
             const roles = response.data.data.roles;
+            const mustChangePassword =
+                response.data.data.mustChangePassword || false;
             setUser({
                 isLoggedIn: true,
                 roles,
                 activeRole: roles.length === 1 ? roles[0] : null,
+                mustChangePassword,
                 loading: false,
             });
         } catch (err) {
@@ -30,6 +34,7 @@ const AppProvider = ({ children }) => {
                 isLoggedIn: false,
                 roles: [],
                 activeRole: null,
+                mustChangePassword: false,
                 loading: false,
             });
 
@@ -61,6 +66,7 @@ const AppProvider = ({ children }) => {
                 isLoggedIn: false,
                 roles: [],
                 activeRole: null,
+                mustChangePassword: false,
                 loading: false,
             });
         } catch (err) {

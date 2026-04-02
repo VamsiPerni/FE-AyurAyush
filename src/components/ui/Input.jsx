@@ -1,70 +1,76 @@
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { forwardRef, useState } from 'react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
-const Input = ({
-    label,
-    name,
-    type = "text",
-    placeholder,
-    value,
-    onChange,
-    error,
-    required = false,
-    disabled = false,
-    readOnly = false,
-    className = "",
-    ...props
-}) => {
-    const [showPassword, setShowPassword] = useState(false);
-    const isPassword = type === "password";
-    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+const Input = forwardRef(({
+  label, error, hint, required = false,
+  type = 'text', id, icon: Icon,
+  className = '', containerClassName = '', ...props
+}, ref) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+  const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
+  const inputId = id || `input-${Math.random().toString(36).slice(2, 9)}`;
 
-    return (
-        <div className={`flex flex-col gap-1.5 ${className}`}>
-            {label && (
-                <label
-                    htmlFor={name}
-                    className="text-sm font-medium text-gray-700"
-                >
-                    {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
-                </label>
-            )}
-            <div className="relative">
-                <input
-                    id={name}
-                    name={name}
-                    type={inputType}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
-                    disabled={disabled}
-                    readOnly={readOnly}
-                    className={`w-full px-3 py-2 border rounded-lg text-sm transition-colors duration-200 outline-none focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] ${
-                        error
-                            ? "border-red-400 focus:ring-red-200 focus:border-red-400"
-                            : "border-gray-300"
-                    } ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"} ${readOnly ? "bg-gray-50" : ""}`}
-                    {...props}
-                />
-                {isPassword && (
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                        {showPassword ? (
-                            <EyeOff size={16} />
-                        ) : (
-                            <Eye size={16} />
-                        )}
-                    </button>
-                )}
-            </div>
-            {error && <p className="text-xs text-red-500">{error}</p>}
-        </div>
-    );
-};
-
+  return (
+    <div className={containerClassName}>
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 mb-1.5">
+          {label}
+          {required && <span className="text-error-600 ml-0.5">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        {Icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <Icon className="w-4 h-4 text-neutral-400" />
+          </div>
+        )}
+        <input
+          ref={ref}
+          id={inputId}
+          type={inputType}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          className={`
+            w-full h-10 px-3 bg-white border rounded-lg
+            text-sm text-neutral-800 placeholder:text-neutral-400
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:border-transparent
+            disabled:bg-neutral-50 disabled:cursor-not-allowed
+            ${Icon ? 'pl-10' : ''}
+            ${isPassword ? 'pr-10' : ''}
+            ${error
+              ? 'border-error-300 focus:ring-error-600 bg-error-50/30'
+              : 'border-neutral-200 focus:ring-primary-500 hover:border-neutral-300'
+            }
+            ${className}
+          `}
+          {...props}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+            tabIndex={-1}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p id={`${inputId}-error`} className="mt-1.5 text-xs text-error-600 flex items-center gap-1" role="alert">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+          {error}
+        </p>
+      )}
+      {hint && !error && (
+        <p className="mt-1.5 text-xs text-neutral-500">{hint}</p>
+      )}
+    </div>
+  );
+});
+Input.displayName = 'Input';
 export { Input };
+export default Input;

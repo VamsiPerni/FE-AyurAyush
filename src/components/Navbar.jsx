@@ -11,7 +11,6 @@ import {
     MessageSquare,
     CalendarPlus,
     ClipboardList,
-    UserPlus,
     CalendarCheck,
     Calendar,
     Users,
@@ -26,7 +25,6 @@ const patientLinks = [
     { to: "/patient/chatbot", label: "AI Chat", icon: MessageSquare },
     { to: "/patient/book-appointment", label: "Book", icon: CalendarPlus },
     { to: "/patient/appointments", label: "Appointments", icon: ClipboardList },
-    { to: "/patient/apply-doctor-role", label: "Apply Doctor", icon: UserPlus },
     { to: "/patient/profile", label: "Profile", icon: User },
 ];
 
@@ -54,7 +52,11 @@ const roleLinksMap = {
     doctor: doctorLinks,
     admin: adminLinks,
 };
-const roleColors = { patient: "#02C39A", doctor: "#065A82", admin: "#7C3AED" };
+const roleBadgeStyles = {
+    patient: "bg-success-50 text-success-600",
+    doctor: "bg-primary-50 text-primary-600",
+    admin: "bg-warning-50 text-warning-600",
+};
 
 const Navbar = () => {
     const { isLoggedIn, roles, activeRole, handleLogout, logoutLoading } =
@@ -74,19 +76,15 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-14">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-[#065A82] to-[#02C39A] rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-linear-to-br from-primary-600 to-success-600 rounded-lg flex items-center justify-center">
                             <Stethoscope size={16} className="text-white" />
                         </div>
-                        <span className="font-bold text-gray-900 text-lg">
+                        <span className="font-bold text-neutral-900 text-lg">
                             AyurAyush
                         </span>
                         {currentRole && (
                             <span
-                                className="text-xs font-medium px-2 py-0.5 rounded-full"
-                                style={{
-                                    backgroundColor: `${roleColors[currentRole]}15`,
-                                    color: roleColors[currentRole],
-                                }}
+                                className={`text-xs font-medium px-2 py-0.5 rounded-full ${roleBadgeStyles[currentRole] || roleBadgeStyles.doctor}`}
                             >
                                 {currentRole}
                             </span>
@@ -102,8 +100,8 @@ const Navbar = () => {
                                     to={link.to}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                                         isActive(link.to)
-                                            ? "bg-[#065A82]/10 text-[#065A82]"
-                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                            ? "bg-primary-600/10 text-primary-600"
+                                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                                     }`}
                                 >
                                     <link.icon size={14} />
@@ -115,7 +113,7 @@ const Navbar = () => {
                         {isLoggedIn && roles?.length > 1 && (
                             <Link
                                 to="/choose-role"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition"
                             >
                                 <Shield size={14} />
                                 Switch Role
@@ -141,7 +139,7 @@ const Navbar = () => {
                         ) : (
                             <Link
                                 to="/login"
-                                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 bg-[#065A82] text-white text-sm font-medium rounded-lg hover:bg-[#065A82]/90 transition"
+                                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition"
                             >
                                 <LogIn size={14} />
                                 Sign In
@@ -151,7 +149,7 @@ const Navbar = () => {
                         {/* Mobile hamburger */}
                         <button
                             onClick={() => setMobileOpen(!mobileOpen)}
-                            className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition"
+                            className="md:hidden p-1.5 rounded-lg hover:bg-neutral-100 transition"
                         >
                             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
@@ -161,12 +159,12 @@ const Navbar = () => {
 
             {/* Mobile Menu */}
             {mobileOpen && (
-                <div className="md:hidden border-t border-gray-100 bg-white">
+                <div className="md:hidden border-t border-neutral-100 bg-white">
                     <div className="px-4 py-3 space-y-1">
                         <Link
                             to="/"
                             onClick={() => setMobileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-700 hover:bg-neutral-50"
                         >
                             <Home size={16} /> Home
                         </Link>
@@ -179,8 +177,8 @@ const Navbar = () => {
                                     onClick={() => setMobileOpen(false)}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                                         isActive(link.to)
-                                            ? "bg-[#065A82]/10 text-[#065A82] font-medium"
-                                            : "text-gray-700 hover:bg-gray-50"
+                                            ? "bg-primary-600/10 text-primary-600 font-medium"
+                                            : "text-neutral-700 hover:bg-neutral-50"
                                     }`}
                                 >
                                     <link.icon size={16} /> {link.label}
@@ -191,13 +189,13 @@ const Navbar = () => {
                             <Link
                                 to="/choose-role"
                                 onClick={() => setMobileOpen(false)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-700 hover:bg-neutral-50"
                             >
                                 <Shield size={16} /> Switch Role
                             </Link>
                         )}
 
-                        <div className="border-t border-gray-100 pt-2 mt-2">
+                        <div className="border-t border-neutral-100 pt-2 mt-2">
                             {isLoggedIn ? (
                                 <button
                                     onClick={() => {
@@ -216,7 +214,7 @@ const Navbar = () => {
                                 <Link
                                     to="/login"
                                     onClick={() => setMobileOpen(false)}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#065A82] font-medium hover:bg-[#065A82]/5"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-primary-600 font-medium hover:bg-primary-50"
                                 >
                                     <LogIn size={16} /> Sign In
                                 </Link>

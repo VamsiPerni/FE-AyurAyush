@@ -16,7 +16,7 @@ const AppointmentList = ({
     return (
         <div>
             {title && (
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                <h3 className="text-lg font-semibold text-neutral-800 mb-3">
                     {title}
                 </h3>
             )}
@@ -30,7 +30,7 @@ const AppointmentList = ({
                             onClick={() => onSelect?.(id)}
                             className="flex items-center gap-4"
                         >
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 {apt.patient?.profilePhoto ? (
                                     <img
                                         src={apt.patient.profilePhoto}
@@ -38,30 +38,24 @@ const AppointmentList = ({
                                         className="w-11 h-11 rounded-full object-cover"
                                     />
                                 ) : (
-                                    <div className="w-11 h-11 rounded-full bg-[#065A82]/10 flex items-center justify-center">
-                                        <User
-                                            size={20}
-                                            className="text-[#065A82]"
-                                        />
+                                    <div className="w-11 h-11 rounded-full bg-primary-50 flex items-center justify-center">
+                                        <User className="w-5 h-5 text-primary-600" />
                                     </div>
                                 )}
                             </div>
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-900 truncate">
+                                    <span className="font-medium text-neutral-800 truncate">
                                         {apt.patient?.name || "Patient"}
                                     </span>
                                     {apt.isEmergency && (
-                                        <AlertTriangle
-                                            size={14}
-                                            className="text-red-500 flex-shrink-0"
-                                        />
+                                        <AlertTriangle className="w-3.5 h-3.5 text-error-600 shrink-0" />
                                     )}
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
+                                <div className="flex items-center gap-3 text-sm text-neutral-500 mt-0.5">
                                     <span className="flex items-center gap-1">
-                                        <Clock size={12} />
+                                        <Clock className="w-3 h-3" />
                                         {apt.timeSlot ||
                                             apt.appointmentDetails?.timeSlot}
                                     </span>
@@ -82,9 +76,10 @@ const AppointmentList = ({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                                 <Badge
-                                    variant={
+                                    type="status"
+                                    value={
                                         apt.urgencyLevel === "emergency"
                                             ? "emergency"
                                             : apt.status
@@ -94,10 +89,7 @@ const AppointmentList = ({
                                         ? "Emergency"
                                         : undefined}
                                 </Badge>
-                                <ChevronRight
-                                    size={16}
-                                    className="text-gray-400"
-                                />
+                                <ChevronRight className="w-4 h-4 text-neutral-400" />
                             </div>
                         </Card>
                     );
@@ -108,3 +100,4 @@ const AppointmentList = ({
 };
 
 export { AppointmentList };
+export default AppointmentList;

@@ -19,9 +19,12 @@ export const useAuth = () => {
             showSuccessToast("Login successful!");
 
             const roles = result.data.roles;
-            handleSetUser({ isLoggedIn: true, roles });
+            const mustChangePassword = result.data.mustChangePassword || false;
+            handleSetUser({ isLoggedIn: true, roles, mustChangePassword });
 
-            if (roles.length === 1) {
+            if (mustChangePassword) {
+                navigate("/change-password");
+            } else if (roles.length === 1) {
                 navigate(`/${roles[0]}/dashboard`);
             } else {
                 navigate("/choose-role");

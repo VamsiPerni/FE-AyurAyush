@@ -1,130 +1,255 @@
-import { useState, useEffect } from "react";
-import { Card } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
-import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { patientService } from "../../services/patientService";
-import { showErrorToast } from "../../utils/toastMessageHelper";
-import { Users, User, GraduationCap, Briefcase, Search } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router';
+import { Search, Plus, RefreshCw, AlertCircle, Users, Power, PowerOff } from 'lucide-react';
+import { adminService } from '../../services/adminService';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Badge } from '../../components/ui/Badge';
+import { Table } from '../../components/ui/Table';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { TableSkeleton } from '../../components/ui/Skeleton';
+import { showErrorToast, showSuccessToast } from '../../utils/toastMessageHelper';
 
 const ManageDoctorsPage = () => {
-    const navigate = useNavigate();
-    const [doctors, setDoctors] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [togglingId, setTogglingId] = useState(null);
 
-    useEffect(() => {
-        loadDoctors();
-    }, []);
+  const loadDoctors = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const result = await adminService.getDoctors();
+      setDoctors(result.data?.doctors || result.data || []);
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to sync the doctor registry.';
+      setError(message);
+      showErrorToast(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const loadDoctors = async () => {
-        try {
-            setLoading(true);
-            const result = await patientService.getDoctors("");
-            setDoctors(result.data?.doctors || []);
-        } catch {
-            showErrorToast("Failed to load doctors");
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    loadDoctors();
+  }, []);
 
-    const filtered = doctors.filter(
-        (d) =>
-            !search ||
-            d.name?.toLowerCase().includes(search.toLowerCase()) ||
-            d.specialization?.toLowerCase().includes(search.toLowerCase()),
-    );
+  const handleToggleStatus = async (id, currentStatus) => {
+    const isCurrentlyActive = currentStatus === 'active';
+    const action = isCurrentlyActive ? 'deactivate' : 'activate';
+    
+    if (!window.confirm(`Are you sure you want to ${action} this doctor?`)) return;
+    
+    try {
+      setTogglingId(id);
+      
+      // Map to toggle fallback dynamically if the specification requires specific backend mapping
+      if (typeof adminService.toggleDoctorStatus === 'function') {
+        await adminService.toggleDoctorStatus(id);
+      } else if (typeof adminService.updateDoctorAvailability === 'function') {
+        // Fallback parameter mutation based on my previous adminService inspections 
+        await adminService.updateDoctorAvailability(id, { status: isCurrentlyActive ? 'inactive' : 'active' });
+      } else {
+        throw new Error('Toggle method not explicitly mapped in Service layer');
+      }
+      
+      showSuccessToast(`Doctor successfully ${isCurrentlyActive ? 'deactivated' : 'activated'}.`);
+      await loadDoctors(); // Refresh table entirely natively
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || err.message || 'Failed to update doctor status.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
-    return (
-        <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Users size={24} className="text-[#065A82]" />
-                    Manage Doctors
-                </h1>
-                <Badge variant="info">{doctors.length} doctors</Badge>
-            </div>
+  const getInitials = (nameStr) => {
+    if (!nameStr) return '?';
+    return nameStr.charAt(0).toUpperCase();
+  };
 
-            {/* Search */}
-            <div className="relative mb-6">
-                <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search doctors by name or specialization..."
-                    className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                />
-            </div>
+  // Client-Side Searching Map natively 
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter(doc => {
+      if (!searchQuery) return true;
+      const lowerQuery = searchQuery.toLowerCase();
+      const nameMatch = (doc.name || '').toLowerCase().includes(lowerQuery);
+      const specMatch = (doc.specialization || '').toLowerCase().includes(lowerQuery);
+      return nameMatch || specMatch;
+    });
+  }, [doctors, searchQuery]);
 
-            {loading ? (
-                <LoadingSkeleton type="card" count={6} />
-            ) : filtered.length === 0 ? (
-                <EmptyState icon="users" title="No doctors found" />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filtered.map((doc) => (
-                        <Card
-                            key={doc.doctorId || doc._id}
-                            hover
-                            onClick={() =>
-                                navigate(
-                                    `/admin/doctors/${doc.doctorId || doc._id}/availability`,
-                                )
-                            }
-                            className="flex flex-col gap-2"
-                        >
-                            <div className="flex items-center gap-3">
-                                {doc.profilePhoto ? (
-                                    <img
-                                        src={doc.profilePhoto}
-                                        alt={doc.name}
-                                        className="w-12 h-12 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-12 h-12 rounded-full bg-[#065A82]/10 flex items-center justify-center">
-                                        <User
-                                            size={20}
-                                            className="text-[#065A82]"
-                                        />
-                                    </div>
-                                )}
-                                <div>
-                                    <p className="font-semibold text-gray-900">
-                                        {doc.name}
-                                    </p>
-                                    <p className="text-sm text-[#1C7293] font-medium">
-                                        {doc.specialization}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                                {doc.qualification && (
-                                    <span className="flex items-center gap-1">
-                                        <GraduationCap size={12} />{" "}
-                                        {doc.qualification}
-                                    </span>
-                                )}
-                                {doc.experience && (
-                                    <span className="flex items-center gap-1">
-                                        <Briefcase size={12} /> {doc.experience}{" "}
-                                        yrs
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Click to manage availability →
-                            </p>
-                        </Card>
-                    ))}
-                </div>
-            )}
+  // Layout Table Configuration 
+  const columns = [
+    {
+      key: 'doctorName',
+      header: 'Name',
+      render: (_, doc) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center shrink-0 border border-primary-200">
+            {getInitials(doc.name)}
+          </div>
+          <div>
+            <p className="font-semibold text-neutral-800">Dr. {doc.name}</p>
+            <p className="text-xs text-neutral-500 font-medium">{doc.email || 'No email provided'}</p>
+          </div>
         </div>
+      )
+    },
+    {
+      key: 'specialization',
+      header: 'Specialization',
+      render: (_, doc) => <span className="text-neutral-700 font-medium">{doc.specialization || 'General'}</span>
+    },
+    {
+      key: 'experience',
+      header: 'Experience',
+      render: (_, doc) => <span className="text-neutral-600">{doc.experience ? `${doc.experience} yrs` : '-'}</span>
+    },
+    {
+      key: 'fee',
+      header: 'Consultation Fee',
+      render: (_, doc) => <span className="font-semibold text-success-700">₹{doc.consultationFee || '0'}</span>
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (_, doc) => {
+        // Evaluate true status explicitly
+        const statusVal = doc.status || (doc.isActive ? 'active' : 'inactive');
+        return <Badge type="status" value={statusVal === 'active' ? 'active' : 'inactive'} />;
+      }
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: 'text-right',
+      render: (_, doc) => {
+        const id = doc._id || doc.doctorId;
+        const statusVal = doc.status || (doc.isActive ? 'active' : 'inactive');
+        const isActive = statusVal === 'active';
+        
+        return (
+          <div className="flex justify-end gap-2">
+            <Button
+              size="sm"
+              variant={isActive ? 'outline' : 'success'}
+              icon={isActive ? PowerOff : Power}
+              onClick={() => handleToggleStatus(id, statusVal)}
+              loading={togglingId === id}
+              className={isActive ? 'text-neutral-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50' : 'shadow-sm'}
+            >
+              {isActive ? 'Deactivate' : 'Activate'}
+            </Button>
+          </div>
+        );
+      }
+    }
+  ];
+
+  // 1. Loading State
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6 pb-8">
+        <PageHeader title="Manage Doctors" subtitle="Fetching global registry directory..." />
+        <Card className="p-6">
+          <TableSkeleton rows={8} columns={6} />
+        </Card>
+      </div>
     );
+  }
+
+  // 2. Error State
+  if (error && doctors.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto py-12">
+        <EmptyState
+          icon={AlertCircle}
+          title="Data Synchronization Error"
+          description={error}
+          action={<Button icon={RefreshCw} onClick={loadDoctors}>Retry Fetch</Button>}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in">
+      <PageHeader
+        title="Manage Doctors"
+        subtitle={`Total registered practitioners in system: ${doctors.length}`}
+        action={
+          <div className="flex items-center gap-3">
+            <Button variant="outline" icon={RefreshCw} onClick={loadDoctors}>
+              Refresh
+            </Button>
+            <Button icon={Plus} onClick={() => navigate('/admin/create-doctor')}>
+              Create Doctor
+            </Button>
+          </div>
+        }
+      />
+
+      <Card className="overflow-hidden shadow-sm border border-neutral-100 min-h-[500px]">
+        {/* Controls Panel */}
+        <div className="bg-neutral-50/50 p-5 border-b border-neutral-100 flex flex-col md:flex-row justify-between gap-4">
+          <div className="w-full md:w-80">
+            <Input
+              icon={Search}
+              placeholder="Search by name or specialization..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white shadow-xs focus:ring-primary-500/20"
+            />
+          </div>
+          <div className="flex items-center justify-end">
+            <Badge type="info" size="sm" className="bg-primary-50 text-primary-700 border-primary-200 shadow-sm px-3">
+              {filteredDoctors.length} {filteredDoctors.length === 1 ? 'Result' : 'Results'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Data Configuration output */}
+        <CardContent className="p-0">
+          {filteredDoctors.length === 0 ? (
+            <div className="py-24">
+              <EmptyState
+                icon={Users}
+                title="No doctors located"
+                description={
+                  searchQuery 
+                    ? `No practitioners found matching "${searchQuery}".`
+                    : "The registry is currently empty. Start by adding a new doctor."
+                }
+                action={
+                  searchQuery ? (
+                    <Button variant="outline" onClick={() => setSearchQuery('')}>Clear Filter</Button>
+                  ) : (
+                    <Button icon={Plus} onClick={() => navigate('/admin/create-doctor')}>Create Account</Button>
+                  )
+                }
+              />
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <Table 
+                columns={columns} 
+                data={filteredDoctors} 
+                striped 
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+    </div>
+  );
 };
 
 export { ManageDoctorsPage };
+export default ManageDoctorsPage;

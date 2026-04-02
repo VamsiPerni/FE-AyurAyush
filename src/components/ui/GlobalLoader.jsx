@@ -1,11 +1,8 @@
-import { PuffLoader } from "react-spinners";
+import { PageLoader } from "./Spinner";
 
-const GlobalLoader = () => {
-    return (
-        <div className="flex items-center justify-center h-screen bg-white">
-            <PuffLoader size={60} color="#d97706" />
-        </div>
-    );
+const GlobalLoader = ({ message = "Loading..." }) => {
+    return <PageLoader message={message} />;
 };
 
 export { GlobalLoader };
+export default GlobalLoader;

@@ -16,7 +16,7 @@ const PatientDetails = ({ patient }) => {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <User size={18} className="text-[#065A82]" />
+                    <User size={18} className="text-primary-600" />
                     Patient Information
                 </CardTitle>
             </CardHeader>
@@ -29,8 +29,8 @@ const PatientDetails = ({ patient }) => {
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                     />
                 ) : (
-                    <div className="w-16 h-16 rounded-full bg-[#065A82]/10 flex items-center justify-center">
-                        <User size={28} className="text-[#065A82]" />
+                    <div className="w-16 h-16 rounded-full bg-primary-600/10 flex items-center justify-center">
+                        <User size={28} className="text-primary-600" />
                     </div>
                 )}
                 <div>

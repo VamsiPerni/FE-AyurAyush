@@ -14,19 +14,22 @@ const features = [
         icon: MessageSquare,
         title: "AI Health Chatbot",
         desc: "Get instant health assessments powered by Google Gemini AI with emergency detection.",
-        color: "#02C39A",
+        iconBg: "bg-success-50",
+        iconColor: "text-success-600",
     },
     {
         icon: CalendarCheck,
         title: "Smart Scheduling",
         desc: "Book appointments with real-time slot availability and admin approval workflow.",
-        color: "#065A82",
+        iconBg: "bg-primary-50",
+        iconColor: "text-primary-600",
     },
     {
         icon: ShieldCheck,
         title: "Emergency Detection",
         desc: "AI-powered urgency classification with priority queue for critical cases.",
-        color: "#DC2626",
+        iconBg: "bg-error-50",
+        iconColor: "text-error-600",
     },
 ];
 
@@ -42,7 +45,7 @@ const HomePage = () => {
     return (
         <div className="min-h-screen">
             {/* Hero */}
-            <section className="bg-gradient-to-br from-[#065A82] via-[#1C7293] to-[#02C39A] text-white">
+            <section className="bg-linear-to-br from-primary-600 via-primary-500 to-success-600 text-white">
                 <div className="max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
                     <div className="w-20 h-20 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Stethoscope size={40} className="text-white" />
@@ -60,8 +63,8 @@ const HomePage = () => {
                             <Link to={getDashboardLink()}>
                                 <Button
                                     size="lg"
-                                    variant="outline"
-                                    className="bg-[#0B4F6C] text-[#F5FBFF] border-[#7EC8E3] hover:bg-[#093E55]"
+                                    variant="secondary"
+                                    className="bg-primary-800 text-white border-primary-300 hover:bg-primary-900"
                                 >
                                     Go to Dashboard <ArrowRight size={16} />
                                 </Button>
@@ -71,7 +74,7 @@ const HomePage = () => {
                                 <Link to="/signup">
                                     <Button
                                         size="lg"
-                                        className="bg-[#0B4F6C] text-[#F5FBFF] border border-[#7EC8E3] hover:bg-[#093E55]"
+                                        className="bg-primary-800 text-white border border-primary-300 hover:bg-primary-900"
                                     >
                                         Get Started <ArrowRight size={16} />
                                     </Button>
@@ -79,8 +82,8 @@ const HomePage = () => {
                                 <Link to="/login">
                                     <Button
                                         size="lg"
-                                        variant="outline"
-                                        className="border-[#CFEFFF] text-[#F5FBFF] bg-white/10 hover:bg-white/20"
+                                        variant="secondary"
+                                        className="border-primary-100 text-white bg-white/10 hover:bg-white/20"
                                     >
                                         Sign In
                                     </Button>
@@ -93,32 +96,31 @@ const HomePage = () => {
 
             {/* Features */}
             <section className="max-w-6xl mx-auto px-4 py-16">
-                <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">
+                <h2 className="text-2xl font-bold text-neutral-900 text-center mb-10">
                     Why AyurAyush?
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {features.map((f) => (
                         <div
                             key={f.title}
-                            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
+                            className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm hover:shadow-md transition"
                         >
                             <div
-                                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                                style={{ backgroundColor: `${f.color}15` }}
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${f.iconBg}`}
                             >
-                                <f.icon size={24} style={{ color: f.color }} />
+                                <f.icon size={24} className={f.iconColor} />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
                                 {f.title}
                             </h3>
-                            <p className="text-sm text-gray-600">{f.desc}</p>
+                            <p className="text-sm text-neutral-600">{f.desc}</p>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
+            <footer className="border-t border-neutral-100 py-6 text-center text-sm text-neutral-500">
                 &copy; {new Date().getFullYear()} AyurAyush — AI-Powered
                 Healthcare
             </footer>

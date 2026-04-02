@@ -7,8 +7,10 @@ import {
 } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Select } from "../../components/ui/Select";
 import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
 import { Badge } from "../../components/ui/Badge";
+import PageHeader from "../../components/shared/PageHeader";
 import { doctorService } from "../../services/doctorService";
 import {
     showErrorToast,
@@ -122,40 +124,38 @@ const DoctorProfilePage = () => {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Doctor Profile
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                        Manage your personal and professional information
-                    </p>
-                </div>
-                {!editing ? (
-                    <Button variant="outline" onClick={() => setEditing(true)}>
-                        <Pencil size={14} />
-                        Edit Profile
-                    </Button>
-                ) : (
-                    <div className="flex gap-2">
-                        <Button variant="ghost" onClick={handleCancel}>
-                            <X size={14} />
-                            Cancel
+            <PageHeader
+                title="Doctor Profile"
+                subtitle="Manage your personal and professional information"
+                action={
+                    !editing ? (
+                        <Button
+                            variant="secondary"
+                            onClick={() => setEditing(true)}
+                        >
+                            <Pencil size={14} />
+                            Edit Profile
                         </Button>
-                        <Button onClick={handleSave} loading={saving}>
-                            <Save size={14} />
-                            Save
-                        </Button>
-                    </div>
-                )}
-            </div>
+                    ) : (
+                        <div className="flex gap-2">
+                            <Button variant="ghost" onClick={handleCancel}>
+                                <X size={14} />
+                                Cancel
+                            </Button>
+                            <Button onClick={handleSave} loading={saving}>
+                                <Save size={14} />
+                                Save
+                            </Button>
+                        </div>
+                    )
+                }
+            />
 
             {/* Personal Information */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <User size={18} className="text-[#065A82]" />
+                        <User size={18} className="text-primary-600" />
                         Personal Information
                     </CardTitle>
                 </CardHeader>
@@ -170,11 +170,11 @@ const DoctorProfilePage = () => {
                             disabled={!editing}
                         />
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 <Mail size={14} className="inline mr-1" />
                                 Email
                             </label>
-                            <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
                                 {profile?.user?.email || "N/A"}
                             </p>
                         </div>
@@ -186,28 +186,29 @@ const DoctorProfilePage = () => {
                             readOnly={!editing}
                             disabled={!editing}
                         />
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
-                                Gender
-                            </label>
-                            {editing ? (
-                                <select
-                                    name="gender"
-                                    value={form.gender}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                                >
-                                    <option value="">Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            ) : (
-                                <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600 capitalize">
+                        {editing ? (
+                            <Select
+                                label="Gender"
+                                name="gender"
+                                value={form.gender}
+                                onChange={handleChange}
+                                placeholder="Select gender"
+                                options={[
+                                    { value: "male", label: "Male" },
+                                    { value: "female", label: "Female" },
+                                    { value: "other", label: "Other" },
+                                ]}
+                            />
+                        ) : (
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium text-neutral-700">
+                                    Gender
+                                </label>
+                                <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600 capitalize">
                                     {form.gender || "Not set"}
                                 </p>
-                            )}
-                        </div>
+                            </div>
+                        )}
                         <Input
                             label="Date of Birth"
                             name="dob"
@@ -225,54 +226,54 @@ const DoctorProfilePage = () => {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Stethoscope size={18} className="text-[#02C39A]" />
+                        <Stethoscope size={18} className="text-success-600" />
                         Professional Information
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 <GraduationCap
                                     size={14}
                                     className="inline mr-1"
                                 />
                                 Specialization
                             </label>
-                            <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
                                 {prof.specialization || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 Qualification
                             </label>
-                            <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
                                 {prof.qualification || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 <Briefcase size={14} className="inline mr-1" />
                                 Experience
                             </label>
-                            <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
                                 {prof.experience
                                     ? `${prof.experience} years`
                                     : "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 <BadgeCheck size={14} className="inline mr-1" />
                                 License Number
                             </label>
-                            <p className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
                                 {prof.licenseNumber || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-neutral-700">
                                 Verification Status
                             </label>
                             <div className="px-3 py-2">
@@ -295,7 +296,7 @@ const DoctorProfilePage = () => {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <IndianRupee size={18} className="text-[#7C3AED]" />
+                        <IndianRupee size={18} className="text-warning-600" />
                         Practice Settings
                     </CardTitle>
                 </CardHeader>

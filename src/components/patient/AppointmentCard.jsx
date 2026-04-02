@@ -1,7 +1,7 @@
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { Calendar, Clock, User, Stethoscope } from "lucide-react";
+import { Calendar, Clock, Hash, Stethoscope } from "lucide-react";
 
 const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
     const {
@@ -12,6 +12,8 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
         date,
         timeSlot,
         doctor,
+        tokenNumber,
+        queueType,
         symptoms,
         aiSummary,
     } = appointment;
@@ -28,19 +30,25 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
     };
 
     return (
-        <Card hover className="flex flex-col gap-3">
+        <Card
+            hover
+            className="flex flex-col gap-3"
+            urgent={urgencyLevel === "emergency"}
+        >
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                    <Stethoscope size={18} className="text-[#1C7293]" />
-                    <span className="font-semibold text-gray-900">
+                    <Stethoscope className="w-4.5 h-4.5 text-info-600" />
+                    <span className="font-semibold text-neutral-800">
                         {doctor?.name || "Doctor"}
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
                     {urgencyLevel === "emergency" && (
-                        <Badge variant="emergency">🚨 Emergency</Badge>
+                        <Badge type="status" value="emergency">
+                            Emergency
+                        </Badge>
                     )}
-                    <Badge variant={status}>
+                    <Badge type="status" value={status}>
                         {status === "pending_admin_approval"
                             ? "Pending Approval"
                             : status}
@@ -49,19 +57,37 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
             </div>
 
             {doctor?.specialization && (
-                <p className="text-sm text-gray-500">{doctor.specialization}</p>
+                <p className="text-sm text-neutral-500">
+                    {doctor.specialization}
+                </p>
             )}
 
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-4 text-sm text-neutral-600">
                 <span className="flex items-center gap-1">
-                    <Calendar size={14} />
+                    <Calendar className="w-3.5 h-3.5" />
                     {formatDate(date)}
                 </span>
                 <span className="flex items-center gap-1">
-                    <Clock size={14} />
+                    <Clock className="w-3.5 h-3.5" />
                     {timeSlot}
                 </span>
             </div>
+
+            {tokenNumber && (
+                <div className="bg-primary-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                    <Hash className="w-3.5 h-3.5 text-primary-600 shrink-0" />
+                    <span className="text-sm font-bold text-primary-700 font-mono">
+                        {tokenNumber}
+                    </span>
+                    {queueType && (
+                        <Badge
+                            type="queue"
+                            value={queueType}
+                            className="ml-auto"
+                        />
+                    )}
+                </div>
+            )}
 
             {(symptoms?.length > 0 || aiSummary?.symptoms?.length > 0) && (
                 <div className="flex flex-wrap gap-1.5">
@@ -70,7 +96,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                         .map((s, i) => (
                             <span
                                 key={i}
-                                className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+                                className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md"
                             >
                                 {s}
                             </span>
@@ -78,10 +104,10 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                 </div>
             )}
 
-            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-neutral-100">
                 <Button
                     size="sm"
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => onView?.(id)}
                 >
                     View Details
@@ -103,3 +129,4 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
 };
 
 export { AppointmentCard };
+export default AppointmentCard;

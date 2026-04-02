@@ -1,459 +1,334 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
-import { Card, CardHeader, CardTitle } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
-import { Button } from "../../components/ui/Button";
-import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
-import { AISummaryViewer } from "../../components/doctor/AISummaryViewer";
-import { PatientDetails } from "../../components/doctor/PatientDetails";
-import { doctorService } from "../../services/doctorService";
-import {
-    showErrorToast,
-    showSuccessToast,
-} from "../../utils/toastMessageHelper";
-import {
-    ArrowLeft,
-    Calendar,
-    Clock,
-    MessageSquare,
-    Pill,
-    Plus,
-    Trash2,
-    Bot,
-    User,
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { 
+  Calendar, Clock, User, Hash, AlertTriangle, FileText, 
+  CheckCircle2, Stethoscope, Activity, Pill
+} from 'lucide-react';
+import { doctorService } from '../../services/doctorService';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { CardSkeleton } from '../../components/ui/Skeleton';
+import { AISummaryViewer } from '../../components/doctor/AISummaryViewer';
+import { PrescriptionForm } from '../../components/doctor/PrescriptionForm';
+import { showErrorToast, showSuccessToast } from '../../utils/toastMessageHelper';
 
 const AppointmentDetailPage = () => {
-    const { appointmentId } = useParams();
-    const navigate = useNavigate();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [completing, setCompleting] = useState(false);
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    // Prescription form
-    const [doctorNotes, setDoctorNotes] = useState("");
-    const [diagnosis, setDiagnosis] = useState("");
-    const [prescriptionNotes, setPrescriptionNotes] = useState("");
-    const [medications, setMedications] = useState([]);
-    const [tests, setTests] = useState([]);
+  const [appointment, setAppointment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadData();
-    }, [appointmentId]);
-
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const result =
-                await doctorService.getAppointmentDetails(appointmentId);
-            setData(result.data);
-        } catch {
-            showErrorToast("Failed to load appointment");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const addMedication = () => {
-        setMedications([
-            ...medications,
-            {
-                name: "",
-                dosage: "",
-                frequency: "",
-                duration: "",
-                instructions: "",
-            },
-        ]);
-    };
-
-    const updateMedication = (index, field, value) => {
-        const updated = [...medications];
-        updated[index][field] = value;
-        setMedications(updated);
-    };
-
-    const removeMedication = (index) => {
-        setMedications(medications.filter((_, i) => i !== index));
-    };
-
-    const addTest = () => {
-        setTests([...tests, { testName: "", instructions: "" }]);
-    };
-
-    const updateTest = (index, field, value) => {
-        const updated = [...tests];
-        updated[index][field] = value;
-        setTests(updated);
-    };
-
-    const removeTest = (index) => {
-        setTests(tests.filter((_, i) => i !== index));
-    };
-
-    const handleComplete = async () => {
-        try {
-            setCompleting(true);
-            const payload = {
-                doctorNotes,
-                prescription: {
-                    medications: medications.filter((m) => m.name),
-                    tests: tests.filter((t) => t.testName),
-                    diagnosis,
-                    notes: prescriptionNotes,
-                },
-            };
-            await doctorService.completeAppointment(appointmentId, payload);
-            showSuccessToast("Appointment completed!");
-            navigate("/doctor/appointments");
-        } catch (err) {
-            showErrorToast(
-                err.response?.data?.message || "Failed to complete appointment",
-            );
-        } finally {
-            setCompleting(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="max-w-5xl mx-auto px-4 py-6">
-                <LoadingSkeleton type="detail" />
-            </div>
-        );
+  const loadAppointment = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      // robust generic handler mirroring Patient view
+      const fetchFn = doctorService.getAppointmentById || doctorService.getAppointmentDetails;
+      const result = await fetchFn(id);
+      setAppointment(result.data?.appointment || result.data || null);
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to load appointment details.';
+      setError(message);
+      showErrorToast(message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (!data) {
-        return (
-            <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-                <p className="text-gray-500">Appointment not found</p>
-            </div>
-        );
+  useEffect(() => {
+    if (id) {
+      loadAppointment();
     }
+  }, [id]);
 
-    const appointment = data.appointment || data;
-    const patient = data.patient || appointment.patient;
-    const chatDetails = data.chatDetails;
-    const summary = chatDetails?.summary || appointment.aiSummary;
-    const isConfirmed = appointment.status === "confirmed";
+  const handlePrescribe = async (payload) => {
+    if (!window.confirm('Are you sure you want to finalize this appointment? This action cannot be undone.')) return;
+    try {
+      setSubmitting(true);
+      // robust complete target mapping
+      const completeFn = doctorService.addPrescription || doctorService.completeAppointment;
+      await completeFn(id, { prescription: payload });
+      showSuccessToast('Prescription saved and appointment completed successfully.');
+      await loadAppointment(); // Refresh state immediately natively
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || 'Failed to save prescription.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const formatDate = (d) =>
-        d
-            ? new Date(d).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-              })
-            : "";
+  const formatDateIN = (dateStr) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
 
+  // State: Loading
+  if (loading) {
     return (
-        <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                >
-                    <ArrowLeft size={18} /> Back
-                </button>
-                <div className="flex items-center gap-2">
-                    {appointment.urgencyLevel === "emergency" && (
-                        <Badge variant="emergency">🚨 Emergency</Badge>
-                    )}
-                    <Badge variant={appointment.status} />
-                </div>
-            </div>
-
-            {/* Appointment Info */}
-            <Card>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1.5">
-                        <Calendar size={15} className="text-gray-400" />
-                        {formatDate(appointment.date)}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                        <Clock size={15} className="text-gray-400" />
-                        {appointment.timeSlot}
-                    </span>
-                    {appointment.symptoms?.length > 0 && (
-                        <div className="flex gap-1 flex-wrap">
-                            {appointment.symptoms.map((s, i) => (
-                                <span
-                                    key={i}
-                                    className="bg-gray-100 px-2 py-0.5 rounded text-xs"
-                                >
-                                    {s}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </Card>
-
-            {/* Patient Info */}
-            <PatientDetails patient={patient} />
-
-            {/* AI Summary */}
-            {summary && <AISummaryViewer summary={summary} />}
-
-            {/* Chat History */}
-            {chatDetails?.fullConversation?.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <MessageSquare
-                                size={18}
-                                className="text-[#065A82]"
-                            />
-                            Chat History
-                        </CardTitle>
-                    </CardHeader>
-                    <div className="max-h-80 overflow-y-auto space-y-3">
-                        {chatDetails.fullConversation.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                            >
-                                <div
-                                    className={`flex gap-2 max-w-[80%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-                                >
-                                    <div
-                                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "user" ? "bg-[#1C7293]" : "bg-[#065A82]"}`}
-                                    >
-                                        {msg.role === "user" ? (
-                                            <User
-                                                size={12}
-                                                className="text-white"
-                                            />
-                                        ) : (
-                                            <Bot
-                                                size={12}
-                                                className="text-white"
-                                            />
-                                        )}
-                                    </div>
-                                    <div
-                                        className={`px-3 py-2 rounded-2xl text-sm ${msg.role === "user" ? "bg-[#1C7293] text-white rounded-br-md" : "bg-gray-100 text-gray-800 rounded-bl-md"}`}
-                                    >
-                                        <p className="whitespace-pre-wrap">
-                                            {msg.content}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
-
-            {/* Complete Appointment Form */}
-            {isConfirmed && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Pill size={18} className="text-[#065A82]" />
-                            Complete Appointment
-                        </CardTitle>
-                    </CardHeader>
-
-                    <div className="space-y-4">
-                        {/* Doctor Notes */}
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 block mb-1">
-                                Doctor Notes
-                            </label>
-                            <textarea
-                                value={doctorNotes}
-                                onChange={(e) => setDoctorNotes(e.target.value)}
-                                placeholder="Add consultation notes..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                                rows={3}
-                            />
-                        </div>
-
-                        {/* Diagnosis */}
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 block mb-1">
-                                Diagnosis
-                            </label>
-                            <input
-                                value={diagnosis}
-                                onChange={(e) => setDiagnosis(e.target.value)}
-                                placeholder="Enter diagnosis..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                            />
-                        </div>
-
-                        {/* Medications */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700">
-                                    Medications
-                                </label>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={addMedication}
-                                >
-                                    <Plus size={14} /> Add Medication
-                                </Button>
-                            </div>
-                            {medications.map((med, i) => (
-                                <div
-                                    key={i}
-                                    className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 p-3 bg-gray-50 rounded-lg relative"
-                                >
-                                    <input
-                                        value={med.name}
-                                        onChange={(e) =>
-                                            updateMedication(
-                                                i,
-                                                "name",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Name"
-                                        className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <input
-                                        value={med.dosage}
-                                        onChange={(e) =>
-                                            updateMedication(
-                                                i,
-                                                "dosage",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Dosage"
-                                        className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <input
-                                        value={med.frequency}
-                                        onChange={(e) =>
-                                            updateMedication(
-                                                i,
-                                                "frequency",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Frequency"
-                                        className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <input
-                                        value={med.duration}
-                                        onChange={(e) =>
-                                            updateMedication(
-                                                i,
-                                                "duration",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Duration"
-                                        className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <div className="flex items-center gap-1">
-                                        <input
-                                            value={med.instructions}
-                                            onChange={(e) =>
-                                                updateMedication(
-                                                    i,
-                                                    "instructions",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Instructions"
-                                            className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                        />
-                                        <button
-                                            onClick={() => removeMedication(i)}
-                                            className="text-red-400 hover:text-red-600 p-1"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Tests */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700">
-                                    Tests
-                                </label>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={addTest}
-                                >
-                                    <Plus size={14} /> Add Test
-                                </Button>
-                            </div>
-                            {tests.map((test, i) => (
-                                <div key={i} className="flex gap-2 mb-2">
-                                    <input
-                                        value={test.testName}
-                                        onChange={(e) =>
-                                            updateTest(
-                                                i,
-                                                "testName",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Test name"
-                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <input
-                                        value={test.instructions}
-                                        onChange={(e) =>
-                                            updateTest(
-                                                i,
-                                                "instructions",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Instructions"
-                                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm"
-                                    />
-                                    <button
-                                        onClick={() => removeTest(i)}
-                                        className="text-red-400 hover:text-red-600 p-1"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Prescription Notes */}
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 block mb-1">
-                                Prescription Notes
-                            </label>
-                            <textarea
-                                value={prescriptionNotes}
-                                onChange={(e) =>
-                                    setPrescriptionNotes(e.target.value)
-                                }
-                                placeholder="Additional notes..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1C7293]/30 focus:border-[#1C7293] outline-none"
-                                rows={2}
-                            />
-                        </div>
-
-                        <Button
-                            onClick={handleComplete}
-                            loading={completing}
-                            size="lg"
-                            className="w-full"
-                        >
-                            Mark as Completed
-                        </Button>
-                    </div>
-                </Card>
-            )}
-        </div>
+      <div className="max-w-4xl mx-auto space-y-6 pb-8">
+        <PageHeader title="Consultation Details" backTo="/doctor/appointments" />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
     );
+  }
+
+  // State: Error
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 pb-8">
+        <PageHeader title="Consultation Details" backTo="/doctor/appointments" />
+        <Card className="py-12">
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to Load Record"
+            description={error}
+            action={<Button onClick={loadAppointment}>Retry Action</Button>}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  // State: Empty
+  if (!appointment) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 pb-8">
+        <PageHeader title="Consultation Details" backTo="/doctor/appointments" />
+        <Card className="py-12">
+          <EmptyState
+            icon={FileText}
+            title="Appointment Missing"
+            description="The consultation record cannot be located."
+            action={<Button onClick={() => navigate('/doctor/appointments')}>Browse Directory</Button>}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  const {
+    status,
+    urgencyLevel,
+    tokenNumber,
+    date,
+    timeSlot,
+    patient,
+    patientName,
+    aiSummary,
+    prescription,
+    symptoms
+  } = appointment;
+
+  const name = patient?.name || patientName || 'Patient';
+  const isEmergency = urgencyLevel === 'emergency';
+  
+  // Spec Section 15 Rule 9 fallback
+  const tokenDisplay = tokenNumber || `AYU-${new Date(date || Date.now()).toISOString().split('T')[0].replace(/-/g, '')}-PT${patient?._id?.substring(0,3) || '000'}-QUE`;
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 pb-12 animate-in fade-in">
+      <PageHeader
+        title={`${name}'s Consultation`}
+        subtitle={`Scheduled for ${formatDateIN(date)}`}
+        backTo="/doctor/appointments"
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Core Record Meta */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className={isEmergency ? 'border-red-200 border-2 shadow-sm' : 'shadow-sm'}>
+            {isEmergency && (
+              <div className="bg-red-50/80 px-5 py-3 border-b border-red-100 flex items-center gap-2 text-red-700">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold text-sm uppercase tracking-wide">Emergency Triage Prioritized</span>
+              </div>
+            )}
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${isEmergency ? 'bg-red-100 text-red-600' : 'bg-primary-50 text-primary-600'}`}>
+                    <User className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-neutral-800 tracking-tight">{name}</h2>
+                    <p className="text-sm text-neutral-500 font-medium">Verified Patient</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-start sm:items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    {isEmergency && <Badge type="status" value="emergency" />}
+                    <Badge type="status" value={status} />
+                  </div>
+                  <div className="bg-neutral-100 px-3 py-1.5 rounded-md flex items-center gap-2 mt-1 border border-neutral-200 shadow-sm">
+                    <Hash className="w-4 h-4 text-neutral-500" />
+                    <span className="font-mono font-bold text-neutral-800 tracking-wider text-sm">{tokenDisplay}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-neutral-100">
+                <div className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? 'bg-red-50/40' : 'bg-neutral-50'}`}>
+                  <Calendar className={`w-5 h-5 ${isEmergency ? 'text-red-500' : 'text-primary-600'}`} />
+                  <div>
+                    <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider mb-0.5">Date</p>
+                    <p className="font-bold text-neutral-800">{formatDateIN(date)}</p>
+                  </div>
+                </div>
+                <div className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? 'bg-red-50/40' : 'bg-neutral-50'}`}>
+                  <Clock className={`w-5 h-5 ${isEmergency ? 'text-red-500' : 'text-primary-600'}`} />
+                  <div>
+                    <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider mb-0.5">Time Slot</p>
+                    <p className="font-bold text-neutral-800">{timeSlot}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI / Triage Summary Block */}
+          <div className="space-y-4">
+            <h3 className="font-bold text-neutral-800 text-lg flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary-600" />
+              Pre-Consultation Insights
+            </h3>
+            
+            {aiSummary ? (
+              <AISummaryViewer summary={aiSummary} />
+            ) : symptoms && symptoms.length > 0 ? (
+              <Card>
+                 <CardContent className="p-5">
+                    <h4 className="text-sm font-semibold text-neutral-700 mb-2">Manually Reported Symptoms</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {symptoms.map((symptom, idx) => (
+                        <span key={idx} className="bg-neutral-100 text-neutral-700 text-xs px-2.5 py-1 rounded-md border border-neutral-200">
+                          {symptom}
+                        </span>
+                      ))}
+                    </div>
+                 </CardContent>
+              </Card>
+            ) : (
+              <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100 flex flex-col items-center justify-center text-neutral-500 text-center">
+                 <FileText className="w-8 h-8 opacity-40 mb-2" />
+                 <p className="text-sm max-w-sm">No initial symptoms or AI consultation summaries were recorded for this case.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Layer: Either Write Prescription or View Completed state */}
+          {status === 'confirmed' && (
+             <div className="pt-6 border-t border-neutral-200 mt-8">
+               <h3 className="font-bold text-neutral-800 text-lg flex items-center gap-2 mb-4">
+                 <Stethoscope className="w-5 h-5 text-primary-600" />
+                 Clinical Diagnosis & Prescription
+               </h3>
+               <PrescriptionForm onSubmit={handlePrescribe} loading={submitting} />
+             </div>
+          )}
+
+          {status === 'completed' && prescription && (
+             <div className="pt-6 border-t border-neutral-200 mt-8">
+               <Card className="border-success-200 overflow-hidden shadow-sm">
+                  <div className="bg-success-50 px-5 py-4 border-b border-success-100 flex items-center gap-3 text-success-800">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <h3 className="font-bold">Issued Digtal Prescription</h3>
+                  </div>
+                  <CardContent className="p-5 space-y-5">
+                    {prescription.medications && prescription.medications.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-neutral-700 mb-3 uppercase tracking-wide text-[11px]">Authorized Medications</h4>
+                        <div className="space-y-3">
+                          {prescription.medications.map((med, idx) => (
+                            <div key={idx} className="bg-white border border-neutral-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
+                              <div>
+                                <p className="font-semibold text-neutral-800 text-sm">{med.name}</p>
+                                <p className="text-xs text-neutral-500 mt-0.5 font-medium">{med.dosage} • {med.frequency} • {med.duration}</p>
+                              </div>
+                              <span className="shrink-0 text-[11px] font-bold tracking-wide uppercase bg-neutral-100 px-2 py-1 rounded text-neutral-600 w-fit">
+                                {med.instructions || 'As Directed'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {prescription.notes && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-neutral-700 mb-1 uppercase tracking-wide text-[11px]">Clinical Notes</h4>
+                        <p className="text-sm text-neutral-600 bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                          {prescription.notes}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+             </div>
+          )}
+        </div>
+
+        {/* Sidebar Status Info Panel */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="bg-neutral-50 py-4 border-b border-neutral-100">
+              <CardTitle className="text-sm">Patient Protocol Status</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="space-y-4">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 bg-primary-50 rounded-full flex items-center justify-center shrink-0">
+                     <CheckCircle2 className="w-4 h-4 text-primary-600" />
+                   </div>
+                   <div className="flex-1">
+                     <p className="text-sm font-semibold text-neutral-800">Checked In</p>
+                     <p className="text-xs text-neutral-400">Identity verified</p>
+                   </div>
+                 </div>
+                 
+                 <div className="flex items-center gap-3 pb-2 border-b border-neutral-100">
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${['confirmed', 'completed'].includes(status) ? 'bg-primary-50 text-primary-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                     <Activity className="w-4 h-4" />
+                   </div>
+                   <div className="flex-1">
+                     <p className={`text-sm font-semibold ${['confirmed', 'completed'].includes(status) ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                       Consultation Phase
+                     </p>
+                     <p className="text-xs text-neutral-400">{status === 'confirmed' ? 'Currently pending your review' : (status === 'completed' ? 'Finished' : 'Waiting for approval')}</p>
+                   </div>
+                 </div>
+
+                 <div className="flex items-center gap-3">
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${status === 'completed' ? 'bg-success-50 text-success-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                     <Pill className="w-4 h-4" />
+                   </div>
+                   <div className="flex-1">
+                     <p className={`text-sm font-semibold ${status === 'completed' ? 'text-success-700' : 'text-neutral-400'}`}>
+                       Discharged
+                     </p>
+                     <p className="text-xs text-neutral-400">{status === 'completed' ? 'Prescription finalized' : 'Pending completion'}</p>
+                   </div>
+                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
+    </div>
+  );
 };
 
 export { AppointmentDetailPage };
+export default AppointmentDetailPage;
