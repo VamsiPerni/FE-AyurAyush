@@ -370,7 +370,7 @@ const HeroSection = ({ isLoggedIn, getDashboardLink }) => (
                             <Link to={getDashboardLink()}>
                                 <Button
                                     size="lg"
-                                    className="bg-linear-to-r from-primary-600 to-primary-700 text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                                    className="bg-linear-to-r from-primary-600 to-primary-800 text-white border border-primary-500 hover:from-primary-700 hover:to-primary-900 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
                                 >
                                     Go to Dashboard{" "}
                                     <ArrowRight size={18} className="ml-1" />
@@ -1031,7 +1031,7 @@ const FinalCTASection = ({ isLoggedIn, getDashboardLink }) => (
                     <Link to={getDashboardLink()}>
                         <Button
                             size="lg"
-                            className="bg-white text-primary-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
+                            className="bg-linear-to-r from-primary-600 to-primary-800 text-white border border-primary-500 hover:from-primary-700 hover:to-primary-900 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
                         >
                             Go to Dashboard{" "}
                             <ArrowRight size={18} className="ml-1" />
