@@ -5,7 +5,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { GlobalLoader } from "./components/ui/GlobalLoader";
 
 const App = () => {
-    const { loading } = useAuthContext();
+    const authContext = useAuthContext() || {};
+    const loading = Boolean(authContext.loading);
 
     if (loading) {
         return <GlobalLoader />;

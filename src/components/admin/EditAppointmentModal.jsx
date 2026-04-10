@@ -20,7 +20,10 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
     useEffect(() => {
         if (isOpen) {
             setSelectedDoctorId(
-                appointment?.doctor?._id || appointment?.doctor?.doctorId || "",
+                appointment?.doctor?.id ||
+                    appointment?.doctor?._id ||
+                    appointment?.doctor?.doctorId ||
+                    "",
             );
             setSelectedDate(
                 details.date
@@ -36,7 +39,14 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
     const loadDoctors = async () => {
         try {
             const result = await adminService.getDoctors("");
-            setDoctors(result.data?.doctors || []);
+            const payload = result?.data?.doctors
+                ? result.data
+                : result?.data?.data?.doctors
+                  ? result.data.data
+                  : result?.doctors
+                    ? result
+                    : {};
+            setDoctors(payload.doctors || []);
         } catch {
             showErrorToast("Failed to load doctors");
         }
@@ -65,27 +75,32 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
     }, [selectedDoctorId, selectedDate]);
 
     const handleSave = async () => {
-        setLoading(true);
+        try {
+            setLoading(true);
 
-        const edits = {};
-        const originalDoctorId =
-            appointment?.doctor?._id || appointment?.doctor?.doctorId;
-        if (selectedDoctorId && selectedDoctorId !== originalDoctorId)
-            edits.doctorId = selectedDoctorId;
-        const originalDate = details.date
-            ? new Date(details.date).toISOString().split("T")[0]
-            : "";
-        if (selectedDate && selectedDate !== originalDate)
-            edits.date = selectedDate;
-        if (selectedSlot && selectedSlot !== details.timeSlot)
-            edits.timeSlot = selectedSlot;
+            const edits = {};
+            const originalDoctorId =
+                appointment?.doctor?.id ||
+                appointment?.doctor?._id ||
+                appointment?.doctor?.doctorId;
+            if (selectedDoctorId && selectedDoctorId !== originalDoctorId)
+                edits.doctorId = selectedDoctorId;
+            const originalDate = details.date
+                ? new Date(details.date).toISOString().split("T")[0]
+                : "";
+            if (selectedDate && selectedDate !== originalDate)
+                edits.date = selectedDate;
+            if (selectedSlot && selectedSlot !== details.timeSlot)
+                edits.timeSlot = selectedSlot;
 
-        const payload = {};
-        if (Object.keys(edits).length > 0) payload.edits = edits;
-        if (adminNotes.trim()) payload.adminNotes = adminNotes;
+            const payload = {};
+            if (Object.keys(edits).length > 0) payload.edits = edits;
+            if (adminNotes.trim()) payload.adminNotes = adminNotes.trim();
 
-        await onSave(payload);
-        setLoading(false);
+            await onSave(payload);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getMinDate = () => {

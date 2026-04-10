@@ -31,10 +31,11 @@ const roleConfig = {
 
 const ChooseRolePage = () => {
     const navigate = useNavigate();
-    const { roles, handleSetUser } = useAuthContext();
+    const { roles, handleSetUser, setActiveRole } = useAuthContext();
 
     const handleRoleSelect = (role) => {
         handleSetUser({ isLoggedIn: true, roles, activeRole: role });
+        setActiveRole(role);
         navigate(`/${role}/dashboard`);
     };
 
@@ -48,6 +49,13 @@ const ChooseRolePage = () => {
                     <p className="text-sm text-neutral-500 mt-1">
                         You have multiple roles. Select one to continue.
                     </p>
+                    <button
+                        type="button"
+                        onClick={() => navigate("/")}
+                        className="mt-4 inline-flex items-center rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50"
+                    >
+                        Home
+                    </button>
                 </div>
 
                 <div className="flex flex-wrap gap-6 justify-center">

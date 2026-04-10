@@ -14,6 +14,9 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
         doctor,
         tokenNumber,
         queueType,
+        queueStatus,
+        queueNotificationMessage,
+        lastCalledAt,
         symptoms,
         aiSummary,
     } = appointment;
@@ -85,6 +88,25 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                             value={queueType}
                             className="ml-auto"
                         />
+                    )}
+                </div>
+            )}
+
+            {(queueStatus === "called" ||
+                queueStatus === "in_consultation") && (
+                <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                    <p className="text-xs font-semibold text-blue-700">
+                        {queueNotificationMessage ||
+                            "It is your turn. Please proceed to consultation area."}
+                    </p>
+                    {lastCalledAt && (
+                        <p className="text-[11px] text-blue-600 mt-1">
+                            Last notified at{" "}
+                            {new Date(lastCalledAt).toLocaleTimeString(
+                                "en-IN",
+                                { hour: "2-digit", minute: "2-digit" },
+                            )}
+                        </p>
                     )}
                 </div>
             )}

@@ -26,10 +26,10 @@ export const adminService = {
         return response.data;
     },
 
-    rejectDoctorApplication: async (applicationId, reason = '') => {
+    rejectDoctorApplication: async (applicationId, reason = "") => {
         const response = await axiosInstance.post(
             `/admin/doctor-applications/${encodeURIComponent(applicationId)}/reject`,
-            { reason }
+            { reason },
         );
         return response.data;
     },
@@ -51,6 +51,20 @@ export const adminService = {
 
     getPendingAppointments: async () => {
         const response = await axiosInstance.get("/admin/appointments/pending");
+        return response.data;
+    },
+
+    getTodayQueue: async () => {
+        const response = await axiosInstance.get(
+            "/admin/appointments/today-queue",
+        );
+        return response.data;
+    },
+
+    callPatient: async (appointmentId) => {
+        const response = await axiosInstance.post(
+            `/admin/appointments/${encodeURIComponent(appointmentId)}/call`,
+        );
         return response.data;
     },
 

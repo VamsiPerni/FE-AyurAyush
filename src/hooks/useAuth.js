@@ -18,9 +18,15 @@ export const useAuth = () => {
             const result = await authService.login(email, password);
             showSuccessToast("Login successful!");
 
+            const name = result.data.name || "";
             const roles = result.data.roles;
             const mustChangePassword = result.data.mustChangePassword || false;
-            handleSetUser({ isLoggedIn: true, roles, mustChangePassword });
+            handleSetUser({
+                isLoggedIn: true,
+                name,
+                roles,
+                mustChangePassword,
+            });
 
             if (mustChangePassword) {
                 navigate("/change-password");
@@ -86,7 +92,7 @@ export const useAuth = () => {
             await authService.logout();
             showSuccessToast("Logout successful!");
 
-            handleSetUser({ isLoggedIn: false, roles: [] });
+            handleSetUser({ isLoggedIn: false, name: "", roles: [] });
 
             navigate("/login");
         } catch (err) {

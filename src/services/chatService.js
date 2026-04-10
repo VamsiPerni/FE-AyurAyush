@@ -32,4 +32,18 @@ export const chatService = {
         );
         return response.data;
     },
+
+    deleteConversationSummary: async (conversationId) => {
+        const response = await axiosInstance.delete(
+            `/chat/${encodeURIComponent(conversationId)}/summary`,
+        );
+        return response.data;
+    },
+
+    deleteConversation: async (conversationId) => {
+        const response = await axiosInstance.delete(
+            `/chat/${encodeURIComponent(conversationId)}`,
+        );
+        return response.data;
+    },
 };

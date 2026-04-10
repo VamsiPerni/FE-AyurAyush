@@ -3,10 +3,12 @@ import { axiosInstance } from "../axios/axiosInstance";
 import { showErrorToast, showSuccessToast } from "../utils/toastMessageHelper";
 
 const AuthContext = createContext();
+const ACTIVE_ROLE_STORAGE_KEY = "ayurayush_active_role";
 
 const AppProvider = ({ children }) => {
     const [user, setUser] = useState({
         isLoggedIn: false,
+        name: "",
         roles: [],
         activeRole: null,
         mustChangePassword: false,
@@ -19,24 +21,46 @@ const AppProvider = ({ children }) => {
         try {
             const response = await axiosInstance.get("/auth/me");
 
+            const name = response.data.data.name || "";
             const roles = response.data.data.roles;
+            const storedActiveRole = localStorage.getItem(
+                ACTIVE_ROLE_STORAGE_KEY,
+            );
+            const resolvedActiveRole =
+                roles.length === 1
+                    ? roles[0]
+                    : roles.includes(storedActiveRole)
+                      ? storedActiveRole
+                      : null;
             const mustChangePassword =
                 response.data.data.mustChangePassword || false;
             setUser({
                 isLoggedIn: true,
+                name,
                 roles,
-                activeRole: roles.length === 1 ? roles[0] : null,
+                activeRole: resolvedActiveRole,
                 mustChangePassword,
                 loading: false,
             });
+
+            if (resolvedActiveRole) {
+                localStorage.setItem(
+                    ACTIVE_ROLE_STORAGE_KEY,
+                    resolvedActiveRole,
+                );
+            } else {
+                localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
+            }
         } catch (err) {
             setUser({
                 isLoggedIn: false,
+                name: "",
                 roles: [],
                 activeRole: null,
                 mustChangePassword: false,
                 loading: false,
             });
+            localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
 
             console.log("------🔴Erorr in CheckAuth-----", err.message);
         }
@@ -51,7 +75,15 @@ const AppProvider = ({ children }) => {
     };
 
     const setActiveRole = (role) => {
-        setUser((prev) => ({ ...prev, activeRole: role }));
+        setUser((prev) => {
+            if (!role || !prev.roles?.includes(role)) {
+                return prev;
+            }
+            return { ...prev, activeRole: role };
+        });
+        if (role) {
+            localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, role);
+        }
     };
 
     const handleLogout = async () => {
@@ -64,11 +96,13 @@ const AppProvider = ({ children }) => {
 
             setUser({
                 isLoggedIn: false,
+                name: "",
                 roles: [],
                 activeRole: null,
                 mustChangePassword: false,
                 loading: false,
             });
+            localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
         } catch (err) {
             showErrorToast(err.response?.data?.message || "Logout failed");
         } finally {

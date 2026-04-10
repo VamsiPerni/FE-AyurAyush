@@ -2,7 +2,7 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { User, Briefcase, GraduationCap } from "lucide-react";
 
-const DoctorCard = ({ doctor, onSelect, selected }) => {
+const DoctorCard = ({ doctor, onSelect, selected, mostlyTreats }) => {
     const {
         name,
         specialization,
@@ -38,6 +38,11 @@ const DoctorCard = ({ doctor, onSelect, selected }) => {
                     <p className="text-sm text-info-600 font-medium">
                         {specialization}
                     </p>
+                    {mostlyTreats && (
+                        <p className="text-xs text-neutral-500 mt-1">
+                            {mostlyTreats}
+                        </p>
+                    )}
                 </div>
             </div>
 
