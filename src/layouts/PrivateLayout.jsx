@@ -27,7 +27,7 @@ const PrivateLayout = () => {
   // Choose-role and change-password pages render without sidebar
   if (location.pathname === '/choose-role' || location.pathname === '/change-password' || !activeRole) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-neutral-50 dark:bg-dark-surface flex items-center justify-center p-4 transition-colors duration-300">
         <Outlet />
       </div>
     );
@@ -35,7 +35,7 @@ const PrivateLayout = () => {
 
   // Main layout with sidebar
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-dark-surface transition-colors duration-300">
       <Sidebar />
       <main className="lg:ml-64 min-h-screen">
         <div className="p-4 pt-20 lg:p-8 lg:pt-8">

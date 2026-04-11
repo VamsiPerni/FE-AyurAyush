@@ -201,7 +201,7 @@ const AppointmentQueuesPage = () => {
                     title="Appointment Queues"
                     subtitle="Reviewing triage flows actively..."
                 />
-                <Card className="p-6 border-red-100 bg-red-50/10">
+                <Card className="p-6 border-red-100 dark:border-red-900/30 bg-red-50/10 dark:bg-red-900/5">
                     <TableSkeleton rows={2} columns={3} />
                 </Card>
                 <Card className="p-6">
@@ -249,11 +249,11 @@ const AppointmentQueuesPage = () => {
             <TodayQueue />
 
             {/* EMERGENCY QUEUE */}
-            <Card className="border-red-200 shadow-md shadow-red-100/30 overflow-hidden">
-                <CardHeader className="bg-red-50/80 border-b border-red-100 flex flex-row items-center justify-between pb-4">
+            <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
+                <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
                     <div className="flex items-center gap-3">
                         <ShieldAlert className="w-5 h-5 text-red-600" />
-                        <CardTitle className="text-red-900 tracking-tight">
+                        <CardTitle className="text-red-900 dark:text-red-300 tracking-tight">
                             Emergency Queue
                         </CardTitle>
                     </div>
@@ -273,11 +273,11 @@ const AppointmentQueuesPage = () => {
                     }
                 >
                     {emergencyQueue.length === 0 ? (
-                        <div className="py-12 bg-white flex flex-col items-center justify-center">
+                        <div className="py-12 bg-white dark:bg-dark-card flex flex-col items-center justify-center">
                             <div className="w-16 h-16 bg-success-50 text-success-500 rounded-full flex items-center justify-center mb-4 border border-success-100">
                                 <ShieldAlert className="w-8 h-8 opacity-50" />
                             </div>
-                            <h3 className="text-lg font-bold text-neutral-800">
+                            <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
                                 No active emergencies
                             </h3>
                             <p className="text-neutral-500 text-sm">
@@ -300,15 +300,15 @@ const AppointmentQueuesPage = () => {
             </Card>
 
             {/* NORMAL QUEUE */}
-            <Card className="shadow-sm border-neutral-200">
-                <CardHeader className="bg-neutral-50/50 border-b border-neutral-100 flex flex-row items-center justify-between pb-4">
+            <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
+                <CardHeader className="bg-neutral-50/50 dark:bg-dark-elevated/50 border-b border-neutral-100 dark:border-dark-border flex flex-row items-center justify-between pb-4">
                     <div className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-primary-600" />
                         <CardTitle className="text-neutral-800">
                             Standard Check-Ins
                         </CardTitle>
                     </div>
-                    <div className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-xs font-bold border border-primary-200">
+                    <div className="bg-primary-50 dark:bg-primary-900/10 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-full text-xs font-bold border border-primary-200 dark:border-primary-700/40">
                         {normalQueue.length} Awaiting Approval
                     </div>
                 </CardHeader>
@@ -350,7 +350,7 @@ const AppointmentQueuesPage = () => {
                 size="md"
             >
                 <div className="space-y-4">
-                    <p className="text-sm text-neutral-600">
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
                         Please explicitly dictate clinical or standard
                         justification restricting the patient from progressing
                         via verification processes naturally.
@@ -363,7 +363,7 @@ const AppointmentQueuesPage = () => {
                         required
                         rows={4}
                     />
-                    <div className="flex items-center gap-3 pt-4 border-t border-neutral-100 mt-6 pb-1">
+                    <div className="flex items-center gap-3 pt-4 border-t border-neutral-100 dark:border-dark-border mt-6 pb-1">
                         <Button
                             variant="outline"
                             onClick={() => setRejectModalOpen(false)}

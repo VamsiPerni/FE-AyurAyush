@@ -123,8 +123,8 @@ const DoctorApplicationsPage = () => {
       <div className="max-w-7xl mx-auto space-y-6 pb-8">
         <PageHeader title="Doctor Applications" subtitle="Reviewing prospective clinical candidate records..." />
         <div className="flex gap-2">
-           <div className="w-24 h-8 bg-neutral-200 rounded-full animate-pulse" />
-           <div className="w-24 h-8 bg-neutral-200 rounded-full animate-pulse" />
+           <div className="w-24 h-8 bg-neutral-200 dark:bg-dark-elevated rounded-full animate-pulse" />
+           <div className="w-24 h-8 bg-neutral-200 dark:bg-dark-elevated rounded-full animate-pulse" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
            <CardSkeleton />
@@ -171,7 +171,7 @@ const DoctorApplicationsPage = () => {
               flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border
               ${activeTab === cat.id 
                 ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
-                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:text-neutral-900'
+                : 'bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover hover:text-neutral-900 dark:hover:text-neutral-100'
               }
             `}
           >
@@ -180,7 +180,7 @@ const DoctorApplicationsPage = () => {
               px-2 py-0.5 rounded-full text-xs font-bold shrink-0
               ${activeTab === cat.id 
                 ? 'bg-primary-500/30 text-white' 
-                : 'bg-neutral-100 text-neutral-500'
+                : 'bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400'
               }
             `}>
               {counts[cat.id]}
@@ -191,11 +191,11 @@ const DoctorApplicationsPage = () => {
 
       {/* Grid Execution block (Card grid - Explicitly avoid Tables per spec) */}
       {filteredApplications.length === 0 ? (
-         <div className="py-24 bg-neutral-50 rounded-2xl border border-neutral-100 mt-6 text-center">
-            <div className="w-16 h-16 bg-neutral-200/50 rounded-full flex items-center justify-center mx-auto mb-4">
+         <div className="py-24 bg-neutral-50 dark:bg-dark-elevated rounded-2xl border border-neutral-100 dark:border-dark-border mt-6 text-center">
+            <div className="w-16 h-16 bg-neutral-200/50 dark:bg-dark-elevated rounded-full flex items-center justify-center mx-auto mb-4">
               <Stethoscope className="w-8 h-8 text-neutral-400" />
             </div>
-            <h3 className="text-xl font-bold text-neutral-800 mb-2">No {activeTab !== 'all' ? activeTab : ''} applications active</h3>
+            <h3 className="text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">No {activeTab !== 'all' ? activeTab : ''} applications active</h3>
             <p className="text-neutral-500 max-w-sm mx-auto">There are no onboarding profiles matching the selected filter logic parameters currently.</p>
          </div>
       ) : (
@@ -206,26 +206,26 @@ const DoctorApplicationsPage = () => {
                const isPending = status === 'pending';
                
                return (
-                 <Card key={id} className="overflow-hidden flex flex-col shadow-sm border border-neutral-200 hover:shadow-md transition-shadow group">
+                 <Card key={id} className="overflow-hidden flex flex-col shadow-sm border border-neutral-200 dark:border-dark-border hover:shadow-md transition-shadow group">
                    
                    {/* Personal Info Header */}
-                   <div className="bg-primary-50/40 p-5 border-b border-primary-100/50 relative">
+                   <div className="bg-primary-50/40 dark:bg-primary-900/10 p-5 border-b border-primary-100/50 dark:border-dark-border relative">
                      <div className="absolute top-4 right-4">
                        <Badge type="status" value={status} />
                      </div>
                      <div className="flex flex-col items-center text-center mt-2">
-                       <div className="w-16 h-16 rounded-full bg-primary-100 text-primary-700 font-bold text-xl flex items-center justify-center border-4 border-white shadow-sm ring-1 ring-primary-50">
+                       <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-bold text-xl flex items-center justify-center border-4 border-white dark:border-dark-card shadow-sm ring-1 ring-primary-50 dark:ring-primary-800/30">
                           {getInitials(app.name)}
                        </div>
-                       <h3 className="text-lg font-bold text-neutral-900 mt-3 tracking-tight">Dr. {app.name || 'Unknown'}</h3>
-                       <p className="text-sm text-primary-700 font-medium">{app.specialization || 'General Practitioner'}</p>
+                       <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mt-3 tracking-tight">Dr. {app.name || 'Unknown'}</h3>
+                       <p className="text-sm text-primary-700 dark:text-primary-400 font-medium">{app.specialization || 'General Practitioner'}</p>
                      </div>
                    </div>
 
                    {/* Core Clinical Parameters */}
-                   <CardContent className="p-5 flex-1 flex flex-col text-sm text-neutral-600 gap-y-4">
+                   <CardContent className="p-5 flex-1 flex flex-col text-sm text-neutral-600 dark:text-neutral-400 gap-y-4">
                       
-                      <div className="space-y-2 pb-4 border-b border-neutral-100">
+                      <div className="space-y-2 pb-4 border-b border-neutral-100 dark:border-dark-border">
                          <div className="flex items-center gap-2">
                            <Mail className="w-4 h-4 text-neutral-400 shrink-0" />
                            <span className="truncate">{app.email || 'No email provided'}</span>
@@ -241,7 +241,7 @@ const DoctorApplicationsPage = () => {
                            <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1 mt-1">
                              <Briefcase className="w-3.5 h-3.5" /> Experience
                            </div>
-                           <p className="font-semibold text-neutral-800">{app.experience ? `${app.experience} Years` : 'Not Set'}</p>
+                           <p className="font-semibold text-neutral-800 dark:text-neutral-200">{app.experience ? `${app.experience} Years` : 'Not Set'}</p>
                          </div>
                          <div>
                            <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1 mt-1">
@@ -255,14 +255,14 @@ const DoctorApplicationsPage = () => {
                          <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">
                            <Award className="w-3.5 h-3.5" /> Qualifications
                          </div>
-                         <p className="text-neutral-800 font-medium line-clamp-2">{app.qualification || app.qualifications || 'No qualifications listed.'}</p>
+                         <p className="text-neutral-800 dark:text-neutral-200 font-medium line-clamp-2">{app.qualification || app.qualifications || 'No qualifications listed.'}</p>
                       </div>
 
                    </CardContent>
 
                    {/* Action Footer Binding */}
                    {isPending ? (
-                     <div className="p-4 bg-neutral-50 border-t border-neutral-100 flex items-center gap-2">
+                     <div className="p-4 bg-neutral-50 dark:bg-dark-elevated border-t border-neutral-100 dark:border-dark-border flex items-center gap-2">
                         <Button 
                           variant="outline" 
                           icon={XCircle} 
@@ -283,7 +283,7 @@ const DoctorApplicationsPage = () => {
                         </Button>
                      </div>
                    ) : (
-                     <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-100 text-center">
+                     <div className="px-4 py-3 bg-neutral-50 dark:bg-dark-elevated border-t border-neutral-100 dark:border-dark-border text-center">
                         <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center justify-center gap-1.5">
                            Processed Application
                         </p>
@@ -314,7 +314,7 @@ const DoctorApplicationsPage = () => {
             required
             rows={4}
           />
-          <div className="flex items-center gap-3 pt-4 border-t border-neutral-100 mt-6 pb-1">
+          <div className="flex items-center gap-3 pt-4 border-t border-neutral-100 dark:border-dark-border mt-6 pb-1">
             <Button 
               variant="outline" 
               onClick={() => setRejectModalOpen(false)} 

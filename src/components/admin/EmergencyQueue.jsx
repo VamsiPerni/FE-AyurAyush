@@ -63,11 +63,11 @@ const EmergencyQueue = ({ onRefresh }) => {
     };
 
     return (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700/40 rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <AlertTriangle size={20} className="text-red-600" />
-                    <h2 className="text-lg font-bold text-red-800">
+                    <h2 className="text-lg font-bold text-red-800 dark:text-red-400">
                         🚨 Emergency Queue
                     </h2>
                     <Badge variant="emergency" className="ml-2">

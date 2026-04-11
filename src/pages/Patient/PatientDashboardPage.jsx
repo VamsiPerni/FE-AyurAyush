@@ -257,23 +257,23 @@ const PatientDashboardPage = () => {
                 />
             </div>
 
-            <Card className="border border-primary-100 bg-linear-to-r from-primary-50/90 to-white">
+            <Card className="border border-primary-100 dark:border-primary-800/30 bg-linear-to-r from-primary-50/90 to-white dark:from-primary-900/10 dark:to-dark-card">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-base text-primary-800">
-                        Live Queue
+                        <span className="dark:text-primary-300">Live Queue</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     {liveQueue.loading ? (
-                        <p className="text-sm text-neutral-600">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             Loading live queue...
                         </p>
                     ) : liveQueueAppointment ? (
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="space-y-2">
-                                <p className="text-sm text-neutral-700">
+                                <p className="text-sm text-neutral-700 dark:text-neutral-300">
                                     You are in today's queue with{" "}
-                                    <span className="font-semibold text-neutral-900">
+                                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                                         Dr.{" "}
                                         {liveQueueAppointment?.doctor?.name ||
                                             "Doctor"}
@@ -283,8 +283,8 @@ const PatientDashboardPage = () => {
                                     "called" ||
                                     liveQueueAppointment.queueStatus ===
                                         "in_consultation") && (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
-                                        <p className="font-semibold text-blue-700">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl px-3 py-2 text-sm">
+                                        <p className="font-semibold text-blue-700 dark:text-blue-300">
                                             {liveQueueAppointment.queueNotificationMessage ||
                                                 "It is your turn. Please proceed to consultation area."}
                                         </p>
@@ -302,12 +302,12 @@ const PatientDashboardPage = () => {
                                     </div>
                                 )}
                                 <div className="flex flex-wrap items-center gap-3 text-sm">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-primary-200 text-primary-800 font-mono font-bold">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-dark-elevated border border-primary-200 dark:border-primary-700/50 text-primary-800 dark:text-primary-300 font-mono font-bold">
                                         <Hash className="w-3.5 h-3.5" />
                                         {liveQueueAppointment.tokenNumber ||
                                             "-"}
                                     </span>
-                                    <span className="inline-flex items-center gap-1.5 text-primary-700">
+                                    <span className="inline-flex items-center gap-1.5 text-primary-700 dark:text-primary-400">
                                         <Users className="w-4 h-4" />
                                         {liveQueueAppointment.queueAheadCount !==
                                             null &&
@@ -332,7 +332,7 @@ const PatientDashboardPage = () => {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-sm text-neutral-600">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             No active queue appointment right now.
                         </p>
                     )}
@@ -341,7 +341,7 @@ const PatientDashboardPage = () => {
 
             {/* Recent Appointments Section */}
             <div className="flex items-center justify-between mb-4 mt-8">
-                <h2 className="text-lg font-bold text-neutral-800 tracking-tight">
+                <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">
                     Recent Appointments
                 </h2>
                 {recentAppointments.length > 0 && (
@@ -356,7 +356,7 @@ const PatientDashboardPage = () => {
             </div>
 
             {recentAppointments.length === 0 ? (
-                <Card className="border-dashed border-2 bg-neutral-50/50">
+                <Card className="border-dashed border-2 bg-neutral-50/50 dark:bg-dark-card">
                     <EmptyState
                         icon={FileText}
                         title="No appointments yet"

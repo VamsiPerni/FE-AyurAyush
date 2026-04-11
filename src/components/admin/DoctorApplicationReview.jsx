@@ -26,16 +26,16 @@ const DoctorApplicationReview = ({ application, onApprove, onReject }) => {
         <Card className="flex flex-col gap-3">
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-primary-600/10 flex items-center justify-center">
-                        <User size={20} className="text-primary-600" />
+                    <div className="w-11 h-11 rounded-full bg-primary-600/10 dark:bg-primary-900/20 flex items-center justify-center">
+                        <User size={20} className="text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-neutral-100">
                             {application.userId?.name ||
                                 application.name ||
                                 "Applicant"}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-neutral-400">
                             {application.userId?.email || application.email}
                         </p>
                     </div>
@@ -46,28 +46,28 @@ const DoctorApplicationReview = ({ application, onApprove, onReject }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <GraduationCap size={14} className="text-gray-400" />
                     <span>
                         <span className="font-medium">Qualification:</span>{" "}
                         {application.qualification}
                     </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <Award size={14} className="text-gray-400" />
                     <span>
                         <span className="font-medium">Specialization:</span>{" "}
                         {application.specialization}
                     </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <Briefcase size={14} className="text-gray-400" />
                     <span>
                         <span className="font-medium">Experience:</span>{" "}
                         {application.experience} years
                     </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <FileText size={14} className="text-gray-400" />
                     <span>
                         <span className="font-medium">License:</span>{" "}
@@ -77,7 +77,7 @@ const DoctorApplicationReview = ({ application, onApprove, onReject }) => {
             </div>
 
             {(!application.status || application.status === "pending") && (
-                <div className="flex gap-2 pt-2 border-t border-gray-100 mt-1">
+                <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-dark-border mt-1">
                     <Button
                         size="sm"
                         variant="success"

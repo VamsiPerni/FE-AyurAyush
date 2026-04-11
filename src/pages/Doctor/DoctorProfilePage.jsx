@@ -170,11 +170,11 @@ const DoctorProfilePage = () => {
                             disabled={!editing}
                         />
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 <Mail size={14} className="inline mr-1" />
                                 Email
                             </label>
-                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                            <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300">
                                 {profile?.user?.email || "N/A"}
                             </p>
                         </div>
@@ -201,10 +201,10 @@ const DoctorProfilePage = () => {
                             />
                         ) : (
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-sm font-medium text-neutral-700">
+                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                     Gender
                                 </label>
-                                <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600 capitalize">
+                                <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300 capitalize">
                                     {form.gender || "Not set"}
                                 </p>
                             </div>
@@ -233,47 +233,47 @@ const DoctorProfilePage = () => {
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 <GraduationCap
                                     size={14}
                                     className="inline mr-1"
                                 />
                                 Specialization
                             </label>
-                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                            <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300">
                                 {prof.specialization || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Qualification
                             </label>
-                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                            <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300">
                                 {prof.qualification || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 <Briefcase size={14} className="inline mr-1" />
                                 Experience
                             </label>
-                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                            <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300">
                                 {prof.experience
                                     ? `${prof.experience} years`
                                     : "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 <BadgeCheck size={14} className="inline mr-1" />
                                 License Number
                             </label>
-                            <p className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                            <p className="px-3 py-2 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-lg text-sm text-neutral-600 dark:text-neutral-300">
                                 {prof.licenseNumber || "Not set"}
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium text-neutral-700">
+                            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Verification Status
                             </label>
                             <div className="px-3 py-2">

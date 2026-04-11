@@ -148,7 +148,7 @@ const MyAppointmentsPage = () => {
                     {filterCategories.map((cat) => (
                         <div
                             key={cat.id}
-                            className="h-8 w-20 bg-neutral-200 rounded-full animate-pulse"
+                            className="h-8 w-20 bg-neutral-200 dark:bg-dark-elevated rounded-full animate-pulse"
                         />
                     ))}
                 </div>
@@ -203,7 +203,7 @@ const MyAppointmentsPage = () => {
               ${
                   activeTab === cat.id
                       ? "bg-primary-600 text-white"
-                      : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50 hover:text-neutral-800"
+                      : "bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover hover:text-neutral-800 dark:hover:text-neutral-100"
               }
             `}
                     >
@@ -214,7 +214,7 @@ const MyAppointmentsPage = () => {
               ${
                   activeTab === cat.id
                       ? "bg-primary-500/30 text-white"
-                      : "bg-neutral-100 text-neutral-500"
+                      : "bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400"
               }
             `}
                         >
@@ -226,7 +226,7 @@ const MyAppointmentsPage = () => {
 
             {/* Content Area */}
             {filteredAppointments.length === 0 ? (
-                <div className="bg-white rounded-xl border border-neutral-100 p-12">
+                <div className="bg-white dark:bg-dark-card rounded-xl border border-neutral-100 dark:border-dark-border p-12">
                     <EmptyState
                         icon={FileText}
                         title={

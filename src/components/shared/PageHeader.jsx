@@ -10,15 +10,15 @@ const PageHeader = ({ title, subtitle, action, backTo, className = '' }) => {
         {backTo && (
           <button
             onClick={() => navigate(backTo)}
-            className="p-1.5 -ml-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="p-1.5 -ml-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-dark-hover rounded-xl transition-colors"
             aria-label="Go back"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-neutral-800 tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>}
+          <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{subtitle}</p>}
         </div>
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}

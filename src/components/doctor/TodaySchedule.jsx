@@ -14,7 +14,7 @@ const TodaySchedule = ({ appointments = [], onSelect, loading }) => {
                     {[1, 2, 3].map((i) => (
                         <div
                             key={i}
-                            className="h-16 bg-neutral-100 rounded-lg animate-pulse"
+                            className="h-16 bg-neutral-100 dark:bg-dark-elevated rounded-xl animate-pulse"
                         />
                     ))}
                 </div>
@@ -51,8 +51,8 @@ const TodaySchedule = ({ appointments = [], onSelect, loading }) => {
                                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
                                     apt.isEmergency ||
                                     apt.urgencyLevel === "emergency"
-                                        ? "bg-error-50 border-error-300 hover:bg-red-100"
-                                        : "bg-neutral-50 border-neutral-200 hover:bg-primary-50/40"
+                                        ? "bg-error-50 dark:bg-error-900/10 border-error-300 dark:border-error-700/50 hover:bg-red-100 dark:hover:bg-error-900/20"
+                                        : "bg-neutral-50 dark:bg-dark-elevated border-neutral-200 dark:border-dark-border hover:bg-primary-50/40 dark:hover:bg-primary-900/10"
                                 }`}
                             >
                                 <div className="shrink-0">
@@ -63,16 +63,16 @@ const TodaySchedule = ({ appointments = [], onSelect, loading }) => {
                                             className="w-10 h-10 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                                            <User className="w-4.5 h-4.5 text-primary-600" />
+                                        <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
+                                            <User className="w-4.5 h-4.5 text-primary-600 dark:text-primary-400" />
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-neutral-800 text-sm truncate">
+                                    <p className="font-medium text-neutral-800 dark:text-neutral-100 text-sm truncate">
                                         {apt.patient?.name || "Patient"}
                                     </p>
-                                    <div className="flex items-center gap-2 text-xs text-neutral-500">
+                                    <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                                         <Clock className="w-3 h-3" />
                                         <span>{apt.timeSlot}</span>
                                         {(apt.symptoms ||

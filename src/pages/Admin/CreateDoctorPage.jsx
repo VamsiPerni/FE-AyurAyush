@@ -117,9 +117,9 @@ const CreateDoctorPage = () => {
         backTo="/admin/doctors"
       />
 
-      <Card className="border-neutral-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-neutral-50/70 border-b border-neutral-100 pb-4">
-          <CardTitle className="text-neutral-800 text-lg">Practitioner Details</CardTitle>
+      <Card className="border-neutral-200 dark:border-dark-border shadow-sm overflow-hidden">
+        <CardHeader className="bg-neutral-50/70 dark:bg-dark-elevated/70 border-b border-neutral-100 dark:border-dark-border pb-4">
+          <CardTitle className="text-neutral-800 dark:text-neutral-100 text-lg">Practitioner Details</CardTitle>
           <p className="text-sm text-neutral-500 mt-1">All fields are mandatory to ensure complete system records.</p>
         </CardHeader>
         
@@ -128,7 +128,7 @@ const CreateDoctorPage = () => {
             
             {/* Identity & Contact Section */}
             <div className="space-y-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 pb-2">Identity & Access</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-dark-border pb-2">Identity & Access</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Full Name"
@@ -181,7 +181,7 @@ const CreateDoctorPage = () => {
 
             {/* Clinical Metadata Section */}
             <div className="space-y-6 pt-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 pb-2">Clinical Credentials</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-dark-border pb-2">Clinical Credentials</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 <div className="md:col-span-2">
@@ -225,7 +225,7 @@ const CreateDoctorPage = () => {
 
                 <div className="md:col-span-2">
                   <div className="space-y-1.5">
-                    <label htmlFor="doc-qualifications" className="block text-sm font-semibold text-neutral-700">
+                    <label htmlFor="doc-qualifications" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                       Degrees & Qualifications <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -237,7 +237,7 @@ const CreateDoctorPage = () => {
                         placeholder="e.g. BAMS, MD (Ayurveda)"
                         value={formData.qualifications}
                         onChange={handleChange('qualifications')}
-                        className={`w-full pl-10 resize-y min-h-[100px] bg-neutral-50 border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow ${errors.qualifications ? 'border-red-300 ring-1 ring-red-300 bg-red-50/30' : 'border-neutral-200'}`}
+                        className={`w-full pl-10 resize-y min-h-[100px] bg-neutral-50 dark:bg-dark-elevated border rounded-xl px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow ${errors.qualifications ? 'border-red-300 ring-1 ring-red-300 bg-red-50/30 dark:bg-red-900/10' : 'border-neutral-200 dark:border-dark-border'}`}
                       />
                     </div>
                     {errors.qualifications && <p className="text-sm text-red-500 mt-1">{errors.qualifications}</p>}
@@ -248,7 +248,7 @@ const CreateDoctorPage = () => {
             </div>
             
             {/* Actions Layer */}
-            <div className="pt-6 border-t border-neutral-100 flex flex-col sm:flex-row gap-3">
+            <div className="pt-6 border-t border-neutral-100 dark:border-dark-border flex flex-col sm:flex-row gap-3">
               <Button 
                 type="button" 
                 variant="outline" 

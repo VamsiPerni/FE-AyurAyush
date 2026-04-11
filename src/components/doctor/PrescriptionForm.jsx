@@ -42,20 +42,20 @@ const PrescriptionForm = ({ onSubmit, loading }) => {
   };
 
   return (
-    <Card className="border-primary-100 shadow-sm overflow-visible">
-      <CardHeader className="bg-primary-50/50 border-b border-primary-50 flex flex-row items-center justify-between pb-4">
-        <CardTitle className="flex items-center gap-2 text-primary-800">
+    <Card className="border-primary-100 dark:border-dark-border shadow-sm overflow-visible">
+      <CardHeader className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-50 dark:border-dark-border flex flex-row items-center justify-between pb-4">
+        <CardTitle className="flex items-center gap-2 text-primary-800 dark:text-primary-400">
           <Pill className="w-5 h-5" />
           Digital Prescription
         </CardTitle>
       </CardHeader>
       
       <CardContent className="p-0">
-        <form onSubmit={handleSubmit} className="divide-y divide-neutral-100">
+        <form onSubmit={handleSubmit} className="divide-y divide-neutral-100 dark:divide-dark-border">
           {/* Medications Array */}
           <div className="p-4 sm:p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-neutral-800 tracking-tight text-sm">Medications</h3>
+              <h3 className="font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight text-sm">Medications</h3>
               <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addMedication}>
                 Add Medication
               </Button>
@@ -63,8 +63,8 @@ const PrescriptionForm = ({ onSubmit, loading }) => {
             
             <div className="space-y-4">
               {medications.map((med, idx) => (
-                <div key={idx} className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 relative group animate-in slide-in-from-top-2">
-                  <div className="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-neutral-400 border border-neutral-200 rounded-full">
+                <div key={idx} className="bg-neutral-50 dark:bg-dark-elevated p-4 rounded-xl border border-neutral-200 dark:border-dark-border relative group animate-in slide-in-from-top-2">
+                  <div className="absolute -top-3 left-4 bg-white dark:bg-dark-elevated px-2 text-xs font-bold text-neutral-400 dark:text-neutral-500 border border-neutral-200 dark:border-dark-border rounded-full">
                     #{idx + 1}
                   </div>
                   {medications.length > 1 && (
@@ -119,13 +119,13 @@ const PrescriptionForm = ({ onSubmit, loading }) => {
           </div>
 
           {/* Clinical Notes */}
-          <div className="p-4 sm:p-6 space-y-4 bg-white">
-            <h3 className="font-semibold text-neutral-800 tracking-tight flex items-center gap-2 text-sm">
+          <div className="p-4 sm:p-6 space-y-4 bg-white dark:bg-dark-card">
+            <h3 className="font-semibold text-neutral-800 dark:text-neutral-200 tracking-tight flex items-center gap-2 text-sm">
               <ScrollText className="w-4 h-4 text-neutral-500" />
               Doctor's Notes
             </h3>
             <textarea
-              className="w-full resize-y min-h-[120px] bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow"
+              className="w-full resize-y min-h-[120px] bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-xl px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow"
               placeholder="Add dietary restrictions, follow-up instructions, or general clinical notes here..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -133,7 +133,7 @@ const PrescriptionForm = ({ onSubmit, loading }) => {
           </div>
 
           {/* Submit Action */}
-          <div className="p-4 sm:p-6 bg-neutral-50/50 flex justify-end">
+          <div className="p-4 sm:p-6 bg-neutral-50/50 dark:bg-dark-elevated/50 flex justify-end">
             <Button type="submit" loading={loading} icon={Check} className="w-full sm:w-auto">
               Complete Appointment
             </Button>

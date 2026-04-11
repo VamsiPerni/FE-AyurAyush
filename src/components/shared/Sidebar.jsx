@@ -17,6 +17,7 @@ import {
     ClipboardList,
 } from "lucide-react";
 import { useAuthContext } from "../../contexts/AppContext";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 const navLinks = {
     patient: [
@@ -118,16 +119,16 @@ const Sidebar = () => {
             {/* Logo */}
             <Link
                 to="/"
-                className="h-16 px-6 flex items-center gap-2.5 border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
+                className="h-16 px-6 flex items-center gap-3 border-b border-neutral-100 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors"
             >
-                <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center">
-                    <Leaf className="w-4.5 h-4.5 text-primary-600" />
+                <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-sm">
+                    <Leaf className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-primary-600 tracking-tight">
+                    <h1 className="text-lg font-bold text-gradient tracking-tight">
                         AyurAyush
                     </h1>
-                    <p className="text-[10px] text-neutral-400 font-medium uppercase tracking-widest">
+                    <p className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium uppercase tracking-widest">
                         {currentRole || "Portal"}
                     </p>
                 </div>
@@ -145,17 +146,20 @@ const Sidebar = () => {
                             to={link.path}
                             aria-current={isActive ? "page" : undefined}
                             className={`
-                group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                transition-colors duration-200
+                group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                transition-all duration-200
                 ${
                     isActive
-                        ? "bg-primary-50 text-primary-700"
-                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800"
+                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 shadow-sm"
+                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-dark-hover dark:hover:text-neutral-200"
                 }
               `}
                         >
+                            {isActive && (
+                                <span className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full" />
+                            )}
                             <link.icon
-                                className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-primary-600" : "text-neutral-400 group-hover:text-neutral-600"}`}
+                                className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-primary-600 dark:text-primary-400" : "text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300"}`}
                             />
                             <span className="flex-1">{link.label}</span>
                         </NavLink>
@@ -167,29 +171,33 @@ const Sidebar = () => {
                     <NavLink
                         to="/choose-role"
                         className={`
-              group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-              transition-colors duration-200
+              group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+              transition-all duration-200
               ${
                   location.pathname === "/choose-role"
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800"
+                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400"
+                      : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-dark-hover dark:hover:text-neutral-200"
               }
             `}
                     >
                         <Shield
-                            className={`w-4.5 h-4.5 shrink-0 ${location.pathname === "/choose-role" ? "text-primary-600" : "text-neutral-400 group-hover:text-neutral-600"}`}
+                            className={`w-4.5 h-4.5 shrink-0 ${location.pathname === "/choose-role" ? "text-primary-600 dark:text-primary-400" : "text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300"}`}
                         />
                         <span className="flex-1">Switch Role</span>
                     </NavLink>
                 )}
             </nav>
 
-            {/* Logout */}
-            <div className="p-3 border-t border-neutral-100">
+            {/* Footer — theme toggle + logout */}
+            <div className="p-3 border-t border-neutral-100 dark:border-dark-border space-y-1">
+                <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">Theme</span>
+                    <ThemeToggle size="sm" />
+                </div>
                 <button
                     onClick={onLogout}
                     disabled={logoutLoading}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-600 hover:bg-red-50 hover:text-red-600 dark:text-neutral-400 dark:hover:bg-red-900/10 dark:hover:text-red-400 transition-colors disabled:opacity-50"
                 >
                     <LogOut className="w-4.5 h-4.5" />
                     {logoutLoading ? "Signing out..." : "Sign out"}
@@ -203,17 +211,17 @@ const Sidebar = () => {
             {/* Mobile hamburger */}
             <button
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white rounded-lg shadow-md border border-neutral-100"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white dark:bg-dark-card rounded-xl shadow-md border border-neutral-100 dark:border-dark-border hover:scale-105 active:scale-95 transition-all"
                 aria-label="Open menu"
                 aria-expanded={mobileOpen}
             >
-                <Menu className="w-5 h-5 text-neutral-700" />
+                <Menu className="w-5 h-5 text-neutral-700 dark:text-neutral-200" />
             </button>
 
             {/* Mobile overlay */}
             {mobileOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 animate-fade-in"
+                    className="lg:hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
                     onClick={() => setMobileOpen(false)}
                     aria-hidden="true"
                 />
@@ -222,14 +230,14 @@ const Sidebar = () => {
             {/* Mobile sidebar */}
             <aside
                 className={`
-        lg:hidden fixed inset-y-0 left-0 w-72 bg-white z-50 flex flex-col shadow-xl
+        lg:hidden fixed inset-y-0 left-0 w-72 bg-white dark:bg-dark-card z-50 flex flex-col shadow-xl dark:shadow-dark-elevated
         transition-transform duration-300 ease-out
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
       `}
             >
                 <button
                     onClick={() => setMobileOpen(false)}
-                    className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:bg-neutral-100 rounded-lg"
+                    className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover rounded-xl transition-colors"
                     aria-label="Close menu"
                 >
                     <X className="w-5 h-5" />
@@ -238,7 +246,7 @@ const Sidebar = () => {
             </aside>
 
             {/* Desktop sidebar */}
-            <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white border-r border-neutral-100 flex-col z-40">
+            <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white dark:bg-dark-card border-r border-neutral-100 dark:border-dark-border flex-col z-40 transition-colors duration-300">
                 <NavContent />
             </aside>
         </>

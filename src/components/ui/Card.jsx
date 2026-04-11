@@ -7,13 +7,14 @@ const Card = ({
   return (
     <div
       className={`
-        bg-white rounded-xl border
+        bg-white dark:bg-dark-card rounded-2xl border
+        transition-all duration-300 ease-out
         ${paddings[padding]}
-        ${urgent   ? 'border-error-200 bg-error-50/30' :
-          selected ? 'border-primary-300 ring-1 ring-primary-200' :
-                     'border-neutral-100 shadow-sm'}
+        ${urgent   ? 'border-error-300 bg-error-50/30 dark:border-error-700/50 dark:bg-error-900/10' :
+          selected ? 'border-primary-300 ring-1 ring-primary-200 dark:border-primary-600 dark:ring-primary-800' :
+                     'border-neutral-100 shadow-sm dark:border-dark-border dark:shadow-dark-card'}
         ${hoverable || onClick
-          ? 'cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary-200'
+          ? 'cursor-pointer hover:shadow-lg hover:border-primary-200 hover:-translate-y-0.5 dark:hover:border-primary-700/50 dark:hover:shadow-dark-elevated'
           : ''}
         ${className}
       `}
@@ -33,7 +34,7 @@ const CardHeader = ({ children, className = '' }) => (
 );
 
 const CardTitle = ({ children, className = '' }) => (
-  <h3 className={`text-lg font-semibold text-neutral-800 ${className}`}>{children}</h3>
+  <h3 className={`text-lg font-semibold text-neutral-800 dark:text-neutral-100 ${className}`}>{children}</h3>
 );
 
 const CardContent = ({ children, className = '' }) => (

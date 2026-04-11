@@ -167,11 +167,11 @@ const OfflineBookingPage = () => {
         subtitle="Book appointments for walk-in patients manually overriding digital constraints."
       />
 
-      <Card className={`border overflow-hidden shadow-sm transition-colors ${isEmergency ? 'border-red-300' : 'border-neutral-200'}`}>
+      <Card className={`border overflow-hidden shadow-sm transition-colors ${isEmergency ? 'border-red-300 dark:border-red-700/40' : 'border-neutral-200 dark:border-dark-border'}`}>
         
         {/* Spec §15 Rule 10: Triage Warning Banner */}
         {isEmergency && (
-           <div className="bg-red-50 py-3 px-6 border-b border-red-200 flex items-center justify-between text-red-800 animate-in slide-in-from-top-2">
+           <div className="bg-red-50 dark:bg-red-900/10 py-3 px-6 border-b border-red-200 dark:border-red-700/40 flex items-center justify-between text-red-800 dark:text-red-400 animate-in slide-in-from-top-2">
              <div className="flex items-center gap-3">
                <ShieldAlert className="w-5 h-5 animate-pulse" />
                <span className="font-bold tracking-tight text-sm uppercase">Emergency Protocol Activated</span>
@@ -185,7 +185,7 @@ const OfflineBookingPage = () => {
 
             {/* Walk-in Identity Config */}
             <div className="space-y-6">
-              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 border-red-100' : 'text-neutral-400 border-neutral-100'}`}>
+              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 dark:text-red-400/70 border-red-100 dark:border-red-700/30' : 'text-neutral-400 border-neutral-100 dark:border-dark-border'}`}>
                 <User className="w-4 h-4" /> Patient Identity
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -216,28 +216,28 @@ const OfflineBookingPage = () => {
 
             {/* Clinical Parameters Configuration */}
             <div className="space-y-6 pt-2">
-              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 border-red-100' : 'text-neutral-400 border-neutral-100'}`}>
+              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 dark:text-red-400/70 border-red-100 dark:border-red-700/30' : 'text-neutral-400 border-neutral-100 dark:border-dark-border'}`}>
                 <FileText className="w-4 h-4" /> Consultation Parameters
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {/* Special Priority Override */}
-                 <div className="md:col-span-2 p-5 bg-neutral-50 border border-neutral-200 rounded-xl space-y-3">
-                    <label className="block text-sm font-semibold text-neutral-800">
+                 <div className="md:col-span-2 p-5 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-xl space-y-3">
+                    <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                       Triage & Urgency Assessment <span className="text-red-500">*</span>
                     </label>
                     <div className="flex flex-col sm:flex-row gap-3">
                        <button
                          type="button"
                          onClick={() => setUrgency('normal')}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${!isEmergency ? 'bg-primary-600 text-white border-primary-600 shadow-md ring-2 ring-primary-100' : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'}`}
+                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${!isEmergency ? 'bg-primary-600 text-white border-primary-600 shadow-md ring-2 ring-primary-100 dark:ring-primary-800/30' : 'bg-white dark:bg-dark-card text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover'}`}
                        >
                          <Activity className="w-4 h-4" /> Routine Check-up
                        </button>
                        <button
                          type="button"
                          onClick={() => setUrgency('emergency')}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${isEmergency ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-100' : 'bg-white text-neutral-500 border-neutral-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'}`}
+                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${isEmergency ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-100 dark:ring-red-800/30' : 'bg-white dark:bg-dark-card text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-dark-border hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 hover:border-red-200'}`}
                        >
                          <ShieldAlert className="w-4 h-4" /> Emergency Triage
                        </button>
@@ -279,7 +279,7 @@ const OfflineBookingPage = () => {
                  />
 
                  <div className="space-y-1.5">
-                   <label htmlFor="walkin-time" className="block text-sm font-semibold text-neutral-700">
+                   <label htmlFor="walkin-time" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                      Time Slot <span className="text-red-500">*</span>
                    </label>
                    <div className="relative">
@@ -291,7 +291,7 @@ const OfflineBookingPage = () => {
                         value={formData.timeSlot}
                         onChange={handleChange('timeSlot')}
                         disabled={!formData.doctorId || !formData.date || loadingSlots}
-                        className={`w-full pl-10 appearance-none bg-white border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-xs ${errors.timeSlot ? 'border-red-300 ring-1 ring-red-300 bg-red-50/30' : 'border-neutral-300'} ${(!formData.doctorId || !formData.date) ? 'bg-neutral-100 cursor-not-allowed text-neutral-400' : 'text-neutral-800'}`}
+                        className={`w-full pl-10 appearance-none bg-white dark:bg-dark-elevated border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-xs ${errors.timeSlot ? 'border-red-300 ring-1 ring-red-300 bg-red-50/30 dark:bg-red-900/10' : 'border-neutral-300 dark:border-dark-border'} ${(!formData.doctorId || !formData.date) ? 'bg-neutral-100 dark:bg-dark-elevated cursor-not-allowed text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}
                       >
                          <option value="">
                             {!formData.doctorId || !formData.date 
@@ -320,7 +320,7 @@ const OfflineBookingPage = () => {
             </div>
 
             {/* Validation & Submit Boundaries */}
-            <div className={`pt-6 border-t flex items-center justify-end ${isEmergency ? 'border-red-200' : 'border-neutral-100'}`}>
+            <div className={`pt-6 border-t flex items-center justify-end ${isEmergency ? 'border-red-200 dark:border-red-700/40' : 'border-neutral-100 dark:border-dark-border'}`}>
                <Button 
                   type="submit" 
                   icon={CheckCircle2} 

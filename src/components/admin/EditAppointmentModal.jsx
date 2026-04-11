@@ -119,13 +119,13 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
             <div className="space-y-4">
                 {/* Doctor Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
                         Doctor
                     </label>
                     <select
                         value={selectedDoctorId}
                         onChange={(e) => setSelectedDoctorId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated rounded-xl text-sm text-neutral-800 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 dark:focus:border-primary-400 outline-none"
                     >
                         <option value="">Select a doctor</option>
                         {doctors.map((doc) => (
@@ -141,7 +141,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
 
                 {/* Date Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
                         Date
                     </label>
                     <input
@@ -149,7 +149,7 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
                         min={getMinDate()}
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated rounded-xl text-sm text-neutral-800 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 dark:focus:border-primary-400 outline-none"
                     />
                 </div>
 
@@ -165,14 +165,14 @@ const EditAppointmentModal = ({ isOpen, onClose, appointment, onSave }) => {
 
                 {/* Admin Notes */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
                         Admin Notes (optional)
                     </label>
                     <textarea
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
                         placeholder="Add any notes..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated rounded-xl text-sm text-neutral-800 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 dark:focus:border-primary-400 outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                         rows={3}
                     />
                 </div>

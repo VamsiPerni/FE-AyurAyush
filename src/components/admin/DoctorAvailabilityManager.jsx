@@ -111,7 +111,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
 
             {/* Available Days */}
             <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <label className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2 block">
                     Available Days
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                                 availableDays.includes(day)
                                     ? "bg-primary-600 text-white border-primary-600"
-                                    : "bg-white text-gray-600 border-gray-200 hover:border-primary-500"
+                                    : "bg-white dark:bg-dark-elevated text-gray-600 dark:text-neutral-300 border-gray-200 dark:border-dark-border hover:border-primary-500 dark:hover:border-primary-500"
                             }`}
                         >
                             {day}
@@ -134,15 +134,15 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
             {/* Time Slots per Day */}
             {availableDays.length > 0 && (
                 <div className="mb-6 space-y-4">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                    <label className="text-sm font-medium text-gray-700 dark:text-neutral-300 flex items-center gap-1">
                         <Clock size={14} /> Time Slots
                     </label>
                     {availableDays.map((day) => (
                         <div
                             key={day}
-                            className="bg-gray-50 border border-gray-200 rounded-lg p-3"
+                            className="bg-gray-50 dark:bg-dark-elevated border border-gray-200 dark:border-dark-border rounded-lg p-3"
                         >
-                            <p className="text-sm font-medium text-gray-800 mb-2">
+                            <p className="text-sm font-medium text-gray-800 dark:text-neutral-200 mb-2">
                                 {day}
                             </p>
                             <div className="flex flex-wrap gap-1.5">
@@ -157,7 +157,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                                                 slot,
                                             )
                                                 ? "bg-teal-600 text-white border-teal-600"
-                                                : "bg-white text-gray-500 border-gray-200 hover:border-teal-400"
+                                                : "bg-white dark:bg-dark-card text-gray-500 dark:text-neutral-400 border-gray-200 dark:border-dark-border hover:border-teal-400"
                                         }`}
                                     >
                                         {slot}
@@ -171,7 +171,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
 
             {/* Unavailable Dates */}
             <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <label className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2 block">
                     Unavailable Dates
                 </label>
                 <div className="flex gap-2 mb-2">
@@ -179,7 +179,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                         type="date"
                         value={newUnavailableDate}
                         onChange={(e) => setNewUnavailableDate(e.target.value)}
-                        className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                        className="px-3 py-1.5 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated text-neutral-800 dark:text-neutral-100 rounded-lg text-sm"
                     />
                     <input
                         type="text"
@@ -188,7 +188,7 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                             setNewUnavailableReason(e.target.value)
                         }
                         placeholder="Reason (optional)"
-                        className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm flex-1"
+                        className="px-3 py-1.5 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 rounded-lg text-sm flex-1"
                     />
                     <Button
                         size="sm"
@@ -203,12 +203,12 @@ const DoctorAvailabilityManager = ({ doctorId, initialData, onSaved }) => {
                         {unavailableDates.map((item, idx) => (
                             <div
                                 key={idx}
-                                className="flex items-center gap-2 text-sm bg-red-50 px-3 py-1.5 rounded"
+                                className="flex items-center gap-2 text-sm bg-red-50 dark:bg-red-900/10 px-3 py-1.5 rounded border border-red-100 dark:border-red-900/20"
                             >
-                                <span className="text-red-700">
+                                <span className="text-red-700 dark:text-red-400">
                                     {item.date}
                                 </span>
-                                <span className="text-gray-500">
+                                <span className="text-gray-500 dark:text-neutral-400">
                                     {item.reason}
                                 </span>
                                 <button

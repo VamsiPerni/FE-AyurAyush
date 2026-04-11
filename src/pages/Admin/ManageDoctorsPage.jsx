@@ -239,11 +239,11 @@ const ManageDoctorsPage = () => {
             header: "Name",
             render: (_, doc) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center shrink-0 border border-primary-200">
+                    <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-bold flex items-center justify-center shrink-0 border border-primary-200 dark:border-primary-700/40">
                         {getInitials(doc.name)}
                     </div>
                     <div>
-                        <p className="font-semibold text-neutral-800">
+                        <p className="font-semibold text-neutral-800 dark:text-neutral-100">
                             {formatDoctorLabel(doc.name)}
                         </p>
                         <p className="text-xs text-neutral-500 font-medium">
@@ -257,7 +257,7 @@ const ManageDoctorsPage = () => {
             key: "specialization",
             header: "Specialization",
             render: (_, doc) => (
-                <span className="text-neutral-700 font-medium">
+                <span className="text-neutral-700 dark:text-neutral-300 font-medium">
                     {doc.specialization || "General"}
                 </span>
             ),
@@ -266,7 +266,7 @@ const ManageDoctorsPage = () => {
             key: "experience",
             header: "Experience",
             render: (_, doc) => (
-                <span className="text-neutral-600">
+                <span className="text-neutral-600 dark:text-neutral-400">
                     {doc.experience ? `${doc.experience} yrs` : "-"}
                 </span>
             ),
@@ -384,9 +384,9 @@ const ManageDoctorsPage = () => {
                 }
             />
 
-            <Card className="overflow-hidden shadow-sm border border-neutral-100 min-h-[500px]">
+            <Card className="overflow-hidden shadow-sm border border-neutral-100 dark:border-dark-border min-h-[500px]">
                 {/* Controls Panel */}
-                <div className="bg-neutral-50/50 p-5 border-b border-neutral-100 flex flex-col md:flex-row justify-between gap-4">
+                <div className="bg-neutral-50/50 dark:bg-dark-elevated/50 p-5 border-b border-neutral-100 dark:border-dark-border flex flex-col md:flex-row justify-between gap-4">
                     <div className="w-full md:w-80">
                         <Input
                             icon={Search}
@@ -401,7 +401,7 @@ const ManageDoctorsPage = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Filter by status"
                         >
                             <option value="all">All Status</option>
@@ -414,7 +414,7 @@ const ManageDoctorsPage = () => {
                             onChange={(e) =>
                                 setSpecializationFilter(e.target.value)
                             }
-                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Filter by specialization"
                         >
                             {specializationOptions.map((spec) => (
@@ -429,7 +429,7 @@ const ManageDoctorsPage = () => {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Sort doctors"
                         >
                             <option value="name_asc">Name (A-Z)</option>

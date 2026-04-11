@@ -33,16 +33,19 @@ const PublicLayout = () => {
     // Homepage gets Navbar + full-width layout
     if (isHomePath) {
         return (
-            <div className="min-h-screen bg-neutral-50">
+            <div className="min-h-screen bg-neutral-50 dark:bg-dark-surface transition-colors duration-300">
                 <Navbar />
                 <Outlet />
             </div>
         );
     }
 
-    // Auth pages (login, signup, etc.) → centered layout
+    // Auth pages (login, signup, etc.) → centered layout with decorative bg
     return (
-        <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-neutral-50 dark:bg-dark-surface flex items-center justify-center p-4 transition-colors duration-300 relative overflow-hidden">
+            {/* Decorative background orbs */}
+            <div className="absolute top-20 -right-20 w-96 h-96 bg-primary-200/20 dark:bg-primary-800/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-200/20 dark:bg-purple-800/10 rounded-full blur-3xl pointer-events-none" />
             <Outlet />
         </div>
     );

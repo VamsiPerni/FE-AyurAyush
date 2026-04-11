@@ -180,13 +180,13 @@ const ProfilePage = () => {
 
       <Card className="overflow-hidden">
         {/* Profile Header Block */}
-        <div className="bg-primary-50/50 border-b border-primary-100 p-6 flex flex-col sm:flex-row items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-primary-100 text-primary-700 font-bold text-3xl flex items-center justify-center shrink-0 border-4 border-white shadow-sm ring-1 ring-primary-100">
+        <div className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-dark-border p-6 flex flex-col sm:flex-row items-center gap-6">
+          <div className="w-24 h-24 rounded-full bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-bold text-3xl flex items-center justify-center shrink-0 border-4 border-white dark:border-dark-card shadow-sm ring-1 ring-primary-100 dark:ring-primary-800/30">
             {getInitials(profile.name)}
           </div>
           <div className="text-center sm:text-left flex-1">
-            <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">{profile.name || 'Patient User'}</h2>
-            <p className="text-primary-700 font-medium flex items-center justify-center sm:justify-start gap-1.5 mt-1">
+            <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">{profile.name || 'Patient User'}</h2>
+            <p className="text-primary-700 dark:text-primary-400 font-medium flex items-center justify-center sm:justify-start gap-1.5 mt-1">
               <Mail className="w-4 h-4" />
               {emailField}
             </p>
@@ -259,7 +259,7 @@ const ProfilePage = () => {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-neutral-100">
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-neutral-100 dark:border-dark-border">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -284,42 +284,42 @@ const ProfilePage = () => {
             <div className="space-y-6 animate-in fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 
-                <div className="p-4 rounded-xl bg-neutral-50 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 border border-neutral-200">
+                <div className="p-4 rounded-xl bg-neutral-50 dark:bg-dark-elevated flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-dark-card flex items-center justify-center shrink-0 border border-neutral-200 dark:border-dark-border">
                     <User className="w-5 h-5 text-neutral-500" />
                   </div>
                   <div>
-                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-1">Full Name</h3>
-                    <p className="text-neutral-800 font-medium">{profile.name || 'Not Provided'}</p>
+                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-1">Full Name</h3>
+                    <p className="text-neutral-800 dark:text-neutral-200 font-medium">{profile.name || 'Not Provided'}</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-neutral-50 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 border border-neutral-200">
+                <div className="p-4 rounded-xl bg-neutral-50 dark:bg-dark-elevated flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-dark-card flex items-center justify-center shrink-0 border border-neutral-200 dark:border-dark-border">
                     <Phone className="w-5 h-5 text-neutral-500" />
                   </div>
                   <div>
-                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-1">Phone Number</h3>
-                    <p className="text-neutral-800 font-medium">{profile.phone || profile.phoneNumber || 'Not Provided'}</p>
+                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-1">Phone Number</h3>
+                    <p className="text-neutral-800 dark:text-neutral-200 font-medium">{profile.phone || profile.phoneNumber || 'Not Provided'}</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-neutral-50 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 border border-neutral-200">
+                <div className="p-4 rounded-xl bg-neutral-50 dark:bg-dark-elevated flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-dark-card flex items-center justify-center shrink-0 border border-neutral-200 dark:border-dark-border">
                     <Calendar className="w-5 h-5 text-neutral-500" />
                   </div>
                   <div>
-                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-1">Date of Birth</h3>
-                    <p className="text-neutral-800 font-medium">{formatDateIN(profile.dob)}</p>
+                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-1">Date of Birth</h3>
+                    <p className="text-neutral-800 dark:text-neutral-200 font-medium">{formatDateIN(profile.dob)}</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-neutral-50 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 border border-neutral-200">
+                <div className="p-4 rounded-xl bg-neutral-50 dark:bg-dark-elevated flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-dark-card flex items-center justify-center shrink-0 border border-neutral-200 dark:border-dark-border">
                     <Heart className="w-5 h-5 text-neutral-500" />
                   </div>
                   <div>
-                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-1">Gender</h3>
+                    <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-1">Gender</h3>
                     <p className="text-neutral-800 font-medium capitalize">
                       {profile.gender ? profile.gender.replace(/_/g, ' ') : 'Not Provided'}
                     </p>

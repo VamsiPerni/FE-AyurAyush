@@ -108,7 +108,7 @@ const ProfilePage = () => {
       />
 
       {/* Admin Disclaimer Note */}
-      <div className="bg-info-50 flex items-start gap-3 p-4 rounded-xl border border-info-200 text-info-800">
+      <div className="bg-info-50 dark:bg-blue-900/10 flex items-start gap-3 p-4 rounded-xl border border-info-200 dark:border-blue-700/40 text-info-800 dark:text-blue-300">
         <Info className="w-5 h-5 shrink-0 mt-0.5" />
         <div>
           <h4 className="font-semibold text-sm">Read-Only Profile</h4>
@@ -119,25 +119,25 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      <Card className="overflow-hidden border border-neutral-100 shadow-sm">
+      <Card className="overflow-hidden border border-neutral-100 dark:border-dark-border shadow-sm">
         {/* Profile Identity Layout Block */}
-        <div className="bg-primary-50/50 border-b border-primary-100 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 relative">
+        <div className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-dark-border p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 relative">
           
           <div className="absolute top-6 right-6">
             <Badge type="status" value={profile.status || 'Active'} />
           </div>
 
-          <div className="w-24 h-24 rounded-full bg-primary-100 text-primary-700 font-bold text-3xl flex items-center justify-center shrink-0 border-4 border-white shadow-sm ring-1 ring-primary-100">
+          <div className="w-24 h-24 rounded-full bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-bold text-3xl flex items-center justify-center shrink-0 border-4 border-white dark:border-dark-card shadow-sm ring-1 ring-primary-100 dark:ring-primary-800/30">
             {getInitials(profile.name)}
           </div>
           
           <div className="text-center sm:text-left flex-1 space-y-2 mt-2 sm:mt-1">
             <div>
-              <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">Dr. {profile.name || 'Doctor'}</h2>
-              <p className="text-primary-700 font-semibold">{profile.specialization || 'General Practice'}</p>
+              <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">Dr. {profile.name || 'Doctor'}</h2>
+              <p className="text-primary-700 dark:text-primary-400 font-semibold">{profile.specialization || 'General Practice'}</p>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-6 text-sm text-neutral-600 mt-2">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-6 text-sm text-neutral-600 dark:text-neutral-400 mt-2">
               <span className="flex items-center gap-1.5 font-medium">
                 <Mail className="w-4 h-4 text-neutral-400" />
                 {profile.email || 'Not Provided'}
@@ -152,7 +152,7 @@ const ProfilePage = () => {
 
         {/* Credentials and Clinical Payload Block */}
         <CardContent className="p-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-neutral-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-neutral-100 dark:divide-dark-border">
             
             {/* Left Column */}
             <div className="p-6 sm:p-8 space-y-6">
@@ -161,19 +161,19 @@ const ProfilePage = () => {
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Professional Overview</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-neutral-50 transition-colors">
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors">
                     <Stethoscope className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-0.5">Specialization</p>
-                      <p className="font-semibold text-neutral-800">{profile.specialization || 'Not Provided'}</p>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-0.5">Specialization</p>
+                      <p className="font-semibold text-neutral-800 dark:text-neutral-200">{profile.specialization || 'Not Provided'}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-neutral-50 transition-colors">
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors">
                     <Award className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-0.5">Qualifications</p>
-                      <p className="font-semibold text-neutral-800">{profile.qualification || profile.qualifications || 'Not Provided'}</p>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-0.5">Qualifications</p>
+                      <p className="font-semibold text-neutral-800 dark:text-neutral-200">{profile.qualification || profile.qualifications || 'Not Provided'}</p>
                     </div>
                   </div>
                 </div>
@@ -182,24 +182,24 @@ const ProfilePage = () => {
             </div>
 
             {/* Right Column */}
-            <div className="p-6 sm:p-8 space-y-6 bg-neutral-50/30">
+            <div className="p-6 sm:p-8 space-y-6 bg-neutral-50/30 dark:bg-dark-elevated/30">
               
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Practice Details</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-white dark:hover:bg-dark-hover transition-colors">
                     <Briefcase className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-0.5">Experience</p>
-                      <p className="font-semibold text-neutral-800">{profile.experience ? `${profile.experience} Years` : 'Not Provided'}</p>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-0.5">Experience</p>
+                      <p className="font-semibold text-neutral-800 dark:text-neutral-200">{profile.experience ? `${profile.experience} Years` : 'Not Provided'}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-white dark:hover:bg-dark-hover transition-colors">
                     <Banknote className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-0.5">Consultation Fee</p>
+                      <p className="text-xs uppercase tracking-wider font-semibold text-neutral-500 dark:text-neutral-400 mb-0.5">Consultation Fee</p>
                       <p className="font-semibold text-success-700">₹{profile.consultationFee || '0'}</p>
                     </div>
                   </div>
@@ -210,10 +210,10 @@ const ProfilePage = () => {
           </div>
           
           {/* Footer Account Meta */}
-          <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between">
+          <div className="px-6 py-4 bg-neutral-50 dark:bg-dark-elevated border-t border-neutral-100 dark:border-dark-border flex items-center justify-between">
             <div className="flex items-center gap-2 text-neutral-500">
               <User className="w-4 h-4" />
-              <span className="text-sm">Account Status: <span className="font-semibold text-neutral-700 capitalize">{profile.status || 'Active'}</span></span>
+              <span className="text-sm">Account Status: <span className="font-semibold text-neutral-700 dark:text-neutral-200 capitalize">{profile.status || 'Active'}</span></span>
             </div>
             <div className="flex items-center gap-2 text-neutral-500">
               <Calendar className="w-4 h-4" />

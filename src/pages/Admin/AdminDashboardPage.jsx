@@ -121,7 +121,7 @@ const AdminDashboardPage = () => {
             key: "patient",
             header: "Patient",
             render: (_, apt) => (
-                <span className="font-semibold text-neutral-800">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-100">
                     {apt.patient?.name || apt.patientName || "Unknown"}
                 </span>
             ),
@@ -130,7 +130,7 @@ const AdminDashboardPage = () => {
             key: "doctor",
             header: "Doctor",
             render: (_, apt) => (
-                <span className="font-medium text-neutral-600">
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">
                     Dr. {apt.doctor?.name || apt.doctorName || "Unassigned"}
                 </span>
             ),
@@ -140,10 +140,10 @@ const AdminDashboardPage = () => {
             header: "Date & Time",
             render: (_, apt) => (
                 <span>
-                    <span className="font-medium text-neutral-700">
+                    <span className="font-medium text-neutral-700 dark:text-neutral-200">
                         {formatDateIN(apt.date)}
                     </span>
-                    <span className="text-neutral-500 text-sm ml-1.5">
+                    <span className="text-neutral-500 dark:text-neutral-400 text-sm ml-1.5">
                         • {apt.timeSlot}
                     </span>
                 </span>
@@ -158,7 +158,7 @@ const AdminDashboardPage = () => {
                         Emergency
                     </Badge>
                 ) : (
-                    <span className="text-neutral-400 font-medium text-sm">
+                    <span className="text-neutral-400 dark:text-neutral-500 font-medium text-sm">
                         Normal
                     </span>
                 ),
@@ -187,7 +187,7 @@ const AdminDashboardPage = () => {
             />
 
             {/* Hero Header / System Metrics */}
-            <div className="bg-linear-to-r from-primary-800 to-primary-700 rounded-2xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
+            <div className="bg-linear-to-r from-primary-800 to-primary-700 dark:from-primary-900 dark:to-primary-800 rounded-2xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
                 <div className="absolute -right-8 -top-8 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="relative z-10">
                     <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
@@ -257,7 +257,7 @@ const AdminDashboardPage = () => {
 
             {/* Global Recent Appointments Table */}
             <Card className="overflow-hidden shadow-sm">
-                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 bg-neutral-50/50">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/50">
                     <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-primary-600" />
                         <CardTitle>Recent Appointments</CardTitle>

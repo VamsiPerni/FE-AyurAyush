@@ -301,12 +301,12 @@ const AppointmentDetailPage = () => {
                     <Card
                         className={
                             isEmergency
-                                ? "border-red-200 border-2 shadow-sm"
+                                ? "border-red-200 dark:border-red-700/40 border-2 shadow-sm"
                                 : "shadow-sm"
                         }
                     >
                         {isEmergency && (
-                            <div className="bg-red-50/80 px-5 py-3 border-b border-red-100 flex items-center gap-2 text-red-700">
+                            <div className="bg-red-50/80 dark:bg-red-900/10 px-5 py-3 border-b border-red-100 dark:border-red-700/40 flex items-center gap-2 text-red-700 dark:text-red-400">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="font-semibold text-sm uppercase tracking-wide">
                                     Emergency Triage Prioritized
@@ -322,7 +322,7 @@ const AppointmentDetailPage = () => {
                                         <User className="w-7 h-7" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-neutral-800 tracking-tight">
+                                        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">
                                             {name}
                                         </h2>
                                         <p className="text-sm text-neutral-500 font-medium">
@@ -340,18 +340,18 @@ const AppointmentDetailPage = () => {
                                         )}
                                         <Badge type="status" value={status} />
                                     </div>
-                                    <div className="bg-neutral-100 px-3 py-1.5 rounded-md flex items-center gap-2 mt-1 border border-neutral-200 shadow-sm">
+                                    <div className="bg-neutral-100 dark:bg-dark-elevated px-3 py-1.5 rounded-md flex items-center gap-2 mt-1 border border-neutral-200 dark:border-dark-border shadow-sm">
                                         <Hash className="w-4 h-4 text-neutral-500" />
-                                        <span className="font-mono font-bold text-neutral-800 tracking-wider text-sm">
+                                        <span className="font-mono font-bold text-neutral-800 dark:text-neutral-200 tracking-wider text-sm">
                                             {tokenDisplay}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-neutral-100">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-neutral-100 dark:border-dark-border">
                                 <div
-                                    className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? "bg-red-50/40" : "bg-neutral-50"}`}
+                                    className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? "bg-red-50/40 dark:bg-red-900/10" : "bg-neutral-50 dark:bg-dark-elevated"}`}
                                 >
                                     <Calendar
                                         className={`w-5 h-5 ${isEmergency ? "text-red-500" : "text-primary-600"}`}
@@ -360,13 +360,13 @@ const AppointmentDetailPage = () => {
                                         <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider mb-0.5">
                                             Date
                                         </p>
-                                        <p className="font-bold text-neutral-800">
+                                        <p className="font-bold text-neutral-800 dark:text-neutral-200">
                                             {formatDateIN(date)}
                                         </p>
                                     </div>
                                 </div>
                                 <div
-                                    className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? "bg-red-50/40" : "bg-neutral-50"}`}
+                                    className={`p-4 rounded-xl flex items-center gap-3 ${isEmergency ? "bg-red-50/40 dark:bg-red-900/10" : "bg-neutral-50 dark:bg-dark-elevated"}`}
                                 >
                                     <Clock
                                         className={`w-5 h-5 ${isEmergency ? "text-red-500" : "text-primary-600"}`}
@@ -375,18 +375,18 @@ const AppointmentDetailPage = () => {
                                         <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider mb-0.5">
                                             Time Slot
                                         </p>
-                                        <p className="font-bold text-neutral-800">
+                                        <p className="font-bold text-neutral-800 dark:text-neutral-200">
                                             {timeSlot}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="p-4 rounded-xl flex items-center gap-3 bg-blue-50 border border-blue-100">
+                                <div className="p-4 rounded-xl flex items-center gap-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-700/40">
                                     <Activity className="w-5 h-5 text-blue-600" />
                                     <div>
                                         <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider mb-0.5">
                                             Consultation Timer
                                         </p>
-                                        <p className="font-bold text-blue-800">
+                                        <p className="font-bold text-blue-800 dark:text-blue-300">
                                             {queueStatus === "in_consultation"
                                                 ? formatDuration(
                                                       liveConsultationSeconds,
@@ -431,7 +431,7 @@ const AppointmentDetailPage = () => {
 
                     {/* AI / Triage Summary Block */}
                     <div className="space-y-4">
-                        <h3 className="font-bold text-neutral-800 text-lg flex items-center gap-2">
+                        <h3 className="font-bold text-neutral-800 dark:text-neutral-100 text-lg flex items-center gap-2">
                             <Activity className="w-5 h-5 text-primary-600" />
                             Pre-Consultation Insights
                         </h3>
@@ -444,7 +444,7 @@ const AppointmentDetailPage = () => {
                                     <h4 className="text-sm font-semibold text-neutral-700 mb-2">
                                         AI Consultation Notes
                                     </h4>
-                                    <pre className="whitespace-pre-wrap text-sm text-neutral-700 leading-relaxed bg-neutral-50 border border-neutral-100 rounded-lg p-3">
+                                    <pre className="whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed bg-neutral-50 dark:bg-dark-elevated border border-neutral-100 dark:border-dark-border rounded-lg p-3">
                                         {textSummary}
                                     </pre>
                                 </CardContent>
@@ -459,7 +459,7 @@ const AppointmentDetailPage = () => {
                                         {symptomList.map((symptom, idx) => (
                                             <span
                                                 key={idx}
-                                                className="bg-neutral-100 text-neutral-700 text-xs px-2.5 py-1 rounded-md border border-neutral-200"
+                                                className="bg-neutral-100 dark:bg-dark-elevated text-neutral-700 dark:text-neutral-300 text-xs px-2.5 py-1 rounded-md border border-neutral-200 dark:border-dark-border"
                                             >
                                                 {symptom}
                                             </span>
@@ -468,7 +468,7 @@ const AppointmentDetailPage = () => {
                                 </CardContent>
                             </Card>
                         ) : (
-                            <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100 flex flex-col items-center justify-center text-neutral-500 text-center">
+                            <div className="bg-neutral-50 dark:bg-dark-elevated p-6 rounded-2xl border border-neutral-100 dark:border-dark-border flex flex-col items-center justify-center text-neutral-500 text-center">
                                 <FileText className="w-8 h-8 opacity-40 mb-2" />
                                 <p className="text-sm max-w-sm">
                                     No initial symptoms or AI consultation
@@ -480,8 +480,8 @@ const AppointmentDetailPage = () => {
 
                     {/* Action Layer: Either Write Prescription or View Completed state */}
                     {status === "confirmed" && (
-                        <div className="pt-6 border-t border-neutral-200 mt-8">
-                            <h3 className="font-bold text-neutral-800 text-lg flex items-center gap-2 mb-4">
+                        <div className="pt-6 border-t border-neutral-200 dark:border-dark-border mt-8">
+                            <h3 className="font-bold text-neutral-800 dark:text-neutral-100 text-lg flex items-center gap-2 mb-4">
                                 <Stethoscope className="w-5 h-5 text-primary-600" />
                                 Clinical Diagnosis & Prescription
                             </h3>
@@ -493,9 +493,9 @@ const AppointmentDetailPage = () => {
                     )}
 
                     {status === "completed" && prescription && (
-                        <div className="pt-6 border-t border-neutral-200 mt-8">
-                            <Card className="border-success-200 overflow-hidden shadow-sm">
-                                <div className="bg-success-50 px-5 py-4 border-b border-success-100 flex items-center gap-3 text-success-800">
+                        <div className="pt-6 border-t border-neutral-200 dark:border-dark-border mt-8">
+                            <Card className="border-success-200 dark:border-green-700/40 overflow-hidden shadow-sm">
+                                <div className="bg-success-50 dark:bg-green-900/10 px-5 py-4 border-b border-success-100 dark:border-green-700/40 flex items-center gap-3 text-success-800 dark:text-green-300">
                                     <CheckCircle2 className="w-5 h-5" />
                                     <h3 className="font-bold">
                                         Issued Digtal Prescription
@@ -505,7 +505,7 @@ const AppointmentDetailPage = () => {
                                     {prescription.medications &&
                                         prescription.medications.length > 0 && (
                                             <div>
-                                                <h4 className="text-sm font-semibold text-neutral-700 mb-3 uppercase tracking-wide text-[11px]">
+                                                <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3 uppercase tracking-wide text-[11px]">
                                                     Authorized Medications
                                                 </h4>
                                                 <div className="space-y-3">
@@ -513,10 +513,10 @@ const AppointmentDetailPage = () => {
                                                         (med, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="bg-white border border-neutral-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm"
+                                                                className="bg-white dark:bg-dark-card border border-neutral-200 dark:border-dark-border rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm"
                                                             >
                                                                 <div>
-                                                                    <p className="font-semibold text-neutral-800 text-sm">
+                                                                    <p className="font-semibold text-neutral-800 dark:text-neutral-200 text-sm">
                                                                         {
                                                                             med.name
                                                                         }
@@ -535,7 +535,7 @@ const AppointmentDetailPage = () => {
                                                                         }
                                                                     </p>
                                                                 </div>
-                                                                <span className="shrink-0 text-[11px] font-bold tracking-wide uppercase bg-neutral-100 px-2 py-1 rounded text-neutral-600 w-fit">
+                                                                <span className="shrink-0 text-[11px] font-bold tracking-wide uppercase bg-neutral-100 dark:bg-dark-elevated px-2 py-1 rounded text-neutral-600 dark:text-neutral-400 w-fit">
                                                                     {med.instructions ||
                                                                         "As Directed"}
                                                                 </span>
@@ -551,7 +551,7 @@ const AppointmentDetailPage = () => {
                                             <h4 className="text-sm font-semibold text-neutral-700 mb-1 uppercase tracking-wide text-[11px]">
                                                 Clinical Notes
                                             </h4>
-                                            <p className="text-sm text-neutral-600 bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                                            <p className="text-sm text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-dark-elevated p-4 rounded-xl border border-neutral-100 dark:border-dark-border">
                                                 {prescription.notes}
                                             </p>
                                         </div>
@@ -565,7 +565,7 @@ const AppointmentDetailPage = () => {
                 {/* Sidebar Status Info Panel */}
                 <div className="space-y-6">
                     <Card>
-                        <CardHeader className="bg-neutral-50 py-4 border-b border-neutral-100">
+                        <CardHeader className="bg-neutral-50 dark:bg-dark-elevated py-4 border-b border-neutral-100 dark:border-dark-border">
                             <CardTitle className="text-sm">
                                 Patient Protocol Status
                             </CardTitle>
@@ -577,7 +577,7 @@ const AppointmentDetailPage = () => {
                                         <CheckCircle2 className="w-4 h-4 text-primary-600" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-neutral-800">
+                                        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                             Checked In
                                         </p>
                                         <p className="text-xs text-neutral-400">
@@ -586,7 +586,7 @@ const AppointmentDetailPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 pb-2 border-b border-neutral-100">
+                                <div className="flex items-center gap-3 pb-2 border-b border-neutral-100 dark:border-dark-border">
                                     <div
                                         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${["confirmed", "completed"].includes(status) ? "bg-primary-50 text-primary-600" : "bg-neutral-100 text-neutral-400"}`}
                                     >
@@ -594,7 +594,7 @@ const AppointmentDetailPage = () => {
                                     </div>
                                     <div className="flex-1">
                                         <p
-                                            className={`text-sm font-semibold ${["confirmed", "completed"].includes(status) ? "text-neutral-800" : "text-neutral-400"}`}
+                                            className={`text-sm font-semibold ${["confirmed", "completed"].includes(status) ? "text-neutral-800 dark:text-neutral-200" : "text-neutral-400"}`}
                                         >
                                             Consultation Phase
                                         </p>

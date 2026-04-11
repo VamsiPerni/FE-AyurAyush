@@ -8,6 +8,8 @@ import {
     Timer,
     CircleAlert,
     XCircle,
+    Bot,
+    Sparkles,
 } from "lucide-react";
 import { chatService } from "../../services/chatService";
 import { PageHeader } from "../../components/shared/PageHeader";
@@ -47,7 +49,6 @@ const ChatbotPage = () => {
 
     const messagesEndRef = useRef(null);
 
-    // Auto-scroll to bottom of chat
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -56,7 +57,6 @@ const ChatbotPage = () => {
         scrollToBottom();
     }, [messages, sending]);
 
-    // Persist conversation globally once completed per Spec §12
     useEffect(() => {
         if (status === "completed" && conversationId) {
             localStorage.setItem("conversationId", conversationId);
@@ -82,7 +82,6 @@ const ChatbotPage = () => {
                 });
             }
 
-            // Spec rule: auto-send first message
             const firstMsgText = "Hello, I need a consultation";
             initialMsgs.push({
                 id: Date.now() + 2,
@@ -225,17 +224,24 @@ const ChatbotPage = () => {
                     title="AI Consultation"
                     subtitle="Start a guided symptom discussion before booking"
                 />
-                <Card className="text-center py-16 border border-neutral-100 shadow-sm">
-                    <div className="w-20 h-20 bg-primary-50 rounded-full flex flex-col items-center justify-center mx-auto mb-6">
-                        <MessageSquare className="w-9 h-9 text-primary-600" />
+                <Card className="text-center py-16 border border-neutral-100 dark:border-dark-border shadow-sm">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-700 rounded-3xl flex flex-col items-center justify-center mx-auto mb-6 shadow-lg animate-pulse-glow">
+                        <Bot className="w-9 h-9 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-neutral-800 mb-2">
+                    <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-2">
                         AyurAyush AI Assistant
                     </h1>
-                    <p className="text-neutral-500 mb-8 max-w-md mx-auto text-sm leading-relaxed">
+                    <p className="text-neutral-500 dark:text-neutral-400 mb-8 max-w-md mx-auto text-sm leading-relaxed">
                         Our AI will ask you a few questions about your symptoms
                         to determine urgency and recommend the right specialist.
                     </p>
+                    <div className="flex flex-wrap justify-center gap-3 mb-8">
+                        {["Symptom Analysis", "Emergency Detection", "Smart Triage"].map((feature) => (
+                            <span key={feature} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 text-xs font-medium rounded-lg">
+                                <Sparkles className="w-3 h-3" /> {feature}
+                            </span>
+                        ))}
+                    </div>
                     <Button
                         size="lg"
                         onClick={handleStartConsultation}
@@ -256,14 +262,14 @@ const ChatbotPage = () => {
             />
 
             {/* Chat Container */}
-            <div className="flex-1 bg-neutral-50 rounded-2xl border border-neutral-100 shadow-inner flex flex-col overflow-hidden relative">
+            <div className="flex-1 bg-neutral-50 dark:bg-dark-surface rounded-2xl border border-neutral-100 dark:border-dark-border shadow-inner dark:shadow-none flex flex-col overflow-hidden relative">
                 {status !== "completed" && (
-                    <div className="px-4 py-2.5 bg-primary-50 border-b border-primary-100 text-xs text-primary-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    <div className="px-4 py-2.5 bg-primary-50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-primary-800/30 text-xs text-primary-800 dark:text-primary-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                         <span className="flex items-center gap-1.5 font-medium">
                             <Timer className="w-3.5 h-3.5" />
                             AI replies usually take 10-20 seconds.
                         </span>
-                        <span className="sm:text-right text-primary-900">
+                        <span className="sm:text-right text-primary-900 dark:text-primary-200">
                             {promptsRemaining > 0
                                 ? `${promptsRemaining} prompt${promptsRemaining === 1 ? "" : "s"} left. After ${serverRecommendedEndAfter} prompts, end chat and book appointment.`
                                 : "Prompt limit reached. End this consultation and proceed to booking."}
@@ -273,11 +279,11 @@ const ChatbotPage = () => {
 
                 {/* Messages List */}
                 <div
-                    className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6"
+                    className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scrollbar-thin"
                     aria-live="polite"
                 >
                     {messages.length === 0 && !sending && (
-                        <div className="h-full flex flex-col items-center justify-center text-neutral-400">
+                        <div className="h-full flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500">
                             <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
                             <p>Type a message to begin...</p>
                         </div>
@@ -298,17 +304,17 @@ const ChatbotPage = () => {
 
                 {/* Status Completed Banner */}
                 {status === "completed" && (
-                    <div className="bg-success-50 border-t border-success-100 p-4 animate-in slide-in-from-bottom-2">
+                    <div className="bg-success-50 dark:bg-success-900/10 border-t border-success-100 dark:border-success-800/30 p-4">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-success-100 flex items-center justify-center text-success-700">
+                                <div className="w-10 h-10 rounded-full bg-success-100 dark:bg-success-900/20 flex items-center justify-center text-success-700 dark:text-success-400">
                                     <AlertCircle className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-success-900">
+                                    <h4 className="font-semibold text-success-900 dark:text-success-300">
                                         Consultation Complete
                                     </h4>
-                                    <p className="text-sm text-success-700">
+                                    <p className="text-sm text-success-700 dark:text-success-400">
                                         You are now ready to book your
                                         appointment.
                                     </p>
@@ -339,9 +345,9 @@ const ChatbotPage = () => {
                 )}
 
                 {/* Input Area */}
-                <div className="p-3 sm:p-4 bg-white border-t border-neutral-100 flex items-end gap-3 z-10 shrink-0">
+                <div className="p-3 sm:p-4 bg-white dark:bg-dark-card border-t border-neutral-100 dark:border-dark-border flex items-end gap-3 z-10 shrink-0">
                     <textarea
-                        className="flex-1 resize-none bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-shadow min-h-[48px] max-h-[120px] placeholder:text-neutral-400"
+                        className="flex-1 resize-none bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-xl px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 dark:focus:ring-primary-400/20 dark:focus:border-primary-400 transition-shadow min-h-[48px] max-h-[120px] placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                         placeholder={
                             status === "completed"
                                 ? "Consultation has ended."
@@ -370,18 +376,18 @@ const ChatbotPage = () => {
                 </div>
 
                 {status !== "completed" && (
-                    <div className="px-4 pb-4 bg-white border-t border-neutral-100">
-                        <div className="rounded-xl border border-error-200 bg-error-50/70 p-3 sm:p-4 shadow-sm">
+                    <div className="px-4 pb-4 bg-white dark:bg-dark-card border-t border-neutral-100 dark:border-dark-border">
+                        <div className="rounded-xl border border-error-200 dark:border-error-700/40 bg-error-50/70 dark:bg-error-900/10 p-3 sm:p-4 shadow-sm">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div className="flex items-start gap-2.5">
-                                    <CircleAlert className="w-4.5 h-4.5 text-error-600 mt-0.5" />
+                                    <CircleAlert className="w-4.5 h-4.5 text-error-600 dark:text-error-400 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-semibold text-error-800">
+                                        <p className="text-sm font-semibold text-error-800 dark:text-error-300">
                                             {shouldRecommendEnd
                                                 ? "You have enough details to proceed."
                                                 : "End when you are ready to book."}
                                         </p>
-                                        <p className="text-xs text-error-700 mt-0.5">
+                                        <p className="text-xs text-error-700 dark:text-error-400 mt-0.5">
                                             {shouldRecommendEnd
                                                 ? "Recommended: end chat now and continue with appointment booking."
                                                 : `After ${serverRecommendedEndAfter} prompts, it is best to end and book.`}

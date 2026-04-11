@@ -43,7 +43,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
                     <Stethoscope className="w-4.5 h-4.5 text-info-600" />
-                    <span className="font-semibold text-neutral-800">
+                    <span className="font-semibold text-neutral-800 dark:text-neutral-100">
                         {doctor?.name || "Doctor"}
                     </span>
                 </div>
@@ -62,12 +62,12 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
             </div>
 
             {doctor?.specialization && (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                     {doctor.specialization}
                 </p>
             )}
 
-            <div className="flex items-center gap-4 text-sm text-neutral-600">
+            <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
                 <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {formatDate(date)}
@@ -80,12 +80,12 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
 
             {shouldShowQueueInfo &&
                 (tokenNumber || queueAheadCount !== null) && (
-                    <div className="bg-primary-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
-                        <Hash className="w-3.5 h-3.5 text-primary-600 shrink-0" />
-                        <span className="text-sm font-bold text-primary-700 font-mono">
+                    <div className="bg-primary-50 dark:bg-primary-900/15 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                        <Hash className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400 shrink-0" />
+                        <span className="text-sm font-bold text-primary-700 dark:text-primary-300 font-mono">
                             {tokenNumber || "-"}
                         </span>
-                        <span className="text-xs text-primary-700/80 ml-1 inline-flex items-center gap-1">
+                        <span className="text-xs text-primary-700/80 dark:text-primary-400/80 ml-1 inline-flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
                             {queueAheadCount !== null
                                 ? `${queueAheadCount} ahead`
@@ -103,8 +103,8 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
 
             {(queueStatus === "called" ||
                 queueStatus === "in_consultation") && (
-                <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                    <p className="text-xs font-semibold text-blue-700">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-700/50 rounded-xl px-3 py-2">
+                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">
                         {queueNotificationMessage ||
                             "It is your turn. Please proceed to consultation area."}
                     </p>
@@ -127,7 +127,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                         .map((s, i) => (
                             <span
                                 key={i}
-                                className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md"
+                                className="text-xs bg-neutral-100 dark:bg-dark-elevated text-neutral-600 dark:text-neutral-400 px-2 py-0.5 rounded-md"
                             >
                                 {s}
                             </span>
@@ -135,7 +135,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                 </div>
             )}
 
-            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-neutral-100">
+            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-neutral-100 dark:border-dark-border">
                 <Button
                     size="sm"
                     variant="secondary"

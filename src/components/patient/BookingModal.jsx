@@ -120,13 +120,13 @@ const BookingModal = ({
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                                 step >= s
                                     ? "bg-primary-600 text-white"
-                                    : "bg-gray-200 text-gray-500"
+                                    : "bg-gray-200 dark:bg-dark-elevated text-gray-500 dark:text-neutral-400"
                             }`}
                         >
                             {s}
                         </div>
                         <span
-                            className={`text-sm hidden sm:block ${step >= s ? "text-primary-600 font-medium" : "text-gray-400"}`}
+                            className={`text-sm hidden sm:block ${step >= s ? "text-primary-600 dark:text-primary-400 font-medium" : "text-gray-400 dark:text-neutral-500"}`}
                         >
                             {s === 1
                                 ? "Select Doctor"
@@ -136,7 +136,7 @@ const BookingModal = ({
                         </span>
                         {s < 3 && (
                             <div
-                                className={`flex-1 h-0.5 ${step > s ? "bg-primary-600" : "bg-gray-200"}`}
+                                className={`flex-1 h-0.5 ${step > s ? "bg-primary-600" : "bg-gray-200 dark:bg-dark-elevated"}`}
                             />
                         )}
                     </div>
@@ -147,7 +147,7 @@ const BookingModal = ({
             {step === 1 && (
                 <div>
                     {summary?.recommendedSpecialist && (
-                        <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-lg text-sm text-teal-800">
+                        <div className="mb-4 p-3 bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-700/40 rounded-xl text-sm text-teal-800 dark:text-teal-300">
                             AI recommends:{" "}
                             <span className="font-semibold">
                                 {summary.recommendedSpecialist}
@@ -165,7 +165,7 @@ const BookingModal = ({
                             {[1, 2, 3, 4].map((i) => (
                                 <div
                                     key={i}
-                                    className="h-40 bg-gray-100 rounded-lg animate-pulse"
+                                    className="h-40 bg-gray-100 dark:bg-dark-elevated rounded-xl animate-pulse"
                                 />
                             ))}
                         </div>
@@ -184,7 +184,7 @@ const BookingModal = ({
                                 />
                             ))}
                             {doctors.length === 0 && (
-                                <p className="col-span-2 text-center text-gray-500 py-8">
+                                <p className="col-span-2 text-center text-gray-500 dark:text-neutral-400 py-8">
                                     No doctors available
                                 </p>
                             )}
@@ -205,7 +205,7 @@ const BookingModal = ({
             {step === 2 && (
                 <div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
                             Select Date
                         </label>
                         <input
@@ -213,7 +213,7 @@ const BookingModal = ({
                             min={getMinDate()}
                             value={selectedDate}
                             onChange={(e) => handleDateChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-elevated rounded-xl text-sm text-neutral-800 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 dark:focus:border-primary-400 outline-none"
                         />
                     </div>
 
@@ -243,28 +243,28 @@ const BookingModal = ({
             {/* Step 3: Confirm */}
             {step === 3 && (
                 <div>
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-3 mb-4">
-                        <h4 className="font-semibold text-gray-900">
+                    <div className="bg-gray-50 dark:bg-dark-elevated rounded-xl p-4 space-y-3 mb-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-neutral-100">
                             Booking Summary
                         </h4>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                                <span className="text-gray-500">Doctor</span>
-                                <p className="font-medium">
+                                <span className="text-gray-500 dark:text-neutral-400">Doctor</span>
+                                <p className="font-medium text-neutral-800 dark:text-neutral-200">
                                     {selectedDoctor?.name}
                                 </p>
                             </div>
                             <div>
-                                <span className="text-gray-500">
+                                <span className="text-gray-500 dark:text-neutral-400">
                                     Specialization
                                 </span>
-                                <p className="font-medium">
+                                <p className="font-medium text-neutral-800 dark:text-neutral-200">
                                     {selectedDoctor?.specialization}
                                 </p>
                             </div>
                             <div>
-                                <span className="text-gray-500">Date</span>
-                                <p className="font-medium">
+                                <span className="text-gray-500 dark:text-neutral-400">Date</span>
+                                <p className="font-medium text-neutral-800 dark:text-neutral-200">
                                     {new Date(selectedDate).toLocaleDateString(
                                         "en-IN",
                                         {
@@ -276,12 +276,12 @@ const BookingModal = ({
                                 </p>
                             </div>
                             <div>
-                                <span className="text-gray-500">Time</span>
-                                <p className="font-medium">{selectedSlot}</p>
+                                <span className="text-gray-500 dark:text-neutral-400">Time</span>
+                                <p className="font-medium text-neutral-800 dark:text-neutral-200">{selectedSlot}</p>
                             </div>
                         </div>
                         {summary && (
-                            <div className="pt-3 border-t border-gray-200">
+                            <div className="pt-3 border-t border-gray-200 dark:border-dark-border">
                                 <span className="text-xs text-gray-500">
                                     Symptoms
                                 </span>
@@ -289,7 +289,7 @@ const BookingModal = ({
                                     {summary.symptoms?.map((s, i) => (
                                         <span
                                             key={i}
-                                            className="text-xs bg-white border px-2 py-0.5 rounded-full"
+                                            className="text-xs bg-white dark:bg-dark-card border dark:border-dark-border px-2 py-0.5 rounded-full text-neutral-700 dark:text-neutral-300"
                                         >
                                             {s}
                                         </span>

@@ -312,7 +312,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-dark-surface transition-colors duration-300">
             <HeroSection
                 isLoggedIn={isLoggedIn}
                 getDashboardLink={getDashboardLink}
@@ -336,7 +336,7 @@ const HomePage = () => {
 
 // ---------- Hero Section ----------
 const HeroSection = ({ isLoggedIn, getDashboardLink }) => (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-[#e8f5e9] via-white to-[#f3e5f5]">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-[#e8f5e9] via-white to-[#f3e5f5] dark:from-dark-surface dark:via-dark-surface dark:to-dark-surface">
         {/* Animated background shapes */}
         <div className="absolute top-20 right-10 w-72 h-72 bg-primary-200/30 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse-slow animation-delay-2000" />
@@ -351,7 +351,7 @@ const HeroSection = ({ isLoggedIn, getDashboardLink }) => (
                             AI-Powered Healthcare
                         </span>
                     </div>
-                    <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-gray-900 mb-6 leading-tight">
+                    <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-gray-900 dark:text-neutral-100 mb-6 leading-tight">
                         Where Ancient
                         <span className="bg-linear-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
                             {" "}
@@ -360,7 +360,7 @@ const HeroSection = ({ isLoggedIn, getDashboardLink }) => (
                         <br />
                         Meets Modern AI
                     </h1>
-                    <p className="text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed">
+                    <p className="text-lg text-gray-600 dark:text-neutral-400 max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed">
                         AyurAyush combines Ayurveda with AI-driven triage, smart
                         scheduling, and emergency detection — delivering
                         holistic, efficient hospital management.
@@ -492,10 +492,10 @@ const HowItWorksSection = () => (
             <span className="text-primary-600 text-sm font-semibold uppercase tracking-wider">
                 Simple Process
             </span>
-            <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100 mt-3 mb-4">
                 How AyurAyush Works
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-neutral-400 max-w-2xl mx-auto">
                 From symptom check to recovery — seamless, AI-guided journey
             </p>
         </div>
@@ -503,7 +503,7 @@ const HowItWorksSection = () => (
             {steps.map((step, idx) => (
                 <div
                     key={idx}
-                    className="group relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                    className="group relative bg-white dark:bg-dark-card rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border"
                 >
                     <div className="absolute -top-4 -left-4 w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 text-white rounded-xl flex items-center justify-center text-sm font-bold shadow-lg">
                         0{idx + 1}
@@ -532,10 +532,10 @@ const HowItWorksSection = () => (
                             }
                         />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-3">
                         {step.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">{step.desc}</p>
+                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">{step.desc}</p>
                     {idx < steps.length - 1 && (
                         <div className="hidden lg:block absolute -right-4 top-1/2 text-gray-300">
                             <ArrowRight size={24} />
@@ -609,14 +609,14 @@ const coreFeatures = [
 
 const CoreFeaturesSection = () => (
     <Section className="max-w-7xl mx-auto px-6 py-24">
-        <h2 className="text-4xl font-bold text-gray-900 text-center mb-16">
+        <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100 text-center mb-16">
             Powerful Features
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {coreFeatures.map((f) => (
                 <div
                     key={f.title}
-                    className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                    className="group bg-white dark:bg-dark-card rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border"
                 >
                     <div
                         className={`w-14 h-14 rounded-2xl bg-linear-to-br ${f.gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
@@ -634,10 +634,10 @@ const CoreFeaturesSection = () => (
                             }
                         />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-3">
                         {f.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">{f.desc}</p>
+                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">{f.desc}</p>
                 </div>
             ))}
         </div>
@@ -683,30 +683,30 @@ const RoleModulesSection = () => {
         },
     ];
     return (
-        <Section className="bg-gray-50 py-24">
+        <Section className="bg-gray-50 dark:bg-dark-card py-24">
             <div className="max-w-7xl mx-auto px-6">
-                <h2 className="text-4xl font-bold text-gray-900 text-center mb-16">
+                <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100 text-center mb-16">
                     Role-Based Dashboards
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {modules.map((m) => (
                         <div
                             key={m.role}
-                            className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                            className="group bg-white dark:bg-dark-elevated rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border"
                         >
                             <div
                                 className={`w-16 h-16 rounded-2xl bg-linear-to-br ${m.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
                             >
                                 <m.icon size={32} className="text-white" />
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-4">
                                 {m.role}
                             </h3>
                             <ul className="space-y-3">
                                 {m.features.map((f) => (
                                     <li
                                         key={f}
-                                        className="flex items-center gap-3 text-gray-600"
+                                        className="flex items-center gap-3 text-gray-600 dark:text-neutral-400"
                                     >
                                         <CheckCircle
                                             size={18}
@@ -751,14 +751,14 @@ const CarePathsSection = () => {
     ];
     return (
         <Section className="max-w-7xl mx-auto px-6 py-24">
-            <h2 className="text-4xl font-bold text-gray-900 text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100 text-center mb-16">
                 Care Paths Tailored for You
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {paths.map((p) => (
                     <div
                         key={p.name}
-                        className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                        className="group relative bg-white dark:bg-dark-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border"
                     >
                         <div
                             className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${p.gradient} opacity-10 rounded-bl-full`}
@@ -770,14 +770,14 @@ const CarePathsSection = () => {
                                 >
                                     <p.icon size={32} className="text-white" />
                                 </div>
-                                <span className="text-xs font-semibold px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full">
+                                <span className="text-xs font-semibold px-3 py-1.5 bg-gray-100 dark:bg-dark-elevated text-gray-700 dark:text-neutral-300 rounded-full">
                                     {p.badge}
                                 </span>
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-3">
                                 {p.name}
                             </h3>
-                            <p className="text-gray-600 leading-relaxed">
+                            <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">
                                 {p.desc}
                             </p>
                         </div>
@@ -800,14 +800,14 @@ const DoctorsScrollerSection = () => {
     } = useCarousel(doctorsData, 4000);
 
     return (
-        <Section className="bg-linear-to-br from-primary-50/30 to-purple-50/30 py-24">
+        <Section className="bg-linear-to-br from-primary-50/30 to-purple-50/30 dark:from-dark-card dark:to-dark-card py-24">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center mb-12 flex-wrap gap-4">
                     <div>
-                        <h2 className="text-4xl font-bold text-gray-900">
+                        <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100">
                             Our Specialists
                         </h2>
-                        <p className="text-gray-600 text-lg mt-2">
+                        <p className="text-gray-600 dark:text-neutral-400 text-lg mt-2">
                             Verified experts delivering compassionate care
                         </p>
                     </div>
@@ -828,7 +828,7 @@ const DoctorsScrollerSection = () => {
                         {visibleItems.map((doc) => (
                             <div
                                 key={doc.id}
-                                className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 overflow-hidden"
+                                className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white dark:bg-dark-elevated rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border overflow-hidden"
                             >
                                 <div className="relative h-48 bg-linear-to-br from-primary-100 to-purple-100 flex items-center justify-center">
                                     <UserCircle
@@ -842,13 +842,13 @@ const DoctorsScrollerSection = () => {
                                     )}
                                 </div>
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-1">
                                         {doc.name}
                                     </h3>
                                     <p className="text-primary-600 text-sm font-medium mb-4">
                                         {doc.specialization}
                                     </p>
-                                    <div className="flex justify-between text-sm text-gray-600 mb-5">
+                                    <div className="flex justify-between text-sm text-gray-600 dark:text-neutral-400 mb-5">
                                         <span className="flex items-center gap-1">
                                             <Briefcase size={14} />{" "}
                                             {doc.experience} yrs
@@ -911,10 +911,10 @@ const ReviewsScrollerSection = () => {
         <Section className="max-w-7xl mx-auto px-6 py-24">
             <div className="flex justify-between items-center mb-12 flex-wrap gap-4">
                 <div>
-                    <h2 className="text-4xl font-bold text-gray-900">
+                    <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100">
                         Patient Experiences
                     </h2>
-                    <p className="text-gray-600 text-lg mt-2">
+                    <p className="text-gray-600 dark:text-neutral-400 text-lg mt-2">
                         Real stories of trust and recovery
                     </p>
                 </div>
@@ -935,26 +935,26 @@ const ReviewsScrollerSection = () => {
                     {visibleItems.map((review) => (
                         <div
                             key={review.id}
-                            className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 p-6"
+                            className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border p-6"
                         >
                             <Quote
                                 size={32}
                                 className="text-primary-200 mb-4"
                             />
                             {renderStars(review.rating)}
-                            <p className="text-gray-700 my-4 text-base italic leading-relaxed">
+                            <p className="text-gray-700 dark:text-neutral-300 my-4 text-base italic leading-relaxed">
                                 "{review.quote}"
                             </p>
-                            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100 dark:border-dark-border">
                                 <div>
-                                    <p className="font-bold text-gray-900">
+                                    <p className="font-bold text-gray-900 dark:text-neutral-100">
                                         {review.name}
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-500 dark:text-neutral-400">
                                         {review.location} • Age {review.age}
                                     </p>
                                 </div>
-                                <span className="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                                <span className="text-xs px-3 py-1.5 rounded-full bg-gray-100 dark:bg-dark-elevated text-gray-700 dark:text-neutral-300 font-medium">
                                     {review.careType}
                                 </span>
                             </div>
@@ -968,42 +968,42 @@ const ReviewsScrollerSection = () => {
 
 // ---------- Trust & Security ----------
 const TrustSecuritySection = () => (
-    <Section className="bg-white py-24 border-t border-gray-100">
+    <Section className="bg-white dark:bg-dark-surface py-24 border-t border-gray-100 dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-6 text-center">
-            <h2 className="text-4xl font-bold text-gray-900 mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-neutral-100 mb-16">
                 Trusted & Secure Healthcare Platform
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div className="group">
-                    <div className="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
                         <Fingerprint size={40} className="text-primary-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-2">
                         OTP-Secured Onboarding
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-neutral-400">
                         Two-factor verification for all users
                     </p>
                 </div>
                 <div className="group">
-                    <div className="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
                         <Lock size={40} className="text-primary-600" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
                         Protected Health Data
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-neutral-400">
                         End-to-end encrypted requests
                     </p>
                 </div>
                 <div className="group">
-                    <div className="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
                         <Bell size={40} className="text-primary-600" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
                         Real-time Notifications
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-neutral-400">
                         Reliable appointment & status alerts
                     </p>
                 </div>
@@ -1066,7 +1066,7 @@ const FinalCTASection = ({ isLoggedIn, getDashboardLink }) => (
 
 // ---------- Footer ----------
 const FooterSection = () => (
-    <footer className="bg-gray-900 text-gray-400 pt-16 pb-8">
+    <footer className="bg-gray-900 dark:bg-dark-surface text-gray-400 pt-16 pb-8 border-t border-gray-800 dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>

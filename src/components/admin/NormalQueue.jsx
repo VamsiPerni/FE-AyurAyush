@@ -62,11 +62,11 @@ const NormalQueue = ({ onRefresh }) => {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <ClipboardList size={20} className="text-primary-600" />
-                    <h2 className="text-lg font-bold text-gray-800">
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-neutral-200">
                         📋 Normal Queue
                     </h2>
                     <Badge variant="info" className="ml-2">

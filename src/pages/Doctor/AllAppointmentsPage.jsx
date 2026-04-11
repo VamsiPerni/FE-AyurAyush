@@ -234,7 +234,7 @@ const AllAppointmentsPage = () => {
             key: "patient",
             label: "Patient Name",
             render: (_, row) => (
-                <span className="font-semibold text-neutral-800">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-100">
                     {row.patientName}
                 </span>
             ),
@@ -243,7 +243,7 @@ const AllAppointmentsPage = () => {
             key: "date",
             label: "Date",
             render: (_, row) => (
-                <span className="text-neutral-600 font-medium">
+                <span className="text-neutral-600 dark:text-neutral-400 font-medium">
                     {formatDateIN(row.date)}
                 </span>
             ),
@@ -252,7 +252,7 @@ const AllAppointmentsPage = () => {
             key: "timeSlot",
             label: "Time Slot",
             render: (_, row) => (
-                <span className="text-neutral-600 font-medium whitespace-nowrap">
+                <span className="text-neutral-600 dark:text-neutral-400 font-medium whitespace-nowrap">
                     {row.timeSlot}
                 </span>
             ),
@@ -345,8 +345,8 @@ const AllAppointmentsPage = () => {
                 }
             />
 
-            <Card className="overflow-hidden shadow-sm border border-neutral-100 min-h-125">
-                <div className="bg-neutral-50/50 p-5 border-b border-neutral-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <Card className="overflow-hidden shadow-sm border border-neutral-100 dark:border-dark-border min-h-125">
+                <div className="bg-neutral-50/50 dark:bg-dark-elevated/50 p-5 border-b border-neutral-100 dark:border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-2">
                         {filterCategories.map((cat) => (
                             <button
@@ -357,7 +357,7 @@ const AllAppointmentsPage = () => {
                   ${
                       activeTab === cat.id
                           ? "bg-primary-600 text-white"
-                          : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50 hover:text-neutral-800"
+                          : "bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover hover:text-neutral-800 dark:hover:text-neutral-100"
                   }
                 `}
                             >
@@ -368,7 +368,7 @@ const AllAppointmentsPage = () => {
                   ${
                       activeTab === cat.id
                           ? "bg-primary-500/30 text-white"
-                          : "bg-neutral-100 text-neutral-500"
+                          : "bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400"
                   }
                 `}
                                 >
@@ -382,7 +382,7 @@ const AllAppointmentsPage = () => {
                         <select
                             value={urgencyFilter}
                             onChange={(e) => setUrgencyFilter(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Filter by urgency"
                         >
                             <option value="all">All Urgency</option>
@@ -393,7 +393,7 @@ const AllAppointmentsPage = () => {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Sort appointments"
                         >
                             <option value="latest">Latest to Oldest</option>

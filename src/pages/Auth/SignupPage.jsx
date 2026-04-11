@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { User, Mail, Phone, Lock, KeyRound } from 'lucide-react';
+import { User, Mail, Phone, Lock, KeyRound, Leaf } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
@@ -41,7 +41,6 @@ const SignupPage = () => {
   };
 
   const handleSendOtp = async () => {
-    // Validate email first
     if (!form.email.trim()) {
       setErrors(prev => ({ ...prev, email: 'Email is required' }));
       return;
@@ -87,16 +86,19 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md">
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+    <div className="w-full max-w-md animate-scale-in">
+      <div className="bg-white dark:bg-dark-card rounded-2xl shadow-lg dark:shadow-dark-elevated border border-neutral-100 dark:border-dark-border overflow-hidden">
         {/* Header */}
-        <div className="px-8 pt-8 pb-6 text-center border-b border-neutral-50">
-          <h1 className="text-2xl font-bold text-primary-600 mb-1">AyurAyush</h1>
-          <p className="text-[10px] text-neutral-400 font-medium uppercase tracking-[0.2em] mb-6">
+        <div className="px-8 pt-8 pb-6 text-center border-b border-neutral-50 dark:border-dark-border">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
+            <Leaf className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gradient mb-1">AyurAyush</h1>
+          <p className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium uppercase tracking-[0.2em] mb-6">
             Healthcare Management
           </p>
-          <h2 className="text-xl font-semibold text-neutral-800">Create Account</h2>
-          <p className="text-sm text-neutral-500 mt-1">Start your Ayurveda healthcare journey</p>
+          <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">Create Account</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Start your Ayurveda healthcare journey</p>
         </div>
 
         {/* Form */}
@@ -181,9 +183,9 @@ const SignupPage = () => {
 
         {/* Footer */}
         <div className="px-8 pb-8 text-center">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link to="/login" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
               Sign in
             </Link>
           </p>

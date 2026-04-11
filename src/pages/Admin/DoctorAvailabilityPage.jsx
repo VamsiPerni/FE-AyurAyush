@@ -162,7 +162,7 @@ const DoctorAvailabilityPage = () => {
     return (
       <div className="max-w-4xl mx-auto space-y-6 pb-8">
         <PageHeader title="Doctor Availability" subtitle="Loading registry..." />
-        <div className="h-14 bg-neutral-100 rounded-xl animate-pulse w-full max-w-sm" />
+        <div className="h-14 bg-neutral-100 dark:bg-dark-elevated rounded-xl animate-pulse w-full max-w-sm" />
         <Card className="p-12 border-neutral-100 flex items-center justify-center">
            <div className="h-40 w-full animate-pulse bg-neutral-50/50 rounded-lg" />
         </Card>
@@ -199,7 +199,7 @@ const DoctorAvailabilityPage = () => {
       />
 
       {/* Step 1: Selector Component */}
-      <Card className="border-neutral-200 shadow-sm overflow-visible z-10 relative">
+      <Card className="border-neutral-200 dark:border-dark-border shadow-sm overflow-visible z-10 relative">
         <CardContent className="p-6">
            <Select
              label="Target Doctor"
@@ -215,20 +215,20 @@ const DoctorAvailabilityPage = () => {
 
       {/* Step 2: Editor Flow */}
       {!selectedDoctorId ? (
-         <Card className="border-neutral-100 shadow-none bg-neutral-50/50">
+         <Card className="border-neutral-100 dark:border-dark-border shadow-none bg-neutral-50/50 dark:bg-dark-elevated/50">
            <div className="py-20 text-center">
-             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-200 shadow-sm">
+              <div className="w-16 h-16 bg-white dark:bg-dark-card rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-200 dark:border-dark-border shadow-sm">
                <Clock className="w-8 h-8 text-neutral-300" />
              </div>
-             <h3 className="text-lg font-bold text-neutral-800 tracking-tight">Select a Practitioner First</h3>
+              <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200 tracking-tight">Select a Practitioner First</h3>
              <p className="text-neutral-500 text-sm mt-1">Pick a doctor from the list above to modify their weekly roster.</p>
            </div>
          </Card>
       ) : (
-         <Card className="border-primary-100 shadow-sm overflow-hidden animate-in slide-in-from-bottom-2">
-            <CardHeader className="bg-primary-50/50 border-b border-primary-50 pb-4 flex flex-row items-center justify-between">
+         <Card className="border-primary-100 dark:border-dark-border shadow-sm overflow-hidden animate-in slide-in-from-bottom-2">
+            <CardHeader className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-50 dark:border-dark-border pb-4 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-primary-800 flex items-center gap-2">
+                <CardTitle className="text-primary-800 dark:text-primary-300 flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
                   Weekly Schedule Grid
                 </CardTitle>
@@ -236,14 +236,14 @@ const DoctorAvailabilityPage = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-               <div className="divide-y divide-neutral-100">
+               <div className="divide-y divide-neutral-100 dark:divide-dark-border">
                  {DAYS_OF_WEEK.map((day) => {
                    const dayData = schedule[day.key];
                    const isAvail = dayData.isAvailable;
                    const inputState = slotInputs[day.key] || { start: '', end: '' };
 
                    return (
-                     <div key={day.key} className={`p-5 lg:p-6 transition-colors ${isAvail ? 'bg-white' : 'bg-neutral-50/80'}`}>
+                     <div key={day.key} className={`p-5 lg:p-6 transition-colors ${isAvail ? 'bg-white dark:bg-dark-card' : 'bg-neutral-50/80 dark:bg-dark-elevated/50'}`}>
                        <div className="flex flex-col lg:flex-row lg:items-start gap-5">
                           
                           {/* Day Header & Toggle */}
@@ -259,7 +259,7 @@ const DoctorAvailabilityPage = () => {
                                 <div className={`block w-10 h-6 rounded-full transition-colors duration-200 ease-in-out ${isAvail ? 'bg-primary-600' : 'bg-neutral-300'}`}></div>
                                 <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out ${isAvail ? 'translate-x-4' : 'translate-x-0'}`}></div>
                               </div>
-                              <span className={`ml-3 font-semibold text-sm ${isAvail ? 'text-neutral-800' : 'text-neutral-400 group-hover:text-neutral-600'}`}>
+                              <span className={`ml-3 font-semibold text-sm ${isAvail ? 'text-neutral-800 dark:text-neutral-200' : 'text-neutral-400 group-hover:text-neutral-600'}`}>
                                 {day.label}
                               </span>
                             </label>
@@ -275,8 +275,8 @@ const DoctorAvailabilityPage = () => {
                                   {dayData.slots.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                       {dayData.slots.map((slot, index) => (
-                                        <div key={index} className="flex items-center bg-primary-50 border border-primary-200/60 rounded-lg overflow-hidden group">
-                                          <span className="px-3 py-1.5 text-sm font-semibold text-primary-800 flex items-center gap-1.5">
+                                        <div key={index} className="flex items-center bg-primary-50 dark:bg-primary-900/10 border border-primary-200/60 dark:border-primary-700/40 rounded-lg overflow-hidden group">
+                                          <span className="px-3 py-1.5 text-sm font-semibold text-primary-800 dark:text-primary-300 flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5 opacity-60" />
                                             {slot}
                                           </span>
@@ -292,7 +292,7 @@ const DoctorAvailabilityPage = () => {
                                       ))}
                                     </div>
                                   ) : (
-                                    <div className="text-sm text-amber-600 flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-md border border-amber-200 font-medium">
+                                    <div className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/10 px-3 py-2 rounded-md border border-amber-200 dark:border-amber-700/40 font-medium">
                                       <ShieldAlert className="w-4 h-4" /> No time slots allocated yet. Setup parameters below.
                                     </div>
                                   )}
@@ -303,14 +303,14 @@ const DoctorAvailabilityPage = () => {
                                        type="time" 
                                        value={inputState.start}
                                        onChange={(e) => handleSlotInputChange(day.key, 'start', e.target.value)}
-                                       className="w-full sm:w-auto bg-white border border-neutral-300 text-neutral-800 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 px-3 py-2 shadow-xs transition-colors"
+                                       className="w-full sm:w-auto bg-white dark:bg-dark-elevated border border-neutral-300 dark:border-dark-border text-neutral-800 dark:text-neutral-100 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 px-3 py-2 shadow-xs transition-colors"
                                     />
                                     <span className="text-neutral-400 hidden sm:block">to</span>
                                     <input 
                                        type="time" 
                                        value={inputState.end}
                                        onChange={(e) => handleSlotInputChange(day.key, 'end', e.target.value)}
-                                       className="w-full sm:w-auto bg-white border border-neutral-300 text-neutral-800 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 px-3 py-2 shadow-xs transition-colors"
+                                       className="w-full sm:w-auto bg-white dark:bg-dark-elevated border border-neutral-300 dark:border-dark-border text-neutral-800 dark:text-neutral-100 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 px-3 py-2 shadow-xs transition-colors"
                                     />
                                     <Button 
                                       variant="outline" 
@@ -334,7 +334,7 @@ const DoctorAvailabilityPage = () => {
                </div>
 
                {/* Master Save Trigger */}
-               <div className="p-6 bg-neutral-50/80 border-t border-neutral-200">
+               <div className="p-6 bg-neutral-50/80 dark:bg-dark-elevated/80 border-t border-neutral-200 dark:border-dark-border">
                   <Button 
                     variant="primary" 
                     icon={Save} 

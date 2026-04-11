@@ -113,9 +113,9 @@ const TodayQueue = () => {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-800">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-neutral-100">
                     Live Queue (Today)
                 </h2>
                 <Button variant="ghost" size="sm" onClick={fetchQueue}>
@@ -126,14 +126,14 @@ const TodayQueue = () => {
             {loading ? (
                 <LoadingSkeleton type="table" count={3} />
             ) : appointments.length === 0 ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-neutral-400">
                     No queue appointments for today.
                 </p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-sm">
                         <thead>
-                            <tr className="text-left text-gray-500 border-b">
+                            <tr className="text-left text-gray-500 dark:text-neutral-400 border-b dark:border-dark-border">
                                 <th className="py-2 pr-3">Token</th>
                                 <th className="py-2 pr-3">Patient</th>
                                 <th className="py-2 pr-3">Doctor</th>
@@ -150,7 +150,7 @@ const TodayQueue = () => {
                                 return (
                                     <tr
                                         key={id}
-                                        className="border-b last:border-0"
+                                        className="border-b dark:border-dark-border last:border-0"
                                     >
                                         <td className="py-2 pr-3 font-medium">
                                             {apt.tokenNumber || "-"}
@@ -175,7 +175,7 @@ const TodayQueue = () => {
                                         <td className="py-2 pr-3 font-medium">
                                             {apt.queueCallCount || 0}
                                         </td>
-                                        <td className="py-2 pr-3 font-mono text-xs text-gray-700">
+                                        <td className="py-2 pr-3 font-mono text-xs text-gray-700 dark:text-neutral-300">
                                             {resolveConsultationDuration(apt)}
                                         </td>
                                         <td className="py-2 pr-3">

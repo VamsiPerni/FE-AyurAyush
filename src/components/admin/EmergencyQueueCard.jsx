@@ -31,23 +31,23 @@ const EmergencyQueueCard = ({ appointment, onEditApprove, onReject }) => {
     };
 
     return (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700/40 rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             {/* Red priority left border accent */}
             <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
 
             <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600 ring-4 ring-red-50">
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center shrink-0 text-red-600 dark:text-red-400 ring-4 ring-red-50 dark:ring-red-900/10">
                     <ShieldAlert className="w-6 h-6" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-red-900 text-lg tracking-tight">
+                    <h4 className="font-bold text-red-900 dark:text-red-300 text-lg tracking-tight">
                         {patient?.name || patientName || "Unknown Patient"}
                     </h4>
-                    <p className="text-sm font-semibold text-red-700/80 mt-0.5">
+                    <p className="text-sm font-semibold text-red-700/80 dark:text-red-400/80 mt-0.5">
                         Assigned to:{" "}
                         {formatDoctorLabel(doctor?.name || doctorName)}
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2.5 text-xs font-semibold uppercase tracking-wider text-red-800/70">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2.5 text-xs font-semibold uppercase tracking-wider text-red-800/70 dark:text-red-400/70">
                         <span className="flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5" />{" "}
                             {formatDateIN(date)}

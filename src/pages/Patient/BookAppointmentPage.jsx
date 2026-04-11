@@ -492,9 +492,9 @@ const BookAppointmentPage = () => {
                 }
             />
 
-            <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-4 space-y-3">
+            <div className="rounded-xl border border-teal-200 dark:border-teal-700/40 bg-teal-50/60 dark:bg-teal-900/10 p-4 space-y-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <h3 className="text-sm font-semibold text-teal-900 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-teal-900 dark:text-teal-300 flex items-center gap-2">
                         <FileText className="w-4 h-4" />
                         Select Completed Consultation
                     </h3>
@@ -508,7 +508,7 @@ const BookAppointmentPage = () => {
                 </div>
 
                 {conversations.length === 0 ? (
-                    <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <p className="text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2">
                         No completed consultations found. Please finish AI chat
                         first, then return to book.
                     </p>
@@ -521,7 +521,7 @@ const BookAppointmentPage = () => {
                                 setSummaryConfirmed(false);
                                 setStep(1);
                             }}
-                            className="w-full px-3 py-2 border border-teal-300 rounded-lg text-sm bg-white"
+                            className="w-full px-3 py-2 border border-teal-300 dark:border-teal-700/50 rounded-xl text-sm bg-white dark:bg-dark-elevated text-neutral-800 dark:text-neutral-100"
                         >
                             <option value="">Select consultation...</option>
                             {conversations.map((c) => {
@@ -544,7 +544,7 @@ const BookAppointmentPage = () => {
                         </select>
 
                         {selectedConversation?.summary && (
-                            <div className="bg-white border border-teal-200 rounded-lg p-3 text-sm text-neutral-700 space-y-1">
+                            <div className="bg-white dark:bg-dark-elevated border border-teal-200 dark:border-teal-700/40 rounded-xl p-3 text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
                                 <p>
                                     <span className="font-semibold">
                                         Symptoms:
@@ -579,7 +579,7 @@ const BookAppointmentPage = () => {
                         )}
 
                         <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <p className="text-xs text-teal-800">
+                            <p className="text-xs text-teal-800 dark:text-teal-400">
                                 Confirm this consultation summary before
                                 choosing a doctor.
                             </p>
@@ -650,7 +650,7 @@ const BookAppointmentPage = () => {
                         <div
                             className={`
               w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors
-              ${step >= s.num ? "bg-primary-600 text-white shadow-md shadow-primary-500/30" : "bg-neutral-100 text-neutral-400"}
+              ${step >= s.num ? "bg-primary-600 text-white shadow-md shadow-primary-500/30" : "bg-neutral-100 dark:bg-dark-elevated text-neutral-400"}
             `}
                         >
                             {step > s.num ? (
@@ -660,7 +660,7 @@ const BookAppointmentPage = () => {
                             )}
                         </div>
                         <span
-                            className={`text-xs font-semibold ${step >= s.num ? "text-primary-700" : "text-neutral-400"}`}
+                            className={`text-xs font-semibold ${step >= s.num ? "text-primary-700 dark:text-primary-400" : "text-neutral-400 dark:text-neutral-500"}`}
                         >
                             {s.label}
                         </span>
@@ -669,7 +669,7 @@ const BookAppointmentPage = () => {
                 })}
                 {/* Step connector lines */}
                 <div className="absolute left-0 right-0 top-5 -z-10 hidden sm:block px-14">
-                    <div className="h-1 bg-neutral-100 rounded-full w-full">
+                    <div className="h-1 bg-neutral-100 dark:bg-dark-elevated rounded-full w-full">
                         <div
                             className="h-full bg-primary-600 rounded-full transition-all duration-300"
                             style={{ width: `${((step - 1) / 2) * 100}%` }}
@@ -681,7 +681,7 @@ const BookAppointmentPage = () => {
             {loading ? (
                 <CardSkeleton />
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6 min-h-[400px]">
+                <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-neutral-100 dark:border-dark-border p-6 min-h-[400px]">
                     {/* STEP 1: Select Doctor */}
                     {step === 1 && (
                         <div className="space-y-6 animate-fade-in">
@@ -729,13 +729,13 @@ const BookAppointmentPage = () => {
                                         return (
                                             <div
                                                 key={key}
-                                                className="space-y-3 rounded-xl border border-neutral-100 p-4"
+                                                className="space-y-3 rounded-xl border border-neutral-100 dark:border-dark-border p-4"
                                             >
                                                 <div>
-                                                    <h4 className="text-sm font-semibold text-neutral-800">
+                                                    <h4 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                                         {key}
                                                     </h4>
-                                                    <p className="text-xs text-neutral-500 mt-0.5">
+                                                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                                                         {hint}
                                                     </p>
                                                 </div>
@@ -766,7 +766,7 @@ const BookAppointmentPage = () => {
                             )}
 
                             {!summaryConfirmed && conversations.length > 0 && (
-                                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2">
                                     Select and confirm a completed consultation
                                     summary above to continue booking.
                                 </p>
@@ -778,7 +778,7 @@ const BookAppointmentPage = () => {
                     {step === 2 && (
                         <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
                             <div>
-                                <h3 className="text-lg font-bold text-neutral-800 mb-4">
+                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-100 mb-4">
                                     Select Date
                                 </h3>
                                 <Input
@@ -793,11 +793,11 @@ const BookAppointmentPage = () => {
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-bold text-neutral-800 mb-4">
+                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-100 mb-4">
                                     Select Time Slot
                                 </h3>
                                 {!selectedDate ? (
-                                    <div className="p-6 text-center bg-neutral-50 rounded-lg border border-neutral-100 text-neutral-500 text-sm">
+                                    <div className="p-6 text-center bg-neutral-50 dark:bg-dark-elevated rounded-lg border border-neutral-100 dark:border-dark-border text-neutral-500 dark:text-neutral-400 text-sm">
                                         Please select a date first to view
                                         available time slots.
                                     </div>
@@ -806,7 +806,7 @@ const BookAppointmentPage = () => {
                                         {[1, 2, 3, 4].map((i) => (
                                             <div
                                                 key={i}
-                                                className="h-12 bg-neutral-100 animate-pulse rounded-lg"
+                                                className="h-12 bg-neutral-100 dark:bg-dark-elevated animate-pulse rounded-lg"
                                             />
                                         ))}
                                     </div>
@@ -831,7 +831,7 @@ const BookAppointmentPage = () => {
                           ${
                               selectedSlot === slot
                                   ? "bg-primary-600 text-white shadow-md tracking-wide"
-                                  : "bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:bg-primary-50"
+                                  : "bg-white dark:bg-dark-card border border-neutral-200 dark:border-dark-border text-neutral-700 dark:text-neutral-300 hover:border-primary-300 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10"
                           }
                         `}
                                             >
@@ -843,7 +843,7 @@ const BookAppointmentPage = () => {
                                 )}
                             </div>
 
-                            <div className="pt-6 border-t border-neutral-100 flex justify-between">
+                            <div className="pt-6 border-t border-neutral-100 dark:border-dark-border flex justify-between">
                                 <Button
                                     variant="outline"
                                     icon={ArrowLeft}
@@ -866,38 +866,38 @@ const BookAppointmentPage = () => {
                     {step === 3 && (
                         <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
                             <div className="text-center mb-6">
-                                <h3 className="text-xl font-bold text-neutral-800">
+                                <h3 className="text-xl font-bold text-neutral-800 dark:text-neutral-100">
                                     Review Appointment
                                 </h3>
-                                <p className="text-sm text-neutral-500 mt-1">
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
                                     Please confirm the details below before
                                     booking.
                                 </p>
                             </div>
 
-                            <Card className="bg-neutral-50 border-neutral-200 shadow-none">
+                            <Card className="bg-neutral-50 dark:bg-dark-elevated border-neutral-200 dark:border-dark-border shadow-none">
                                 <CardContent className="p-5 space-y-4">
-                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200">
-                                        <span className="text-sm text-neutral-500">
+                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-dark-border">
+                                        <span className="text-sm text-neutral-500 dark:text-neutral-400">
                                             Doctor
                                         </span>
-                                        <span className="font-semibold text-neutral-800 tracking-tight">
+                                        <span className="font-semibold text-neutral-800 dark:text-neutral-100 tracking-tight">
                                             Dr. {selectedDoctor?.name}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200">
-                                        <span className="text-sm text-neutral-500">
+                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-dark-border">
+                                        <span className="text-sm text-neutral-500 dark:text-neutral-400">
                                             Specialization
                                         </span>
-                                        <span className="font-medium text-neutral-800">
+                                        <span className="font-medium text-neutral-800 dark:text-neutral-200">
                                             {selectedDoctor?.specialization}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200">
-                                        <span className="text-sm text-neutral-500">
+                                    <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-dark-border">
+                                        <span className="text-sm text-neutral-500 dark:text-neutral-400">
                                             Date
                                         </span>
-                                        <span className="font-medium text-neutral-800">
+                                        <span className="font-medium text-neutral-800 dark:text-neutral-200">
                                             {new Date(
                                                 selectedDate,
                                             ).toLocaleDateString("en-US", {
@@ -909,7 +909,7 @@ const BookAppointmentPage = () => {
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm text-neutral-500">
+                                        <span className="text-sm text-neutral-500 dark:text-neutral-400">
                                             Time Slot
                                         </span>
                                         <span className="font-medium text-primary-700">
@@ -919,11 +919,11 @@ const BookAppointmentPage = () => {
                                 </CardContent>
                             </Card>
 
-                            <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
-                                <p className="text-sm font-medium text-neutral-700">
+                            <div className="rounded-lg border border-neutral-200 dark:border-dark-border bg-neutral-50 dark:bg-dark-elevated px-4 py-3">
+                                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                     Urgency (AI detected)
                                 </p>
-                                <p className="text-sm mt-1 text-neutral-600">
+                                <p className="text-sm mt-1 text-neutral-600 dark:text-neutral-400">
                                     {aiUrgencyLevel === "emergency"
                                         ? "Emergency"
                                         : "Normal"}
@@ -936,7 +936,7 @@ const BookAppointmentPage = () => {
                             </div>
 
                             {aiUrgencyLevel === "emergency" && (
-                                <div className="flex gap-3 items-start p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex gap-3 items-start p-4 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-700/40 animate-in fade-in slide-in-from-top-2">
                                     <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
                                     <p className="text-sm font-medium">
                                         Emergency appointments are subject to

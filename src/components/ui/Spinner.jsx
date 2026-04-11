@@ -6,8 +6,8 @@ const sizes = {
 };
 
 const colors = {
-  primary: 'border-neutral-200 border-t-primary-600',
-  neutral: 'border-neutral-200 border-t-neutral-600',
+  primary: 'border-neutral-200 border-t-primary-600 dark:border-dark-border dark:border-t-primary-400',
+  neutral: 'border-neutral-200 border-t-neutral-600 dark:border-dark-border dark:border-t-neutral-400',
   white:   'border-white/30 border-t-white',
 };
 
@@ -21,9 +21,9 @@ const Spinner = ({ size = 'md', color = 'primary', className = '' }) => (
 );
 
 const PageLoader = ({ message = 'Loading...' }) => (
-  <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4">
+  <div className="min-h-screen bg-neutral-50 dark:bg-dark-surface flex flex-col items-center justify-center gap-4 transition-colors duration-300">
     <Spinner size="lg" />
-    <p className="text-sm text-neutral-500">{message}</p>
+    <p className="text-sm text-neutral-500 dark:text-neutral-400">{message}</p>
   </div>
 );
 

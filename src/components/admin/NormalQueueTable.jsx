@@ -25,7 +25,7 @@ const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
             key: "patient",
             header: "Patient Name",
             render: (_, apt) => (
-                <span className="font-semibold text-neutral-800">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-100">
                     {apt.patient?.name || apt.patientName || "Unknown"}
                 </span>
             ),
@@ -34,7 +34,7 @@ const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
             key: "doctor",
             header: "Assigned Doctor",
             render: (_, apt) => (
-                <span className="font-medium text-neutral-600">
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">
                     {formatDoctorLabel(apt.doctor?.name || apt.doctorName)}
                 </span>
             ),
@@ -44,10 +44,10 @@ const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
             header: "Date & Slot",
             render: (_, apt) => (
                 <span>
-                    <span className="font-medium text-neutral-700">
+                    <span className="font-medium text-neutral-700 dark:text-neutral-200">
                         {formatDateIN(apt.date)}
                     </span>
-                    <span className="text-neutral-500 text-sm ml-1.5">
+                    <span className="text-neutral-500 dark:text-neutral-400 text-sm ml-1.5">
                         • {apt.timeSlot}
                     </span>
                 </span>

@@ -26,18 +26,18 @@ const PatientDetails = ({ patient }) => {
                     <img
                         src={patient.profilePhoto}
                         alt={patient.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-dark-border"
                     />
                 ) : (
-                    <div className="w-16 h-16 rounded-full bg-primary-600/10 flex items-center justify-center">
-                        <User size={28} className="text-primary-600" />
+                    <div className="w-16 h-16 rounded-full bg-primary-600/10 dark:bg-primary-900/20 flex items-center justify-center">
+                        <User size={28} className="text-primary-600 dark:text-primary-400" />
                     </div>
                 )}
                 <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
+                    <h3 className="font-semibold text-gray-900 dark:text-neutral-100 text-lg">
                         {patient.name}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">
                         {patient.gender}
                         {patient.age ? `, ${patient.age} years` : ""}
                     </p>
@@ -45,22 +45,22 @@ const PatientDetails = ({ patient }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <Mail size={14} className="text-gray-400" />
                     <span>{patient.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                     <Phone size={14} className="text-gray-400" />
                     <span>{patient.phone || "N/A"}</span>
                 </div>
                 {patient.bloodGroup && (
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400">
                         <Droplets size={14} className="text-red-400" />
                         <span>Blood Group: {patient.bloodGroup}</span>
                     </div>
                 )}
                 {patient.allergies?.length > 0 && (
-                    <div className="flex items-start gap-2 text-gray-600">
+                    <div className="flex items-start gap-2 text-gray-600 dark:text-neutral-400">
                         <AlertCircle
                             size={14}
                             className="text-amber-400 mt-0.5"
@@ -71,7 +71,7 @@ const PatientDetails = ({ patient }) => {
                                 {patient.allergies.map((a, i) => (
                                     <span
                                         key={i}
-                                        className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-xs"
+                                        className="bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded text-xs"
                                     >
                                         {a}
                                     </span>
@@ -81,7 +81,7 @@ const PatientDetails = ({ patient }) => {
                     </div>
                 )}
                 {patient.medicalHistory?.length > 0 && (
-                    <div className="flex items-start gap-2 text-gray-600 sm:col-span-2">
+                    <div className="flex items-start gap-2 text-gray-600 dark:text-neutral-400 sm:col-span-2">
                         <FileText size={14} className="text-gray-400 mt-0.5" />
                         <div>
                             <span className="font-medium">
@@ -96,7 +96,7 @@ const PatientDetails = ({ patient }) => {
                     </div>
                 )}
                 {patient.emergencyContact && (
-                    <div className="flex items-center gap-2 text-gray-600 sm:col-span-2">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-neutral-400 sm:col-span-2">
                         <Heart size={14} className="text-red-400" />
                         <span>
                             Emergency Contact: {patient.emergencyContact.name} —{" "}

@@ -249,7 +249,7 @@ const TodayAppointmentsPage = () => {
                     {filterCategories.map((cat) => (
                         <div
                             key={cat.id}
-                            className="h-8 w-24 bg-neutral-200 rounded-full animate-pulse"
+                            className="h-8 w-24 bg-neutral-200 dark:bg-dark-elevated rounded-full animate-pulse"
                         />
                     ))}
                 </div>
@@ -305,7 +305,7 @@ const TodayAppointmentsPage = () => {
 
             {actionFeedback && (
                 <div
-                    className={`rounded-lg border px-4 py-3 text-sm ${actionFeedback.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}
+                    className={`rounded-lg border px-4 py-3 text-sm ${actionFeedback.type === "success" ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-700/40 text-green-800 dark:text-green-300" : "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-700/40 text-red-800 dark:text-red-300"}`}
                 >
                     {actionFeedback.text}
                 </div>
@@ -322,7 +322,7 @@ const TodayAppointmentsPage = () => {
               ${
                   activeTab === cat.id
                       ? "bg-primary-600 text-white"
-                      : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50 hover:text-neutral-800"
+                      : "bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover hover:text-neutral-800 dark:hover:text-neutral-100"
               }
             `}
                     >
@@ -333,7 +333,7 @@ const TodayAppointmentsPage = () => {
               ${
                   activeTab === cat.id
                       ? "bg-primary-500/30 text-white"
-                      : "bg-neutral-100 text-neutral-500"
+                      : "bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400"
               }
             `}
                         >
@@ -346,7 +346,7 @@ const TodayAppointmentsPage = () => {
             <Card className="overflow-hidden min-h-100">
                 <CardContent className="p-0">
                     {filteredAppointments.length === 0 ? (
-                        <div className="py-20 bg-neutral-50/50">
+                        <div className="py-20 bg-neutral-50/50 dark:bg-transparent">
                             <EmptyState
                                 icon={FileText}
                                 title={

@@ -101,7 +101,7 @@ const AppointmentDetailsPage = () => {
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate("/patient/appointments")}
-                    className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
+                    className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
                 >
                     <ArrowLeft size={18} />
                     <span>Back to Appointments</span>
@@ -126,28 +126,28 @@ const AppointmentDetailsPage = () => {
                     <CardTitle>Appointment Details</CardTitle>
                 </CardHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-neutral-600">
+                    <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                         <Stethoscope size={16} className="text-primary-600" />
                         <span>
                             <span className="font-medium">Doctor:</span>{" "}
                             {doctor?.name || "N/A"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-neutral-600">
+                    <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                         <User size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Specialization:</span>{" "}
                             {doctor?.specialization || "N/A"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-neutral-600">
+                    <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                         <Calendar size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Date:</span>{" "}
                             {formatDate(appointment.date)}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 text-neutral-600">
+                    <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                         <Clock size={16} className="text-neutral-400" />
                         <span>
                             <span className="font-medium">Time:</span>{" "}
@@ -158,7 +158,7 @@ const AppointmentDetailsPage = () => {
 
                 {(appointment.status === "pending_admin_approval" ||
                     appointment.status === "confirmed") && (
-                    <div className="mt-4 pt-4 border-t border-neutral-100">
+                    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-dark-border">
                         <Button
                             variant="danger"
                             size="sm"
@@ -186,10 +186,10 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.diagnosis && (
                         <div className="mb-4">
-                            <span className="text-sm font-medium text-neutral-700">
+                            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Diagnosis:
                             </span>
-                            <p className="text-sm text-neutral-600 mt-1">
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                                 {prescription.diagnosis}
                             </p>
                         </div>
@@ -197,19 +197,19 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.medications?.length > 0 && (
                         <div className="mb-4">
-                            <span className="text-sm font-medium text-neutral-700 block mb-2">
+                            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 block mb-2">
                                 Medications:
                             </span>
                             <div className="space-y-2">
                                 {prescription.medications.map((med, i) => (
                                     <div
                                         key={i}
-                                        className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm"
+                                        className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-700/40 rounded-lg p-3 text-sm"
                                     >
-                                        <p className="font-medium text-green-800">
+                                        <p className="font-medium text-green-800 dark:text-green-300">
                                             {med.name}
                                         </p>
-                                        <p className="text-green-600">
+                                        <p className="text-green-600 dark:text-green-400">
                                             {med.dosage} — {med.frequency} —{" "}
                                             {med.duration}
                                         </p>
@@ -233,9 +233,9 @@ const AppointmentDetailsPage = () => {
                                 {prescription.tests.map((test, i) => (
                                     <div
                                         key={i}
-                                        className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm"
+                                        className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-700/40 rounded-lg p-3 text-sm"
                                     >
-                                        <p className="font-medium text-blue-800">
+                                        <p className="font-medium text-blue-800 dark:text-blue-300">
                                             {test.testName}
                                         </p>
                                         {test.instructions && (
@@ -251,10 +251,10 @@ const AppointmentDetailsPage = () => {
 
                     {prescription.notes && (
                         <div>
-                            <span className="text-sm font-medium text-neutral-700">
+                            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Doctor's Notes:
                             </span>
-                            <p className="text-sm text-neutral-600 mt-1 bg-neutral-50 p-3 rounded-lg">
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1 bg-neutral-50 dark:bg-dark-elevated p-3 rounded-lg">
                                 {prescription.notes}
                             </p>
                         </div>
@@ -271,7 +271,7 @@ const AppointmentDetailsPage = () => {
                             Doctor's Notes
                         </CardTitle>
                     </CardHeader>
-                    <p className="text-sm text-neutral-600">
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
                         {appointment.doctorNotes}
                     </p>
                 </Card>

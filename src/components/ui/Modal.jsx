@@ -36,35 +36,37 @@ const Modal = ({
       aria-labelledby={title ? 'modal-title' : undefined}
     >
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px] animate-fade-in"
+        className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
       <div className={`
-        relative bg-white rounded-2xl shadow-modal w-full ${sizes[size]}
+        relative bg-white dark:bg-dark-card rounded-2xl shadow-modal dark:shadow-dark-elevated
+        w-full ${sizes[size]}
+        border border-neutral-100 dark:border-dark-border
         animate-scale-in
       `}>
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-neutral-100">
+        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-neutral-100 dark:border-dark-border">
           <div>
-            {title && <h2 id="modal-title" className="text-lg font-semibold text-neutral-800">{title}</h2>}
-            {description && <p className="text-sm text-neutral-500 mt-0.5">{description}</p>}
+            {title && <h2 id="modal-title" className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">{title}</h2>}
+            {description && <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 -m-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="p-1.5 -m-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-dark-hover rounded-xl transition-colors"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         {/* Body */}
-        <div className="px-6 py-5 overflow-y-auto max-h-[60vh]">
+        <div className="px-6 py-5 overflow-y-auto max-h-[60vh] scrollbar-thin">
           {children}
         </div>
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50/50 rounded-b-2xl">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-surface/50 rounded-b-2xl">
             {footer}
           </div>
         )}

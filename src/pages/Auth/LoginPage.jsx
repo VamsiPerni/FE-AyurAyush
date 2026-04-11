@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Leaf } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -28,16 +28,19 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md">
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+    <div className="w-full max-w-md animate-scale-in">
+      <div className="bg-white dark:bg-dark-card rounded-2xl shadow-lg dark:shadow-dark-elevated border border-neutral-100 dark:border-dark-border overflow-hidden">
         {/* Header */}
-        <div className="px-8 pt-8 pb-6 text-center border-b border-neutral-50">
-          <h1 className="text-2xl font-bold text-primary-600 mb-1">AyurAyush</h1>
-          <p className="text-[10px] text-neutral-400 font-medium uppercase tracking-[0.2em] mb-6">
+        <div className="px-8 pt-8 pb-6 text-center border-b border-neutral-50 dark:border-dark-border">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
+            <Leaf className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gradient mb-1">AyurAyush</h1>
+          <p className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium uppercase tracking-[0.2em] mb-6">
             Healthcare Management
           </p>
-          <h2 className="text-xl font-semibold text-neutral-800">Welcome Back</h2>
-          <p className="text-sm text-neutral-500 mt-1">Sign in to continue your healthcare journey</p>
+          <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">Welcome Back</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Sign in to continue your healthcare journey</p>
         </div>
 
         {/* Form */}
@@ -71,13 +74,13 @@ const LoginPage = () => {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                  className="w-4 h-4 rounded border-neutral-300 dark:border-dark-border text-primary-600 focus:ring-primary-500 dark:bg-dark-elevated"
                 />
-                <span className="text-sm text-neutral-600">Remember me</span>
+                <span className="text-sm text-neutral-600 dark:text-neutral-400">Remember me</span>
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
               >
                 Forgot password?
               </Link>
@@ -91,9 +94,9 @@ const LoginPage = () => {
 
         {/* Footer */}
         <div className="px-8 pb-8 text-center">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Don&apos;t have an account?{' '}
-            <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link to="/signup" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
               Sign up
             </Link>
           </p>
