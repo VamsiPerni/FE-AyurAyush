@@ -24,7 +24,10 @@ import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { StatsSkeleton, TableSkeleton } from "../../components/ui/Skeleton";
 import { AppointmentRow } from "../../components/doctor/AppointmentRow";
-import { showErrorToast } from "../../utils/toastMessageHelper";
+import {
+    showErrorToast,
+    showSuccessToast,
+} from "../../utils/toastMessageHelper";
 
 const DoctorDashboardPage = () => {
     const navigate = useNavigate();
@@ -44,6 +47,7 @@ const DoctorDashboardPage = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionLoadingId, setActionLoadingId] = useState(null);
 
     const normalizeAppointments = (payload) => {
         if (Array.isArray(payload?.appointments)) return payload.appointments;
@@ -66,10 +70,12 @@ const DoctorDashboardPage = () => {
         return [];
     };
 
-    const loadDashboard = useCallback(async () => {
+    const loadDashboard = useCallback(async ({ silent = false } = {}) => {
         try {
-            setLoading(true);
-            setError("");
+            if (!silent) {
+                setLoading(true);
+                setError("");
+            }
             const [dashboardResult, appointmentsResult] = await Promise.all([
                 doctorService.getDashboard(),
                 doctorService.getAppointments(),
@@ -134,17 +140,29 @@ const DoctorDashboardPage = () => {
                 uniquePatients: uniquePatients.size,
             });
         } catch {
-            const message =
-                "Unable to load doctor dashboard. Please try again.";
-            setError(message);
-            showErrorToast(message);
+            if (!silent) {
+                const message =
+                    "Unable to load doctor dashboard. Please try again.";
+                setError(message);
+                showErrorToast(message);
+            }
         } finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
         loadDashboard();
+    }, [loadDashboard]);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            loadDashboard({ silent: true });
+        }, 10000);
+
+        return () => clearInterval(intervalId);
     }, [loadDashboard]);
 
     // 1. Loading State
@@ -191,6 +209,57 @@ const DoctorDashboardPage = () => {
         const safePrimary = Number.isFinite(p) ? p : 0;
         const safeFallback = Number.isFinite(f) ? f : 0;
         return Math.max(safePrimary, safeFallback);
+    };
+
+    const handleCallPatient = async (appointmentId) => {
+        if (!appointmentId) {
+            showErrorToast("Missing appointment id for call action.");
+            return;
+        }
+        try {
+            setActionLoadingId(appointmentId);
+            await doctorService.callQueuePatient(appointmentId);
+            showSuccessToast("Patient called successfully.");
+            await loadDashboard({ silent: true });
+        } catch (err) {
+            showErrorToast(
+                err.response?.data?.message || "Failed to call patient.",
+            );
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleStartConsultation = async (appointmentId, appointment) => {
+        if (!appointmentId) {
+            showErrorToast(
+                "Missing appointment id for start consultation action.",
+            );
+            return;
+        }
+
+        if (appointment?.queueStatus === "in_consultation") {
+            showSuccessToast("Resuming consultation details.");
+            navigate(`/doctor/appointments/${appointmentId}`, {
+                state: { from: "/doctor/today" },
+            });
+            return;
+        }
+        try {
+            setActionLoadingId(appointmentId);
+            await doctorService.startConsultation(appointmentId);
+            showSuccessToast("Consultation started successfully.");
+            await loadDashboard({ silent: true });
+            navigate(`/doctor/appointments/${appointmentId}`, {
+                state: { from: "/doctor/today" },
+            });
+        } catch (err) {
+            showErrorToast(
+                err.response?.data?.message || "Failed to start consultation.",
+            );
+        } finally {
+            setActionLoadingId(null);
+        }
     };
 
     return (
@@ -290,8 +359,17 @@ const DoctorDashboardPage = () => {
                                     key={apt._id || apt.appointmentId}
                                     appointment={apt}
                                     onView={(id) =>
-                                        navigate(`/doctor/appointments/${id}`)
+                                        navigate(`/doctor/appointments/${id}`, {
+                                            state: {
+                                                from: "/doctor/dashboard",
+                                            },
+                                        })
                                     }
+                                    onCall={handleCallPatient}
+                                    onStartConsultation={
+                                        handleStartConsultation
+                                    }
+                                    actionLoadingId={actionLoadingId}
                                 />
                             ))}
                         </div>

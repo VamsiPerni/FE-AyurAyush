@@ -31,6 +31,16 @@ const ManageDoctorsPage = () => {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [togglingId, setTogglingId] = useState(null);
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [specializationFilter, setSpecializationFilter] = useState("all");
+    const [sortOrder, setSortOrder] = useState("name_asc");
+
+    const resetFilters = () => {
+        setSearchQuery("");
+        setStatusFilter("all");
+        setSpecializationFilter("all");
+        setSortOrder("name_asc");
+    };
 
     const loadDoctors = async () => {
         try {
@@ -161,10 +171,18 @@ const ManageDoctorsPage = () => {
         return `Dr. ${name}`;
     };
 
+    const specializationOptions = useMemo(() => {
+        const set = new Set();
+        doctors.forEach((doc) => {
+            const spec = (doc.specialization || "").trim();
+            if (spec) set.add(spec);
+        });
+        return ["all", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+    }, [doctors]);
+
     // Client-Side Searching Map natively
     const filteredDoctors = useMemo(() => {
-        return doctors.filter((doc) => {
-            if (!searchQuery) return true;
+        const result = doctors.filter((doc) => {
             const lowerQuery = searchQuery.toLowerCase();
             const nameMatch = (doc.name || "")
                 .toLowerCase()
@@ -172,9 +190,47 @@ const ManageDoctorsPage = () => {
             const specMatch = (doc.specialization || "")
                 .toLowerCase()
                 .includes(lowerQuery);
-            return nameMatch || specMatch;
+
+            if (searchQuery && !(nameMatch || specMatch)) return false;
+
+            const statusVal = (
+                doc.status || (doc.isActive ? "active" : "inactive")
+            ).toLowerCase();
+            if (statusFilter !== "all" && statusVal !== statusFilter) {
+                return false;
+            }
+
+            if (
+                specializationFilter !== "all" &&
+                (doc.specialization || "") !== specializationFilter
+            ) {
+                return false;
+            }
+
+            return true;
         });
-    }, [doctors, searchQuery]);
+
+        result.sort((a, b) => {
+            if (sortOrder === "name_desc") {
+                return (b.name || "").localeCompare(a.name || "");
+            }
+            if (sortOrder === "fee_high") {
+                return (b.consultationFee || 0) - (a.consultationFee || 0);
+            }
+            if (sortOrder === "fee_low") {
+                return (a.consultationFee || 0) - (b.consultationFee || 0);
+            }
+            return (a.name || "").localeCompare(b.name || "");
+        });
+
+        return result;
+    }, [doctors, searchQuery, statusFilter, specializationFilter, sortOrder]);
+
+    const hasActiveFilters =
+        !!searchQuery ||
+        statusFilter !== "all" ||
+        specializationFilter !== "all" ||
+        sortOrder !== "name_asc";
 
     // Layout Table Configuration
     const columns = [
@@ -320,7 +376,7 @@ const ManageDoctorsPage = () => {
                         </Button>
                         <Button
                             icon={Plus}
-                            onClick={() => navigate("/admin/create-doctor")}
+                            onClick={() => navigate("/admin/doctors/create")}
                         >
                             Create Doctor
                         </Button>
@@ -340,7 +396,58 @@ const ManageDoctorsPage = () => {
                             className="bg-white shadow-xs focus:ring-primary-500/20"
                         />
                     </div>
-                    <div className="flex items-center justify-end">
+
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            aria-label="Filter by status"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+
+                        <select
+                            value={specializationFilter}
+                            onChange={(e) =>
+                                setSpecializationFilter(e.target.value)
+                            }
+                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            aria-label="Filter by specialization"
+                        >
+                            {specializationOptions.map((spec) => (
+                                <option key={spec} value={spec}>
+                                    {spec === "all"
+                                        ? "All Specializations"
+                                        : spec}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className="h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            aria-label="Sort doctors"
+                        >
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="fee_high">Fee (High to Low)</option>
+                            <option value="fee_low">Fee (Low to High)</option>
+                        </select>
+
+                        {hasActiveFilters && (
+                            <Button
+                                variant="outline"
+                                onClick={resetFilters}
+                                className="h-10"
+                            >
+                                Reset Filters
+                            </Button>
+                        )}
+
                         <Badge
                             type="info"
                             size="sm"
@@ -367,18 +474,20 @@ const ManageDoctorsPage = () => {
                                         : "The registry is currently empty. Start by adding a new doctor."
                                 }
                                 action={
-                                    searchQuery ? (
+                                    hasActiveFilters ? (
                                         <Button
                                             variant="outline"
-                                            onClick={() => setSearchQuery("")}
+                                            onClick={resetFilters}
                                         >
-                                            Clear Filter
+                                            Reset Filters
                                         </Button>
                                     ) : (
                                         <Button
                                             icon={Plus}
                                             onClick={() =>
-                                                navigate("/admin/create-doctor")
+                                                navigate(
+                                                    "/admin/doctors/create",
+                                                )
                                             }
                                         >
                                             Create Account

@@ -200,6 +200,14 @@ const AppRoutes = () => {
                     }
                 />
                 <Route
+                    path="/admin/create-doctor"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <CreateDoctorAccountPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/admin/doctors/:doctorId/availability"
                     element={
                         <ProtectedRoute allowedRoles={["admin"]}>

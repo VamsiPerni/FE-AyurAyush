@@ -28,6 +28,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Table } from "../../components/ui/Table";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { StatsSkeleton, TableSkeleton } from "../../components/ui/Skeleton";
+import { TodayQueue } from "../../components/admin/TodayQueue";
 import { showErrorToast } from "../../utils/toastMessageHelper";
 
 const AdminDashboardPage = () => {
@@ -292,6 +293,9 @@ const AdminDashboardPage = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Live Queue With Consultation Timing */}
+            <TodayQueue />
         </div>
     );
 };

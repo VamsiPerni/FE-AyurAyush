@@ -47,6 +47,32 @@ const AllAppointmentsPage = () => {
             item?.urgencyLevel === "emergency" ? "emergency" : "normal",
         date: item?.appointmentDetails?.date || item?.date || null,
         timeSlot: item?.appointmentDetails?.timeSlot || item?.timeSlot || "-",
+        queueStatus:
+            item?.queueStatus || item?.appointmentDetails?.queueStatus || null,
+        queueCallCount: Number.isFinite(Number(item?.queueCallCount))
+            ? Number(item.queueCallCount)
+            : Number.isFinite(Number(item?.appointmentDetails?.queueCallCount))
+              ? Number(item.appointmentDetails.queueCallCount)
+              : 0,
+        lastCalledAt:
+            item?.lastCalledAt ||
+            item?.appointmentDetails?.lastCalledAt ||
+            null,
+        consultationStartedAt:
+            item?.consultationStartedAt ||
+            item?.appointmentDetails?.consultationStartedAt ||
+            null,
+        consultationDurationSeconds: Number.isFinite(
+            Number(item?.consultationDurationSeconds),
+        )
+            ? Number(item.consultationDurationSeconds)
+            : Number.isFinite(
+                    Number(
+                        item?.appointmentDetails?.consultationDurationSeconds,
+                    ),
+                )
+              ? Number(item.appointmentDetails.consultationDurationSeconds)
+              : null,
     });
 
     const normalizeAppointments = (payload) => {
@@ -197,7 +223,10 @@ const AllAppointmentsPage = () => {
 
     const handleRowClick = (apt) => {
         const id = apt.appointmentId || apt._id;
-        if (id) navigate(`/doctor/appointments/${id}`);
+        if (id)
+            navigate(`/doctor/appointments/${id}`, {
+                state: { from: "/doctor/appointments" },
+            });
     };
 
     const columns = [
@@ -316,7 +345,7 @@ const AllAppointmentsPage = () => {
                 }
             />
 
-            <Card className="overflow-hidden shadow-sm border border-neutral-100 min-h-[500px]">
+            <Card className="overflow-hidden shadow-sm border border-neutral-100 min-h-125">
                 <div className="bg-neutral-50/50 p-5 border-b border-neutral-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-2">
                         {filterCategories.map((cat) => (

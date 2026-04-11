@@ -40,7 +40,7 @@ const statusConfig = {
         className: "bg-neutral-50 text-neutral-600 border-neutral-200",
     },
     called: {
-        label: "Called",
+        label: "Notified",
         className: "bg-blue-50 text-blue-700 border-blue-200",
     },
     in_consultation: {

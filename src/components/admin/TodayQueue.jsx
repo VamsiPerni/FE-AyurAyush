@@ -12,21 +12,84 @@ const TodayQueue = () => {
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState([]);
     const [callingId, setCallingId] = useState(null);
+    const [nowTick, setNowTick] = useState(Date.now());
 
-    const fetchQueue = async () => {
+    const formatDuration = (totalSeconds) => {
+        const safe = Math.max(0, Number(totalSeconds) || 0);
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
+        if (h > 0) {
+            return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    };
+
+    const resolveConsultationDuration = (apt) => {
+        if (
+            apt.queueStatus === "in_consultation" &&
+            apt.consultationStartedAt
+        ) {
+            const start = new Date(apt.consultationStartedAt).getTime();
+            const end = apt.consultationEndedAt
+                ? new Date(apt.consultationEndedAt).getTime()
+                : nowTick;
+            return formatDuration(
+                Math.max(0, Math.floor((end - start) / 1000)),
+            );
+        }
+
+        if (Number.isFinite(Number(apt.consultationDurationSeconds))) {
+            return formatDuration(Number(apt.consultationDurationSeconds));
+        }
+
+        if (apt.consultationStartedAt) {
+            const start = new Date(apt.consultationStartedAt).getTime();
+            const end = apt.consultationEndedAt
+                ? new Date(apt.consultationEndedAt).getTime()
+                : nowTick;
+            return formatDuration(
+                Math.max(0, Math.floor((end - start) / 1000)),
+            );
+        }
+
+        return "-";
+    };
+
+    const fetchQueue = async ({ silent = false } = {}) => {
         try {
-            setLoading(true);
+            if (!silent) {
+                setLoading(true);
+            }
             const result = await adminService.getTodayQueue();
             setAppointments(result.data?.appointments || []);
         } catch {
-            showErrorToast("Failed to load today's queue");
+            if (!silent) {
+                showErrorToast("Failed to load today's queue");
+            }
         } finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
         fetchQueue();
+
+        const intervalId = setInterval(() => {
+            fetchQueue({ silent: true });
+        }, 10000);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setNowTick(Date.now());
+        }, 1000);
+
+        return () => clearInterval(timerId);
     }, []);
 
     const handleCall = async (appointmentId) => {
@@ -36,10 +99,10 @@ const TodayQueue = () => {
             const firstCall = result?.data?.firstCallEmailSent;
             showSuccessToast(
                 firstCall
-                    ? "Call sent: email + in-app notification"
+                    ? "Notification sent: email + in-app"
                     : "Reminder sent as in-app notification",
             );
-            await fetchQueue();
+            await fetchQueue({ silent: true });
         } catch (err) {
             showErrorToast(
                 err.response?.data?.message || "Failed to call patient",
@@ -64,7 +127,7 @@ const TodayQueue = () => {
                 <LoadingSkeleton type="table" count={3} />
             ) : appointments.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                    No confirmed appointments for today.
+                    No queue appointments for today.
                 </p>
             ) : (
                 <div className="overflow-x-auto">
@@ -76,6 +139,8 @@ const TodayQueue = () => {
                                 <th className="py-2 pr-3">Doctor</th>
                                 <th className="py-2 pr-3">Time</th>
                                 <th className="py-2 pr-3">Status</th>
+                                <th className="py-2 pr-3">Call Count</th>
+                                <th className="py-2 pr-3">Consultation</th>
                                 <th className="py-2 pr-3">Action</th>
                             </tr>
                         </thead>
@@ -107,17 +172,33 @@ const TodayQueue = () => {
                                                 }
                                             />
                                         </td>
+                                        <td className="py-2 pr-3 font-medium">
+                                            {apt.queueCallCount || 0}
+                                        </td>
+                                        <td className="py-2 pr-3 font-mono text-xs text-gray-700">
+                                            {resolveConsultationDuration(apt)}
+                                        </td>
                                         <td className="py-2 pr-3">
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleCall(id)}
                                                 loading={callingId === id}
+                                                disabled={
+                                                    apt.queueStatus ===
+                                                        "completed" ||
+                                                    apt.status === "completed"
+                                                }
                                             >
-                                                {apt.queueStatus === "called" ||
-                                                apt.queueStatus ===
-                                                    "in_consultation"
-                                                    ? "Notify Again"
-                                                    : "Call Patient"}
+                                                {apt.queueStatus ===
+                                                    "completed" ||
+                                                apt.status === "completed"
+                                                    ? "Completed"
+                                                    : apt.queueStatus ===
+                                                            "called" ||
+                                                        apt.queueStatus ===
+                                                            "in_consultation"
+                                                      ? "Notify Again"
+                                                      : "Notify Patient"}
                                             </Button>
                                         </td>
                                     </tr>

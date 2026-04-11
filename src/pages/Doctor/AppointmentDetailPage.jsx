@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import {
     Calendar,
     Clock,
@@ -34,6 +34,7 @@ import {
 const AppointmentDetailPage = () => {
     const { appointmentId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [appointment, setAppointment] = useState(null);
     const [patientDetails, setPatientDetails] = useState(null);
@@ -41,11 +42,14 @@ const AppointmentDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [liveConsultationSeconds, setLiveConsultationSeconds] = useState(0);
 
-    const loadAppointment = async () => {
+    const loadAppointment = async ({ silent = false } = {}) => {
         try {
-            setLoading(true);
-            setError("");
+            if (!silent) {
+                setLoading(true);
+                setError("");
+            }
             // robust generic handler mirroring Patient view
             const fetchFn =
                 doctorService.getAppointmentById ||
@@ -63,10 +67,14 @@ const AppointmentDetailPage = () => {
             const message =
                 err.response?.data?.message ||
                 "Failed to load appointment details.";
-            setError(message);
-            showErrorToast(message);
+            if (!silent) {
+                setError(message);
+                showErrorToast(message);
+            }
         } finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     };
 
@@ -75,6 +83,58 @@ const AppointmentDetailPage = () => {
             loadAppointment();
         }
     }, [appointmentId]);
+
+    useEffect(() => {
+        if (!appointmentId) return undefined;
+        const intervalId = setInterval(() => {
+            loadAppointment({ silent: true });
+        }, 5000);
+        return () => clearInterval(intervalId);
+    }, [appointmentId]);
+
+    useEffect(() => {
+        if (!appointment) return undefined;
+
+        const baseDuration = Number.isFinite(
+            Number(appointment.consultationDurationSeconds),
+        )
+            ? Number(appointment.consultationDurationSeconds)
+            : 0;
+
+        if (appointment.queueStatus !== "in_consultation") {
+            setLiveConsultationSeconds(baseDuration);
+            return undefined;
+        }
+
+        const startMs = appointment.consultationStartedAt
+            ? new Date(appointment.consultationStartedAt).getTime()
+            : null;
+
+        if (!startMs) {
+            setLiveConsultationSeconds(baseDuration);
+            return undefined;
+        }
+
+        const updateTimer = () => {
+            const next = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+            setLiveConsultationSeconds(next);
+        };
+
+        updateTimer();
+        const intervalId = setInterval(updateTimer, 1000);
+        return () => clearInterval(intervalId);
+    }, [appointment]);
+
+    const formatDuration = (totalSeconds) => {
+        const safe = Math.max(0, Number(totalSeconds) || 0);
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
+        if (h > 0) {
+            return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    };
 
     const handlePrescribe = async (payload) => {
         if (
@@ -182,12 +242,23 @@ const AppointmentDetailPage = () => {
         tokenNumber,
         date,
         timeSlot,
+        queueStatus,
+        queueCallCount,
+        consultationStartedAt,
+        consultationEndedAt,
+        consultationDurationSeconds,
         patient,
         patientName,
         aiSummary,
         prescription,
         symptoms,
     } = appointment;
+
+    const backToPath =
+        location.state?.from ||
+        (queueStatus === "in_consultation"
+            ? "/doctor/today"
+            : "/doctor/appointments");
 
     const resolvedPatient = patientDetails || patient;
     const name = resolvedPatient?.name || patientName || "Patient";
@@ -221,7 +292,7 @@ const AppointmentDetailPage = () => {
             <PageHeader
                 title={`${name}'s Consultation`}
                 subtitle={`Scheduled for ${formatDateIN(date)}`}
-                backTo="/doctor/appointments"
+                backTo={backToPath}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -307,6 +378,51 @@ const AppointmentDetailPage = () => {
                                         <p className="font-bold text-neutral-800">
                                             {timeSlot}
                                         </p>
+                                    </div>
+                                </div>
+                                <div className="p-4 rounded-xl flex items-center gap-3 bg-blue-50 border border-blue-100">
+                                    <Activity className="w-5 h-5 text-blue-600" />
+                                    <div>
+                                        <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider mb-0.5">
+                                            Consultation Timer
+                                        </p>
+                                        <p className="font-bold text-blue-800">
+                                            {queueStatus === "in_consultation"
+                                                ? formatDuration(
+                                                      liveConsultationSeconds,
+                                                  )
+                                                : consultationDurationSeconds
+                                                  ? formatDuration(
+                                                        consultationDurationSeconds,
+                                                    )
+                                                  : "Not started"}
+                                        </p>
+                                        <p className="text-[11px] text-blue-700 mt-1">
+                                            Status: {queueStatus || "waiting"} •
+                                            Calls: {queueCallCount || 0}
+                                        </p>
+                                        {consultationStartedAt && (
+                                            <p className="text-[11px] text-blue-700 mt-1">
+                                                Started at{" "}
+                                                {new Date(
+                                                    consultationStartedAt,
+                                                ).toLocaleTimeString("en-IN", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </p>
+                                        )}
+                                        {consultationEndedAt && (
+                                            <p className="text-[11px] text-blue-700 mt-1">
+                                                Ended at{" "}
+                                                {new Date(
+                                                    consultationEndedAt,
+                                                ).toLocaleTimeString("en-IN", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

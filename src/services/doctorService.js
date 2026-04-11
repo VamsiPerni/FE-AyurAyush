@@ -22,6 +22,27 @@ export const doctorService = {
         return response.data;
     },
 
+    callNextQueuePatient: async () => {
+        const response = await axiosInstance.post(
+            "/doctor/appointments/queue/next-call",
+        );
+        return response.data;
+    },
+
+    callQueuePatient: async (appointmentId) => {
+        const response = await axiosInstance.post(
+            `/doctor/appointments/${encodeURIComponent(appointmentId)}/call`,
+        );
+        return response.data;
+    },
+
+    startConsultation: async (appointmentId) => {
+        const response = await axiosInstance.post(
+            `/doctor/appointments/${encodeURIComponent(appointmentId)}/start-consultation`,
+        );
+        return response.data;
+    },
+
     getAppointmentDetails: async (appointmentId) => {
         const response = await axiosInstance.get(
             `/doctor/appointments/${encodeURIComponent(appointmentId)}`,

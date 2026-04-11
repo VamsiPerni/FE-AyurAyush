@@ -1,7 +1,7 @@
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { Calendar, Clock, Hash, Stethoscope } from "lucide-react";
+import { Calendar, Clock, Hash, Stethoscope, Users } from "lucide-react";
 
 const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
     const {
@@ -13,6 +13,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
         timeSlot,
         doctor,
         tokenNumber,
+        queueAheadCount,
         queueType,
         queueStatus,
         queueNotificationMessage,
@@ -22,6 +23,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
     } = appointment;
 
     const id = appointmentId || _id;
+    const shouldShowQueueInfo = status === "confirmed";
 
     const formatDate = (d) => {
         if (!d) return "";
@@ -76,21 +78,28 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                 </span>
             </div>
 
-            {tokenNumber && (
-                <div className="bg-primary-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
-                    <Hash className="w-3.5 h-3.5 text-primary-600 shrink-0" />
-                    <span className="text-sm font-bold text-primary-700 font-mono">
-                        {tokenNumber}
-                    </span>
-                    {queueType && (
-                        <Badge
-                            type="queue"
-                            value={queueType}
-                            className="ml-auto"
-                        />
-                    )}
-                </div>
-            )}
+            {shouldShowQueueInfo &&
+                (tokenNumber || queueAheadCount !== null) && (
+                    <div className="bg-primary-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                        <Hash className="w-3.5 h-3.5 text-primary-600 shrink-0" />
+                        <span className="text-sm font-bold text-primary-700 font-mono">
+                            {tokenNumber || "-"}
+                        </span>
+                        <span className="text-xs text-primary-700/80 ml-1 inline-flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5" />
+                            {queueAheadCount !== null
+                                ? `${queueAheadCount} ahead`
+                                : "Queue updating"}
+                        </span>
+                        {queueType && (
+                            <Badge
+                                type="queue"
+                                value={queueType}
+                                className="ml-auto"
+                            />
+                        )}
+                    </div>
+                )}
 
             {(queueStatus === "called" ||
                 queueStatus === "in_consultation") && (
