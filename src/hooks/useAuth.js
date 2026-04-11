@@ -8,7 +8,7 @@ import { showErrorToast, showSuccessToast } from "../utils/toastMessageHelper";
 export const useAuth = () => {
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
-    const { handleSetUser } = useAuthContext();
+    const { handleSetUser, setActiveRole } = useAuthContext();
     const navigate = useNavigate();
 
     const login = async (email, password) => {
@@ -20,13 +20,19 @@ export const useAuth = () => {
 
             const name = result.data.name || "";
             const roles = result.data.roles;
+            const resolvedActiveRole = roles.length === 1 ? roles[0] : null;
             const mustChangePassword = result.data.mustChangePassword || false;
             handleSetUser({
                 isLoggedIn: true,
                 name,
                 roles,
+                activeRole: resolvedActiveRole,
                 mustChangePassword,
             });
+
+            if (resolvedActiveRole) {
+                setActiveRole(resolvedActiveRole);
+            }
 
             if (mustChangePassword) {
                 navigate("/change-password");
