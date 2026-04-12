@@ -169,6 +169,18 @@ const AppointmentQueuesPage = () => {
         setEditModalOpen(true);
     };
 
+    const handleQuickApprove = async (id) => {
+        try {
+            await adminService.approveAppointment(id, {});
+            showSuccessToast("Appointment quickly approved.");
+            await Promise.all([loadQueues(), loadInsights()]);
+        } catch (err) {
+            showErrorToast(
+                err.response?.data?.message || "Failed to quick approve appointment.",
+            );
+        }
+    };
+
     const handleApproveWithEdits = async (payload) => {
         if (!editingAppointment) return;
 
@@ -596,6 +608,7 @@ const AppointmentQueuesPage = () => {
                         <NormalQueueTable
                             appointments={normalQueue}
                             onEditApprove={openEditApproveModal}
+                            onApprove={handleQuickApprove}
                             onReject={openRejectModal}
                             selectedIds={selectedNormalIds}
                             onToggleSelect={toggleNormalSelect}

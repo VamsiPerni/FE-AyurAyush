@@ -24,8 +24,7 @@ const OfflineBookingPage = () => {
     patientPhone: '',
     doctorId: '',
     date: '',
-    timeSlot: '',
-    urgencyLevel: 'normal'
+    timeSlot: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -99,10 +98,6 @@ const OfflineBookingPage = () => {
     }
   };
 
-  const setUrgency = (level) => {
-    setFormData(prev => ({ ...prev, urgencyLevel: level }));
-  };
-
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
@@ -134,8 +129,7 @@ const OfflineBookingPage = () => {
         patientPhone: '',
         doctorId: '',
         date: '',
-        timeSlot: '',
-        urgencyLevel: 'normal'
+        timeSlot: ''
       });
       setAvailableSlots([]);
       setErrors({});
@@ -158,8 +152,6 @@ const OfflineBookingPage = () => {
     return maxDate.toISOString().split('T')[0];
   };
 
-  const isEmergency = formData.urgencyLevel === 'emergency';
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in">
       <PageHeader
@@ -167,25 +159,13 @@ const OfflineBookingPage = () => {
         subtitle="Book appointments for walk-in patients manually overriding digital constraints."
       />
 
-      <Card className={`border overflow-hidden shadow-sm transition-colors ${isEmergency ? 'border-red-300 dark:border-red-700/40' : 'border-neutral-200 dark:border-dark-border'}`}>
-        
-        {/* Spec §15 Rule 10: Triage Warning Banner */}
-        {isEmergency && (
-           <div className="bg-red-50 dark:bg-red-900/10 py-3 px-6 border-b border-red-200 dark:border-red-700/40 flex items-center justify-between text-red-800 dark:text-red-400 animate-in slide-in-from-top-2">
-             <div className="flex items-center gap-3">
-               <ShieldAlert className="w-5 h-5 animate-pulse" />
-               <span className="font-bold tracking-tight text-sm uppercase">Emergency Protocol Activated</span>
-             </div>
-             <p className="text-xs font-semibold opacity-80 hidden sm:block">Patient will bypass standard queue restrictions dynamically.</p>
-           </div>
-        )}
-
-        <CardContent className={`p-6 sm:p-8 ${isEmergency ? 'bg-red-50/10' : ''}`}>
+      <Card className="border overflow-hidden shadow-sm transition-colors border-neutral-200 dark:border-dark-border">
+        <CardContent className="p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-8" noValidate>
 
             {/* Walk-in Identity Config */}
             <div className="space-y-6">
-              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 dark:text-red-400/70 border-red-100 dark:border-red-700/30' : 'text-neutral-400 border-neutral-100 dark:border-dark-border'}`}>
+              <h3 className="text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 text-neutral-400 border-neutral-100 dark:border-dark-border">
                 <User className="w-4 h-4" /> Patient Identity
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -216,33 +196,11 @@ const OfflineBookingPage = () => {
 
             {/* Clinical Parameters Configuration */}
             <div className="space-y-6 pt-2">
-              <h3 className={`text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 ${isEmergency ? 'text-red-600/70 dark:text-red-400/70 border-red-100 dark:border-red-700/30' : 'text-neutral-400 border-neutral-100 dark:border-dark-border'}`}>
+              <h3 className="text-sm font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 text-neutral-400 border-neutral-100 dark:border-dark-border">
                 <FileText className="w-4 h-4" /> Consultation Parameters
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {/* Special Priority Override */}
-                 <div className="md:col-span-2 p-5 bg-neutral-50 dark:bg-dark-elevated border border-neutral-200 dark:border-dark-border rounded-xl space-y-3">
-                    <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                      Triage & Urgency Assessment <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                       <button
-                         type="button"
-                         onClick={() => setUrgency('normal')}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${!isEmergency ? 'bg-primary-600 text-white border-primary-600 shadow-md ring-2 ring-primary-100 dark:ring-primary-800/30' : 'bg-white dark:bg-dark-card text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover'}`}
-                       >
-                         <Activity className="w-4 h-4" /> Routine Check-up
-                       </button>
-                       <button
-                         type="button"
-                         onClick={() => setUrgency('emergency')}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all border ${isEmergency ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-100 dark:ring-red-800/30' : 'bg-white dark:bg-dark-card text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-dark-border hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 hover:border-red-200'}`}
-                       >
-                         <ShieldAlert className="w-4 h-4" /> Emergency Triage
-                       </button>
-                    </div>
-                 </div>
 
                  {/* Doctor Selection */}
                  <div className="md:col-span-2">
@@ -320,15 +278,15 @@ const OfflineBookingPage = () => {
             </div>
 
             {/* Validation & Submit Boundaries */}
-            <div className={`pt-6 border-t flex items-center justify-end ${isEmergency ? 'border-red-200 dark:border-red-700/40' : 'border-neutral-100 dark:border-dark-border'}`}>
+            <div className="pt-6 border-t flex items-center justify-end border-neutral-100 dark:border-dark-border">
                <Button 
                   type="submit" 
                   icon={CheckCircle2} 
                   loading={isSubmitting}
-                  variant={isEmergency ? 'danger' : 'primary'}
+                  variant="primary"
                   className="w-full sm:w-auto px-8"
                >
-                  {isEmergency ? 'Create Emergency Booking' : 'Confirm Offline Booking'}
+                  Confirm Offline Booking
                </Button>
             </div>
 

@@ -6,6 +6,7 @@ import { Check, PencilLine, X } from "lucide-react";
 const NormalQueueTable = ({
     appointments,
     onEditApprove,
+    onApprove,
     onReject,
     selectedIds = [],
     onToggleSelect,
@@ -117,6 +118,14 @@ const NormalQueueTable = ({
                         onClick={() => onEditApprove(apt)}
                     >
                         Edit & Approve
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="success"
+                        icon={Check}
+                        onClick={() => onApprove?.(apt._id || apt.appointmentId)}
+                    >
+                        Approve
                     </Button>
                 </div>
             ),
