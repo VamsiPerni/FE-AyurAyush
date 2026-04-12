@@ -186,7 +186,29 @@ const AppointmentDetailPage = () => {
         aiSummary,
         prescription,
         symptoms,
+        consultationStartedAt,
+        consultationEndedAt,
+        consultationDurationSeconds,
     } = appointment;
+
+    const formatTimeOnly = (dateStr) => {
+        if (!dateStr) return null;
+        return new Date(dateStr).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const formatDuration = (totalSeconds) => {
+        const safe = Math.max(0, Number(totalSeconds) || 0);
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
+        if (h > 0) {
+            return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    };
 
     const docName = doctor?.name || doctorName || "Doctor";
     const isEmergency = urgencyLevel === "emergency";
@@ -309,6 +331,69 @@ const AppointmentDetailPage = () => {
                                         </p>
                                     </div>
                                 </div>
+                                {(consultationStartedAt ||
+                                    consultationEndedAt ||
+                                    consultationDurationSeconds !== null) && (
+                                    <div className="col-span-full mt-2 p-4 rounded-xl bg-blue-50/50 border border-blue-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                                <Activity className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide mb-0.5">
+                                                    Consultation Duration
+                                                </p>
+                                                <p className="font-bold text-lg text-blue-900">
+                                                    {consultationDurationSeconds !==
+                                                        null &&
+                                                    consultationDurationSeconds !==
+                                                        undefined
+                                                        ? formatDuration(
+                                                              consultationDurationSeconds,
+                                                          )
+                                                        : consultationStartedAt
+                                                          ? "In progress"
+                                                          : "Not recorded"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {(consultationStartedAt ||
+                                            consultationEndedAt) && (
+                                            <div className="flex items-center gap-4 text-sm text-blue-800 bg-white/60 px-4 py-2 rounded-lg">
+                                                {consultationStartedAt && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] uppercase text-blue-500 font-bold mb-0.5">
+                                                            Started
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            {formatTimeOnly(
+                                                                consultationStartedAt,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {consultationStartedAt &&
+                                                    consultationEndedAt && (
+                                                        <div className="text-blue-300 font-bold">
+                                                            →
+                                                        </div>
+                                                    )}
+                                                {consultationEndedAt && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] uppercase text-blue-500 font-bold mb-0.5">
+                                                            Ended
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            {formatTimeOnly(
+                                                                consultationEndedAt,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

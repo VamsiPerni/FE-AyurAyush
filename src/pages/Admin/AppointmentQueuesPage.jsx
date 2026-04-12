@@ -5,9 +5,13 @@ import {
     RefreshCw,
     AlertCircle,
     AlertTriangle,
+    BarChart3,
+    Timer,
+    Siren,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { PageHeader } from "../../components/shared/PageHeader";
+import { StatCard } from "../../components/shared/StatCard";
 import {
     Card,
     CardHeader,
@@ -35,6 +39,12 @@ const AppointmentQueuesPage = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [insights, setInsights] = useState(null);
+    const [selectedQueueType, setSelectedQueueType] = useState("ayurveda");
+    const [selectedNormalIds, setSelectedNormalIds] = useState([]);
+    const [batchLoading, setBatchLoading] = useState(false);
+    const [batchReasonPreset, setBatchReasonPreset] =
+        useState("Doctor unavailable");
 
     // Reject Modal State
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -117,6 +127,7 @@ const AppointmentQueuesPage = () => {
 
             setEmergencyQueue(extractAppointments(emRes));
             setNormalQueue(extractAppointments(normRes));
+            setSelectedNormalIds([]);
         } catch (err) {
             setEmergencyQueue([]);
             setNormalQueue([]);
@@ -131,8 +142,26 @@ const AppointmentQueuesPage = () => {
         }
     };
 
+    const loadInsights = async () => {
+        try {
+            const result = await adminService.getQueueInsights();
+            setInsights(result.data || null);
+        } catch {
+            setInsights(null);
+        }
+    };
+
     useEffect(() => {
         loadQueues();
+        loadInsights();
+    }, []);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            loadInsights();
+        }, 10000);
+
+        return () => clearInterval(intervalId);
     }, []);
 
     const openEditApproveModal = (appointment) => {
@@ -151,7 +180,7 @@ const AppointmentQueuesPage = () => {
             showSuccessToast("Appointment approved successfully");
             setEditModalOpen(false);
             setEditingAppointment(null);
-            loadQueues();
+            await Promise.all([loadQueues(), loadInsights()]);
         } catch (err) {
             showErrorToast(
                 err.response?.data?.message ||
@@ -183,7 +212,7 @@ const AppointmentQueuesPage = () => {
                 "Appointment efficiently rejected and logs updated.",
             );
             setRejectModalOpen(false);
-            loadQueues();
+            await Promise.all([loadQueues(), loadInsights()]);
         } catch (err) {
             showErrorToast(
                 err.response?.data?.message ||
@@ -191,6 +220,78 @@ const AppointmentQueuesPage = () => {
             );
         } finally {
             setIsRejecting(false);
+        }
+    };
+
+    const formatDuration = (seconds) => {
+        const value = Math.max(0, Number(seconds) || 0);
+        const h = Math.floor(value / 3600);
+        const m = Math.floor((value % 3600) / 60);
+        const s = value % 60;
+        if (h > 0) {
+            return `${h}h ${m}m ${s}s`;
+        }
+        return `${m}m ${s}s`;
+    };
+
+    const toggleNormalSelect = (id, checked) => {
+        setSelectedNormalIds((prev) => {
+            if (checked) {
+                return [...new Set([...prev, id])];
+            }
+            return prev.filter((item) => item !== id);
+        });
+    };
+
+    const toggleAllNormalSelect = (checked) => {
+        if (!checked) {
+            setSelectedNormalIds([]);
+            return;
+        }
+        setSelectedNormalIds(
+            normalQueue
+                .map((item) => item._id || item.appointmentId)
+                .filter(Boolean),
+        );
+    };
+
+    const handleBatchDecision = async (action) => {
+        if (selectedNormalIds.length === 0) {
+            showErrorToast("Select at least one appointment for batch action.");
+            return;
+        }
+
+        try {
+            setBatchLoading(true);
+            const payload = {
+                appointmentIds: selectedNormalIds,
+                action,
+            };
+            if (action === "reject") {
+                payload.reasonPreset = batchReasonPreset;
+            }
+
+            const response = await adminService.batchDecision(payload);
+            const successCount = Number(response.data?.successCount || 0);
+            const failureCount = Number(response.data?.failureCount || 0);
+
+            if (failureCount > 0) {
+                showErrorToast(
+                    `Batch ${action} completed with ${successCount} success and ${failureCount} failures.`,
+                );
+            } else {
+                showSuccessToast(
+                    `${successCount} appointments ${action === "approve" ? "approved" : "rejected"} successfully.`,
+                );
+            }
+
+            await Promise.all([loadQueues(), loadInsights()]);
+        } catch (err) {
+            showErrorToast(
+                err.response?.data?.message || "Batch action failed.",
+            );
+        } finally {
+            setBatchLoading(false);
         }
     };
 
@@ -239,14 +340,136 @@ const AppointmentQueuesPage = () => {
                     <Button
                         variant="outline"
                         icon={RefreshCw}
-                        onClick={loadQueues}
+                        onClick={() => {
+                            loadQueues();
+                            loadInsights();
+                        }}
                     >
                         Refresh Sync
                     </Button>
                 }
             />
 
-            <TodayQueue />
+            {insights ? (
+                (() => {
+                    const currentInsights = insights[selectedQueueType] || insights.global || insights;
+                    return (
+                        <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <StatCard
+                            label="Avg Queue Wait"
+                            value={formatDuration(
+                                currentInsights.sla?.averageWaitSeconds,
+                            )}
+                            icon={Timer}
+                            variant="info"
+                        />
+                        <StatCard
+                            label="SLA Breaches"
+                            value={currentInsights.sla?.breachCount ?? 0}
+                            icon={Siren}
+                            variant="warning"
+                        />
+                        <StatCard
+                            label="Notifications Delivered"
+                            value={`${currentInsights.notificationDelivery?.delivered ?? 0}/${currentInsights.notificationDelivery?.sent ?? 0}`}
+                            icon={BarChart3}
+                            variant="success"
+                        />
+                    </div>
+
+                    {currentInsights.longestWaiting?.appointmentId ? (
+                        <Card className="border-amber-200 dark:border-amber-700/40 bg-amber-50/50 dark:bg-amber-900/10">
+                            <CardContent className="pt-5 pb-5">
+                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                    Longest waiting patient alert
+                                </p>
+                                <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                                    {currentInsights.longestWaiting.patientName} with
+                                    Dr. {currentInsights.longestWaiting.doctorName} is
+                                    waiting for{" "}
+                                    {formatDuration(
+                                        currentInsights.longestWaiting
+                                            .waitingForSeconds,
+                                    )}{" "}
+                                    ({currentInsights.longestWaiting.queueStatus}).
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ) : null}
+
+                    <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
+                        <CardHeader>
+                            <CardTitle>
+                                Bottleneck Analytics (Doctor x Slot)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {(currentInsights.bottlenecks || []).length === 0 ? (
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                    No bottlenecks detected right now.
+                                </p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full text-sm">
+                                        <thead>
+                                            <tr className="text-left border-b border-neutral-200 dark:border-dark-border">
+                                                <th className="py-2 pr-3">
+                                                    Doctor
+                                                </th>
+                                                <th className="py-2 pr-3">
+                                                    Slot
+                                                </th>
+                                                <th className="py-2 pr-3">
+                                                    Waiting/Called
+                                                </th>
+                                                <th className="py-2 pr-3">
+                                                    Avg Wait
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(currentInsights.bottlenecks || []).map(
+                                                (item) => (
+                                                    <tr
+                                                        key={`${item.doctorName}-${item.timeSlot}`}
+                                                        className="border-b border-neutral-100 dark:border-dark-border"
+                                                    >
+                                                        <td className="py-2 pr-3">
+                                                            Dr.{" "}
+                                                            {item.doctorName}
+                                                        </td>
+                                                        <td className="py-2 pr-3">
+                                                            {item.timeSlot}
+                                                        </td>
+                                                        <td className="py-2 pr-3 font-semibold">
+                                                            {
+                                                                item.waitingOrCalled
+                                                            }
+                                                        </td>
+                                                        <td className="py-2 pr-3">
+                                                            {formatDuration(
+                                                                item.avgWaitSeconds,
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                        </>
+                    );
+                })()
+            ) : null}
+
+            <TodayQueue 
+                externalQueueType={selectedQueueType}
+                onQueueTypeChange={setSelectedQueueType}
+            />
 
             {/* EMERGENCY QUEUE */}
             <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
@@ -313,6 +536,54 @@ const AppointmentQueuesPage = () => {
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
+                    {normalQueue.length > 0 ? (
+                        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/40 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+                            <div className="text-sm text-neutral-600 dark:text-neutral-300">
+                                {selectedNormalIds.length} selected
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                                <select
+                                    className="h-10 px-3 border border-neutral-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-card text-sm"
+                                    value={batchReasonPreset}
+                                    onChange={(e) =>
+                                        setBatchReasonPreset(e.target.value)
+                                    }
+                                >
+                                    <option>Doctor unavailable</option>
+                                    <option>Duplicate booking detected</option>
+                                    <option>Invalid patient details</option>
+                                    <option>Slot unavailable</option>
+                                    <option>Clinical triage mismatch</option>
+                                </select>
+                                <Button
+                                    size="sm"
+                                    variant="success"
+                                    disabled={
+                                        batchLoading ||
+                                        selectedNormalIds.length === 0
+                                    }
+                                    onClick={() =>
+                                        handleBatchDecision("approve")
+                                    }
+                                >
+                                    Batch Approve
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    disabled={
+                                        batchLoading ||
+                                        selectedNormalIds.length === 0
+                                    }
+                                    onClick={() =>
+                                        handleBatchDecision("reject")
+                                    }
+                                >
+                                    Batch Reject
+                                </Button>
+                            </div>
+                        </div>
+                    ) : null}
                     {normalQueue.length === 0 ? (
                         <div className="py-20">
                             <EmptyState
@@ -326,6 +597,9 @@ const AppointmentQueuesPage = () => {
                             appointments={normalQueue}
                             onEditApprove={openEditApproveModal}
                             onReject={openRejectModal}
+                            selectedIds={selectedNormalIds}
+                            onToggleSelect={toggleNormalSelect}
+                            onToggleSelectAll={toggleAllNormalSelect}
                         />
                     )}
                 </CardContent>

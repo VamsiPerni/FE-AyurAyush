@@ -3,7 +3,14 @@ import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { Check, PencilLine, X } from "lucide-react";
 
-const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
+const NormalQueueTable = ({
+    appointments,
+    onEditApprove,
+    onReject,
+    selectedIds = [],
+    onToggleSelect,
+    onToggleSelectAll,
+}) => {
     const formatDoctorLabel = (rawName) => {
         const name = (rawName || "").trim();
         if (!name || name.toLowerCase() === "unassigned") return "Unassigned";
@@ -21,6 +28,29 @@ const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
     };
 
     const columns = [
+        {
+            key: "select",
+            header: (
+                <input
+                    type="checkbox"
+                    checked={
+                        appointments.length > 0 &&
+                        selectedIds.length === appointments.length
+                    }
+                    onChange={(e) => onToggleSelectAll?.(e.target.checked)}
+                />
+            ),
+            render: (_, apt) => {
+                const id = apt._id || apt.appointmentId;
+                return (
+                    <input
+                        type="checkbox"
+                        checked={selectedIds.includes(id)}
+                        onChange={(e) => onToggleSelect?.(id, e.target.checked)}
+                    />
+                );
+            },
+        },
         {
             key: "patient",
             header: "Patient Name",
@@ -43,14 +73,21 @@ const NormalQueueTable = ({ appointments, onEditApprove, onReject }) => {
             key: "datetime",
             header: "Date & Slot",
             render: (_, apt) => (
-                <span>
-                    <span className="font-medium text-neutral-700 dark:text-neutral-200">
-                        {formatDateIN(apt.date)}
-                    </span>
-                    <span className="text-neutral-500 dark:text-neutral-400 text-sm ml-1.5">
-                        • {apt.timeSlot}
-                    </span>
-                </span>
+                <div>
+                    <div>
+                        <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                            {formatDateIN(apt.date)}
+                        </span>
+                        <span className="text-neutral-500 dark:text-neutral-400 text-sm ml-1.5">
+                            • {apt.timeSlot}
+                        </span>
+                    </div>
+                    {apt.waitingTime && (
+                        <div className="text-amber-600 dark:text-amber-500 text-xs mt-0.5 font-medium flex items-center">
+                            Waiting: {apt.waitingTime}
+                        </div>
+                    )}
+                </div>
             ),
         },
         {

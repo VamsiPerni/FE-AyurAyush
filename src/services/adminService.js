@@ -68,6 +68,28 @@ export const adminService = {
         return response.data;
     },
 
+    getQueueInsights: async () => {
+        const response = await axiosInstance.get(
+            "/admin/appointments/queue-insights",
+        );
+        return response.data;
+    },
+
+    getAppointmentAuditTrail: async (appointmentId) => {
+        const response = await axiosInstance.get(
+            `/admin/appointments/${encodeURIComponent(appointmentId)}/audit-trail`,
+        );
+        return response.data;
+    },
+
+    batchDecision: async (payload) => {
+        const response = await axiosInstance.post(
+            "/admin/appointments/batch-decision",
+            payload,
+        );
+        return response.data;
+    },
+
     getEmergencyAppointments: async () => {
         const response = await axiosInstance.get(
             "/admin/appointments/emergency",
