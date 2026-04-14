@@ -24,6 +24,7 @@ import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { StatsSkeleton, TableSkeleton } from "../../components/ui/Skeleton";
 import { AppointmentRow } from "../../components/doctor/AppointmentRow";
+import EmergencyDelayToggle from "../../components/doctor/EmergencyDelayToggle";
 import {
     showErrorToast,
     showSuccessToast,
@@ -275,6 +276,13 @@ const DoctorDashboardPage = () => {
                         Today's Schedule
                     </Button>
                 }
+            />
+
+            <EmergencyDelayToggle 
+                emergencyState={dashboard?.emergencyState} 
+                onStatusChange={() => {
+                    loadDashboard({ silent: true });
+                }}
             />
 
             {/* Stats Row */}

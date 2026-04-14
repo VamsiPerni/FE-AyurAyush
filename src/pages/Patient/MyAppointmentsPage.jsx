@@ -20,12 +20,22 @@ const filterCategories = [
 ];
 
 const MyAppointmentsPage = () => {
+    const PAGE_SIZE = 12;
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [cancellingId, setCancellingId] = useState(null);
     const [activeTab, setActiveTab] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [tabCounts, setTabCounts] = useState({
+        all: 0,
+        upcoming: 0,
+        completed: 0,
+        cancelled: 0,
+    });
     const shownNotificationKeysRef = useRef(new Set());
 
     const getNotificationKey = (apt) => {
@@ -34,21 +44,48 @@ const MyAppointmentsPage = () => {
         return `${id}:${apt.queueStatus || "waiting"}:${stamp}`;
     };
 
+    const getStatusParam = (tab) => {
+        if (tab === "all") return "";
+        if (tab === "upcoming") return "upcoming";
+        if (tab === "completed") return "completed";
+        if (tab === "cancelled") return "cancelled";
+        return "";
+    };
+
     const loadAppointments = async ({ silent = false } = {}) => {
         try {
             if (!silent) {
                 setLoading(true);
                 setError("");
             }
-            // Fetch all appointments
-            const result = await patientService.getAppointments();
+
+            const result = await patientService.getAppointments({
+                status: getStatusParam(activeTab),
+                page: currentPage,
+                limit: PAGE_SIZE,
+                sort: "asc",
+            });
             const nextAppointments =
                 result.data?.appointments || result.data || [];
+
+            const pageMeta = result.data || {};
+            setTotalPages(Math.max(1, Number(pageMeta.totalPages) || 1));
+            setTotalCount(Number(pageMeta.totalCount) || 0);
 
             nextAppointments.forEach((apt) => {
                 if (["called", "in_consultation"].includes(apt.queueStatus)) {
                     const key = getNotificationKey(apt);
-                    if (key && !shownNotificationKeysRef.current.has(key)) {
+                    // Notification recency check: only toast if called in the last 10 minutes
+                    const lastCalledAt = apt.lastCalledAt;
+                    const isRecent =
+                        lastCalledAt &&
+                        Date.now() - new Date(lastCalledAt).getTime() < 120000;
+
+                    if (
+                        key &&
+                        isRecent &&
+                        !shownNotificationKeysRef.current.has(key)
+                    ) {
                         shownNotificationKeysRef.current.add(key);
                         showSuccessToast(
                             apt.queueNotificationMessage ||
@@ -75,13 +112,38 @@ const MyAppointmentsPage = () => {
 
     useEffect(() => {
         loadAppointments();
-    }, []);
+    }, [activeTab, currentPage]);
 
     useEffect(() => {
         const id = setInterval(() => {
             loadAppointments({ silent: true });
         }, 5000);
         return () => clearInterval(id);
+    }, [activeTab, currentPage]);
+
+    useEffect(() => {
+        const loadCounts = async () => {
+            try {
+                const result = await patientService.getDashboard();
+                const stats =
+                    result?.data?.data?.stats || result?.data?.stats || {};
+                setTabCounts({
+                    all: Number(stats.totalAppointments || stats.total || 0),
+                    upcoming: Number(
+                        stats.upcomingAppointments || stats.upcoming || 0,
+                    ),
+                    completed: Number(
+                        stats.completedAppointments || stats.completed || 0,
+                    ),
+                    cancelled: Number(
+                        stats.cancelledAppointments || stats.cancelled || 0,
+                    ),
+                });
+            } catch {
+                // Keep fallback counts if dashboard fetch fails.
+            }
+        };
+        loadCounts();
     }, []);
 
     const handleCancel = async (id) => {
@@ -89,14 +151,7 @@ const MyAppointmentsPage = () => {
             setCancellingId(id);
             await patientService.cancelAppointment(id);
             showSuccessToast("Appointment cancelled successfully");
-            setAppointments((prev) =>
-                prev.map((apt) => {
-                    if ((apt._id || apt.appointmentId) === id) {
-                        return { ...apt, status: "cancelled" };
-                    }
-                    return apt;
-                }),
-            );
+            await loadAppointments();
         } catch (err) {
             showErrorToast(
                 err.response?.data?.message || "Failed to cancel appointment",
@@ -106,35 +161,24 @@ const MyAppointmentsPage = () => {
         }
     };
 
-    // Client-side filtering logic
-    const filteredAppointments = useMemo(() => {
-        return appointments.filter((apt) => {
-            if (activeTab === "all") return true;
-            if (activeTab === "upcoming")
-                return ["pending_admin_approval", "confirmed"].includes(
-                    apt.status,
-                );
-            if (activeTab === "completed") return apt.status === "completed";
-            if (activeTab === "cancelled")
-                return ["cancelled", "rejected"].includes(apt.status);
-            return true;
-        });
-    }, [appointments, activeTab]);
+    const filteredAppointments = useMemo(() => appointments, [appointments]);
 
-    // Count logic per tab
-    const counts = useMemo(() => {
-        return {
-            all: appointments.length,
-            upcoming: appointments.filter((a) =>
-                ["pending_admin_approval", "confirmed"].includes(a.status),
-            ).length,
-            completed: appointments.filter((a) => a.status === "completed")
-                .length,
-            cancelled: appointments.filter((a) =>
-                ["cancelled", "rejected"].includes(a.status),
-            ).length,
-        };
-    }, [appointments]);
+    const counts = useMemo(
+        () => ({
+            ...tabCounts,
+            [activeTab]: totalCount,
+        }),
+        [tabCounts, activeTab, totalCount],
+    );
+
+    const visiblePageNumbers = useMemo(() => {
+        const total = Math.max(1, totalPages);
+        const pages = [];
+        const start = Math.max(1, currentPage - 2);
+        const end = Math.min(total, start + 4);
+        for (let p = start; p <= end; p++) pages.push(p);
+        return pages;
+    }, [currentPage, totalPages]);
 
     // Loading State
     if (loading) {
@@ -197,7 +241,10 @@ const MyAppointmentsPage = () => {
                 {filterCategories.map((cat) => (
                     <button
                         key={cat.id}
-                        onClick={() => setActiveTab(cat.id)}
+                        onClick={() => {
+                            setActiveTab(cat.id);
+                            setCurrentPage(1);
+                        }}
                         className={`
               flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors
               ${
@@ -252,21 +299,66 @@ const MyAppointmentsPage = () => {
                     />
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredAppointments.map((apt) => (
-                        <AppointmentCard
-                            key={apt._id || apt.appointmentId}
-                            appointment={apt}
-                            onView={(id) =>
-                                navigate(`/patient/appointments/${id}`)
-                            }
-                            onCancel={handleCancel}
-                            loading={
-                                cancellingId === (apt._id || apt.appointmentId)
-                            }
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredAppointments.map((apt) => (
+                            <AppointmentCard
+                                key={apt._id || apt.appointmentId}
+                                appointment={apt}
+                                onView={(id) =>
+                                    navigate(`/patient/appointments/${id}`)
+                                }
+                                onCancel={handleCancel}
+                                loading={
+                                    cancellingId ===
+                                    (apt._id || apt.appointmentId)
+                                }
+                            />
+                        ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    setCurrentPage((prev) =>
+                                        Math.max(1, prev - 1),
+                                    )
+                                }
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+
+                            {visiblePageNumbers.map((page) => (
+                                <Button
+                                    key={page}
+                                    variant={
+                                        page === currentPage
+                                            ? "primary"
+                                            : "outline"
+                                    }
+                                    onClick={() => setCurrentPage(page)}
+                                >
+                                    {page}
+                                </Button>
+                            ))}
+
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    setCurrentPage((prev) =>
+                                        Math.min(totalPages, prev + 1),
+                                    )
+                                }
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

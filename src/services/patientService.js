@@ -29,10 +29,19 @@ export const patientService = {
         return response.data;
     },
 
-    getAppointments: async (status = "") => {
-        const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    getAppointments: async (params = {}) => {
+        const options =
+            typeof params === "string" ? { status: params } : params || {};
+
+        const searchParams = new URLSearchParams();
+        if (options.status) searchParams.set("status", String(options.status));
+        if (options.page) searchParams.set("page", String(options.page));
+        if (options.limit) searchParams.set("limit", String(options.limit));
+        if (options.sort) searchParams.set("sort", String(options.sort));
+
+        const query = searchParams.toString();
         const response = await axiosInstance.get(
-            `/patient/appointments${query}`,
+            `/patient/appointments${query ? `?${query}` : ""}`,
         );
         return response.data;
     },
@@ -58,6 +67,13 @@ export const patientService = {
 
     updatePatientProfile: async (data) => {
         const response = await axiosInstance.put("/patient/profile", data);
+        return response.data;
+    },
+
+    getEmergencyDelayForDoctor: async (doctorId) => {
+        const response = await axiosInstance.get(
+            `/patient/emergency-delay/${encodeURIComponent(doctorId)}`,
+        );
         return response.data;
     },
 };

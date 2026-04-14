@@ -28,6 +28,7 @@ import { EmergencyQueueCard } from "../../components/admin/EmergencyQueueCard";
 import { NormalQueueTable } from "../../components/admin/NormalQueueTable";
 import { EditAppointmentModal } from "../../components/admin/EditAppointmentModal";
 import { TodayQueue } from "../../components/admin/TodayQueue";
+import EmergencyDelayBanner from "../../components/admin/EmergencyDelayBanner";
 import {
     showErrorToast,
     showSuccessToast,
@@ -361,6 +362,8 @@ const AppointmentQueuesPage = () => {
                     </Button>
                 }
             />
+
+            <EmergencyDelayBanner />
 
             {insights ? (
                 (() => {

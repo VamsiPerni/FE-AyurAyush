@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { RefreshCw, AlertCircle, FileText } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { AppointmentRow } from "../../components/doctor/AppointmentRow";
+import EmergencyDelayToggle from "../../components/doctor/EmergencyDelayToggle";
 import { PageHeader } from "../../components/shared/PageHeader";
 import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -23,6 +24,7 @@ const filterCategories = [
 const TodayAppointmentsPage = () => {
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
+    const [emergencyState, setEmergencyState] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("all");
@@ -38,6 +40,7 @@ const TodayAppointmentsPage = () => {
             }
             const result = await doctorService.getTodayAppointments();
             setAppointments(result.data?.appointments || result.data || []);
+            setEmergencyState(result.data?.emergencyState || null);
         } catch (err) {
             const message =
                 err.response?.data?.message ||
@@ -301,6 +304,13 @@ const TodayAppointmentsPage = () => {
                         </Button>
                     </div>
                 }
+            />
+
+            <EmergencyDelayToggle 
+                emergencyState={emergencyState} 
+                onStatusChange={() => {
+                    loadAppointments({ silent: true });
+                }}
             />
 
             {actionFeedback && (

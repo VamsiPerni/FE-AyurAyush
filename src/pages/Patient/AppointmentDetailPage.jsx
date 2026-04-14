@@ -25,6 +25,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { CardSkeleton } from "../../components/ui/Skeleton";
+import PossibleDelayWarning from "../../components/patient/PossibleDelayWarning";
 import {
     showErrorToast,
     showSuccessToast,
@@ -238,6 +239,8 @@ const AppointmentDetailPage = () => {
                     )
                 }
             />
+
+            {doctor?._id && <PossibleDelayWarning doctorId={doctor._id} />}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Appointment Meta */}

@@ -67,4 +67,19 @@ export const doctorService = {
         const response = await axiosInstance.put("/doctor/profile", data);
         return response.data;
     },
+
+    activateEmergencyDelay: async (reason) => {
+        const response = await axiosInstance.post(
+            "/doctor/emergency-delay/activate",
+            { reason },
+        );
+        return response.data;
+    },
+
+    deactivateEmergencyDelay: async () => {
+        const response = await axiosInstance.post(
+            "/doctor/emergency-delay/deactivate",
+        );
+        return response.data;
+    },
 };

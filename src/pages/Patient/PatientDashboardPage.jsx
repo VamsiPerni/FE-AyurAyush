@@ -26,6 +26,7 @@ import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { StatsSkeleton, CardSkeleton } from "../../components/ui/Skeleton";
 import { AppointmentCard } from "../../components/patient/AppointmentCard";
+import PossibleDelayWarning from "../../components/patient/PossibleDelayWarning";
 import {
     showErrorToast,
     showSuccessToast,
@@ -89,11 +90,12 @@ const PatientDashboardPage = () => {
                 if (!value) return false;
                 const d = new Date(value);
                 const now = new Date();
-                return (
-                    d.getFullYear() === now.getFullYear() &&
-                    d.getMonth() === now.getMonth() &&
-                    d.getDate() === now.getDate()
-                );
+                
+                // Compare by local date string to be resilient to 00:00 UTC issues
+                const dStr = d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+                const nowStr = now.toLocaleDateString('en-CA');
+                
+                return dStr === nowStr;
             };
 
             const candidates = allAppointments
@@ -136,7 +138,12 @@ const PatientDashboardPage = () => {
                 )
             ) {
                 const key = getNotificationKey(activeAppointment);
-                if (key && !shownNotificationKeysRef.current.has(key)) {
+                // Notification recency check: only toast if called in the last 10 minutes
+                // This prevents old 'called' statuses from spamming toasts on page reload
+                const lastCalledAt = activeAppointment.lastCalledAt;
+                const isRecent = lastCalledAt && (Date.now() - new Date(lastCalledAt).getTime() < 120000);
+
+                if (key && isRecent && !shownNotificationKeysRef.current.has(key)) {
                     shownNotificationKeysRef.current.add(key);
                     showSuccessToast(
                         activeAppointment.queueNotificationMessage ||
@@ -256,6 +263,10 @@ const PatientDashboardPage = () => {
                     variant="error"
                 />
             </div>
+
+            {liveQueueAppointment?.doctor?.id && (
+                <PossibleDelayWarning doctorId={liveQueueAppointment.doctor.id} />
+            )}
 
             <Card className="border border-primary-100 dark:border-primary-800/30 bg-linear-to-r from-primary-50/90 to-white dark:from-primary-900/10 dark:to-dark-card">
                 <CardHeader className="pb-2">

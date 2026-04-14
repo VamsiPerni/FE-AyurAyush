@@ -128,4 +128,9 @@ export const adminService = {
         );
         return response.data;
     },
+
+    getEmergencyDelays: async () => {
+        const response = await axiosInstance.get("/admin/emergency-delays");
+        return response.data;
+    },
 };

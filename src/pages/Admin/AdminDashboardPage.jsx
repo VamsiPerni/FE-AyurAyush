@@ -29,6 +29,7 @@ import { Table } from "../../components/ui/Table";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { StatsSkeleton, TableSkeleton } from "../../components/ui/Skeleton";
 import { TodayQueue } from "../../components/admin/TodayQueue";
+import EmergencyDelayBanner from "../../components/admin/EmergencyDelayBanner";
 import { showErrorToast } from "../../utils/toastMessageHelper";
 
 const AdminDashboardPage = () => {
@@ -185,6 +186,8 @@ const AdminDashboardPage = () => {
                     </Button>
                 }
             />
+
+            <EmergencyDelayBanner />
 
             {/* Hero Header / System Metrics */}
             <div className="bg-linear-to-r from-primary-800 to-primary-700 dark:from-primary-900 dark:to-primary-800 rounded-2xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
