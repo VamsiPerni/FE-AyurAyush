@@ -11,8 +11,10 @@ import {
     FileText,
     Trash2,
     AlertTriangle,
+    CreditCard,
 } from "lucide-react";
 import { patientService } from "../../services/patientService";
+import { paymentService } from "../../services/paymentService";
 import { chatService } from "../../services/chatService";
 import { useAuthContext } from "../../contexts/AppContext";
 import { PageHeader } from "../../components/shared/PageHeader";
@@ -349,6 +351,16 @@ const BookAppointmentPage = () => {
         }
     };
 
+    const loadRazorpayScript = () =>
+        new Promise((resolve) => {
+            if (window.Razorpay) return resolve(true);
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+
     const handleBookAppointment = async () => {
         if (!selectedDoctor || !selectedDate || !selectedSlot) {
             showErrorToast("Please complete all selections first.");
@@ -356,16 +368,72 @@ const BookAppointmentPage = () => {
         }
         try {
             setBookingLoading(true);
-            await patientService.bookAppointment({
+
+            const loaded = await loadRazorpayScript();
+            if (!loaded) {
+                showErrorToast("Payment gateway failed to load. Check your internet connection.");
+                return;
+            }
+
+            // Book appointment — returns appointmentId + paymentOrder
+            const result = await patientService.bookAppointment({
                 doctorId: selectedDoctor._id || selectedDoctor.doctorId,
                 date: selectedDate,
                 timeSlot: selectedSlot,
                 conversationId: selectedConversationId,
             });
-            // Clear local storage conversation block if successful
-            localStorage.removeItem("conversationId");
-            showSuccessToast("Appointment booked successfully!");
-            navigate("/patient/appointments");
+
+            const booking = result.data || result;
+            const order = booking.paymentOrder;
+
+            if (!order?.orderId) {
+                showErrorToast("Booking created but payment order missing. Please pay from My Appointments.");
+                navigate("/patient/appointments");
+                return;
+            }
+
+            // Open Razorpay checkout immediately
+            const options = {
+                key: order.keyId,
+                amount: order.amount,
+                currency: order.currency,
+                name: "AyurAyush",
+                description: "Consultation Fee",
+                order_id: order.orderId,
+                prefill: order.prefill,
+                theme: { color: "#16a34a" },
+                handler: async (response) => {
+                    try {
+                        await paymentService.verifyPayment({
+                            appointmentId: booking.appointmentId,
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                        });
+                        localStorage.removeItem("conversationId");
+                        showSuccessToast("Payment successful! Appointment submitted for admin review.");
+                        navigate("/patient/appointments");
+                    } catch {
+                        showErrorToast("Payment verification failed. Your booking is saved — pay from My Appointments.");
+                        navigate("/patient/appointments");
+                    }
+                },
+                modal: {
+                    ondismiss: () => {
+                        showErrorToast("Payment cancelled. Complete payment from My Appointments to confirm booking.");
+                        setBookingLoading(false);
+                        navigate("/patient/appointments");
+                    },
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on("payment.failed", () => {
+                showErrorToast("Payment failed. You can retry from My Appointments.");
+                setBookingLoading(false);
+                navigate("/patient/appointments");
+            });
+            rzp.open();
         } catch (err) {
             showErrorToast(
                 err.response?.data?.message ||
@@ -964,10 +1032,11 @@ const BookAppointmentPage = () => {
                                             ? "danger"
                                             : "primary"
                                     }
+                                    icon={CreditCard}
                                 >
                                     {aiUrgencyLevel === "emergency"
-                                        ? "Confirm Emergency Booking"
-                                        : "Confirm Appointment"}
+                                        ? "Book & Pay Now (Emergency)"
+                                        : "Book & Pay Now"}
                                 </Button>
                             </div>
                         </div>

@@ -1,4 +1,8 @@
 const statusConfig = {
+    pending_payment: {
+        label: "Awaiting Payment",
+        className: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-700/50",
+    },
     pending_admin_approval: {
         label: "Pending Approval",
         className: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50",

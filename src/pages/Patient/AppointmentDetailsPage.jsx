@@ -6,6 +6,8 @@ import { Button } from "../../components/ui/Button";
 import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
 import { AISummaryViewer } from "../../components/doctor/AISummaryViewer";
 import { patientService } from "../../services/patientService";
+import { paymentService } from "../../services/paymentService";
+import { PaymentButton, PaymentPaidBadge } from "../../components/patient/PaymentButton";
 import {
     showErrorToast,
     showSuccessToast,
@@ -18,6 +20,7 @@ import {
     Stethoscope,
     FileText,
     Pill,
+    IndianRupee,
 } from "lucide-react";
 
 const AppointmentDetailsPage = () => {
@@ -26,15 +29,18 @@ const AppointmentDetailsPage = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState(null);
 
     const loadDetails = useCallback(async () => {
         try {
             setLoading(true);
-            const result =
-                await patientService.getAppointmentDetails(appointmentId);
-            setData(result.data);
-        } catch {
-            showErrorToast("Failed to load appointment details");
+            const [detailRes, paymentRes] = await Promise.allSettled([
+                patientService.getAppointmentDetails(appointmentId),
+                paymentService.getPaymentStatus(appointmentId),
+            ]);
+            if (detailRes.status === "fulfilled") setData(detailRes.value.data);
+            else showErrorToast("Failed to load appointment details");
+            if (paymentRes.status === "fulfilled") setPaymentStatus(paymentRes.value.data);
         } finally {
             setLoading(false);
         }
@@ -156,9 +162,33 @@ const AppointmentDetailsPage = () => {
                     </div>
                 </div>
 
+                {/* Payment Section */}
+                {appointment.status === "confirmed" && (
+                    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-dark-border">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                                <IndianRupee size={15} className="text-primary-600" />
+                                <span className="font-medium">Consultation Fee:</span>
+                                <span className="font-bold text-neutral-800 dark:text-neutral-100">
+                                    ₹{doctor?.consultationFee ?? "—"}
+                                </span>
+                            </div>
+                            {paymentStatus?.hasPaid ? (
+                                <PaymentPaidBadge />
+                            ) : (
+                                <PaymentButton
+                                    appointmentId={appointmentId}
+                                    amount={doctor?.consultationFee}
+                                    onSuccess={loadDetails}
+                                />
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {(appointment.status === "pending_admin_approval" ||
                     appointment.status === "confirmed") && (
-                    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-dark-border">
+                    <div className="mt-3">
                         <Button
                             variant="danger"
                             size="sm"

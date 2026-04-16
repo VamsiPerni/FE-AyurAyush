@@ -34,6 +34,9 @@ import { ManageDoctorsPage } from "../pages/Admin/ManageDoctorsPage";
 import { DoctorAvailabilityPage } from "../pages/Admin/DoctorAvailabilityPage";
 import { OfflineBookingPage } from "../pages/Admin/OfflineBookingPage";
 import { CreateDoctorAccountPage } from "../pages/Admin/CreateDoctorAccountPage";
+import { RevenueAdminPage } from "../pages/Admin/RevenueAdminPage";
+import { SuperAdminDashboardPage } from "../pages/SuperAdmin/SuperAdminDashboardPage";
+import { ManageSubAdminsPage } from "../pages/SuperAdmin/ManageSubAdminsPage";
 
 const AppRoutes = () => {
     return (
@@ -188,7 +191,7 @@ const AppRoutes = () => {
                 <Route
                     path="/admin/queues/:queueType?"
                     element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
+                        <ProtectedRoute allowedRoles={["admin", "sub_admin"]}>
                             <AppointmentQueuesPage />
                         </ProtectedRoute>
                     }
@@ -196,7 +199,7 @@ const AppRoutes = () => {
                 <Route
                     path="/admin/doctor-applications"
                     element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
+                        <ProtectedRoute allowedRoles={["admin", "sub_admin"]}>
                             <DoctorApplicationsPage />
                         </ProtectedRoute>
                     }
@@ -204,7 +207,7 @@ const AppRoutes = () => {
                 <Route
                     path="/admin/doctors"
                     element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
+                        <ProtectedRoute allowedRoles={["admin", "sub_admin"]}>
                             <ManageDoctorsPage />
                         </ProtectedRoute>
                     }
@@ -228,7 +231,7 @@ const AppRoutes = () => {
                 <Route
                     path="/admin/doctors/:doctorId/availability"
                     element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
+                        <ProtectedRoute allowedRoles={["admin", "sub_admin"]}>
                             <DoctorAvailabilityPage />
                         </ProtectedRoute>
                     }
@@ -236,8 +239,44 @@ const AppRoutes = () => {
                 <Route
                     path="/admin/offline-booking"
                     element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
+                        <ProtectedRoute allowedRoles={["admin", "sub_admin"]}>
                             <OfflineBookingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/revenue"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <RevenueAdminPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Super Admin Routes */}
+                <Route
+                    path="/super-admin/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <SuperAdminDashboardPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/super-admin/sub-admins"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <ManageSubAdminsPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Sub-Admin Dashboard (scoped view) */}
+                <Route
+                    path="/sub-admin/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={["sub_admin"]}>
+                            <AdminDashboardPage />
                         </ProtectedRoute>
                     }
                 />

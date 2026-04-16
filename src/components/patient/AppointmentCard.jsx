@@ -1,7 +1,8 @@
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { Calendar, Clock, Hash, Stethoscope, Users } from "lucide-react";
+import { Calendar, Clock, Hash, Stethoscope, Users, CreditCard, AlertCircle } from "lucide-react";
+import { PaymentButton } from "./PaymentButton";
 
 const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
     const {
@@ -24,6 +25,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
 
     const id = appointmentId || _id;
     const shouldShowQueueInfo = status === "confirmed";
+    const isPendingPayment = status === "pending_payment";
 
     const formatDate = (d) => {
         if (!d) return "";
@@ -54,9 +56,11 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                         </Badge>
                     )}
                     <Badge type="status" value={status}>
-                        {status === "pending_admin_approval"
-                            ? "Pending Approval"
-                            : status}
+                        {status === "pending_payment"
+                            ? "Awaiting Payment"
+                            : status === "pending_admin_approval"
+                              ? "Pending Approval"
+                              : status}
                     </Badge>
                 </div>
             </div>
@@ -77,6 +81,20 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                     {timeSlot}
                 </span>
             </div>
+
+            {isPendingPayment && (
+                <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-xl px-3 py-2.5 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                            Payment required to confirm booking
+                        </p>
+                        <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                            Complete payment to submit for admin review.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {shouldShowQueueInfo &&
                 (tokenNumber || queueAheadCount !== null) && (
@@ -135,7 +153,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                 </div>
             )}
 
-            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-neutral-100 dark:border-dark-border">
+            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-neutral-100 dark:border-dark-border flex-wrap">
                 <Button
                     size="sm"
                     variant="secondary"
@@ -143,7 +161,15 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                 >
                     View Details
                 </Button>
-                {(status === "pending_admin_approval" ||
+                {isPendingPayment && (
+                    <PaymentButton
+                        appointmentId={id}
+                        amount={doctor?.consultationFee}
+                        onSuccess={() => onView?.(id)}
+                    />
+                )}
+                {(status === "pending_payment" ||
+                    status === "pending_admin_approval" ||
                     status === "confirmed") && (
                     <Button
                         size="sm"

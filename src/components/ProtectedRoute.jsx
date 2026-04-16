@@ -17,7 +17,14 @@ const ProtectedRoute = ({
     }
 
     if (allowedRoles?.length) {
-        const hasAccess = allowedRoles.some((role) => roles.includes(role));
+        // "admin" role also satisfies "sub_admin" routes and vice-versa is NOT true
+        // super-admin (admin) can access sub-admin routes too
+        const hasAccess = allowedRoles.some((role) => {
+            if (roles.includes(role)) return true;
+            // super-admin can access anything sub_admin can
+            if (role === "sub_admin" && roles.includes("admin")) return true;
+            return false;
+        });
 
         if (!hasAccess) {
             return <Navigate to="/" replace />;

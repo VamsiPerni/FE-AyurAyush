@@ -17,6 +17,9 @@ import {
     Stethoscope,
     ClipboardList,
     BookOpen,
+    IndianRupee,
+    UserCog,
+    ShieldCheck,
 } from "lucide-react";
 import { useAuthContext } from "../../contexts/AppContext";
 import { ThemeToggle } from "../ui/ThemeToggle";
@@ -95,17 +98,71 @@ const navLinks = {
             label: "Offline Booking",
             icon: CalendarPlus,
         },
+        {
+            path: "/admin/revenue",
+            label: "Revenue & Payments",
+            icon: IndianRupee,
+        },
     ],
 };
 
 const Sidebar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
-    const { roles, activeRole, handleLogout, logoutLoading } = useAuthContext();
+    const { roles, activeRole, handleLogout, logoutLoading, subAdminProfile } = useAuthContext();
     const location = useLocation();
     const navigate = useNavigate();
 
+    const isSuperAdmin = roles?.includes("admin");
+    const isSubAdmin = roles?.includes("sub_admin");
     const currentRole = activeRole || (roles?.length === 1 ? roles[0] : null);
-    const links = currentRole ? navLinks[currentRole] || [] : [];
+
+    // Build dynamic sub-admin nav based on permissions
+    const buildSubAdminLinks = () => {
+        const perms = subAdminProfile?.permissions || {};
+        const links = [{ path: "/sub-admin/dashboard", label: "Dashboard", icon: LayoutDashboard }];
+        if (perms.viewQueues) {
+            links.push({ path: "/admin/queues", label: "Appointment Queues", icon: ListOrdered });
+        }
+        if (perms.viewDoctors) {
+            links.push({ path: "/admin/doctors", label: "Doctors", icon: Stethoscope });
+        }
+        if (perms.manageAvailability) {
+            links.push({ path: "/admin/doctors", label: "Manage Availability", icon: Clock });
+        }
+        if (perms.viewDoctorApplications) {
+            links.push({ path: "/admin/doctor-applications", label: "Doctor Applications", icon: ClipboardList });
+        }
+        if (perms.offlineBooking) {
+            links.push({ path: "/admin/offline-booking", label: "Offline Booking", icon: CalendarPlus });
+        }
+        return links;
+    };
+
+    const superAdminLinks = [
+        { path: "/super-admin/dashboard", label: "System Dashboard", icon: LayoutDashboard },
+        { path: "/super-admin/sub-admins", label: "Manage Sub-Admins", icon: UserCog },
+        { path: "/admin/dashboard", label: "Admin Dashboard", icon: ShieldCheck },
+        {
+            path: "/admin/queues",
+            label: "Appointment Queues",
+            icon: ListOrdered,
+            subLinks: [
+                { path: "/admin/queues/live", label: "Live Queue" },
+                { path: "/admin/queues/emergency", label: "Emergency Priority" },
+                { path: "/admin/queues/standard", label: "Standard Check-ins" },
+            ],
+        },
+        { path: "/admin/doctors", label: "Manage Doctors", icon: Stethoscope },
+        { path: "/admin/doctor-applications", label: "Doctor Applications", icon: ClipboardList },
+        { path: "/admin/offline-booking", label: "Offline Booking", icon: CalendarPlus },
+        { path: "/admin/revenue", label: "Revenue & Payments", icon: IndianRupee },
+    ];
+
+    const links = isSuperAdmin
+        ? superAdminLinks
+        : isSubAdmin
+          ? buildSubAdminLinks()
+          : navLinks[currentRole] || [];
 
     // Close on route change
     useEffect(() => {
@@ -149,7 +206,7 @@ const Sidebar = () => {
                         AyurAyush
                     </h1>
                     <p className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium uppercase tracking-widest">
-                        {currentRole || "Portal"}
+                        {isSuperAdmin ? "Super Admin" : isSubAdmin ? "Sub Admin" : currentRole || "Portal"}
                     </p>
                 </div>
             </Link>

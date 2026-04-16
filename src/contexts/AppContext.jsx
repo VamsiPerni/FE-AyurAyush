@@ -12,6 +12,7 @@ const AppProvider = ({ children }) => {
         roles: [],
         activeRole: null,
         mustChangePassword: false,
+        subAdminProfile: null,
         loading: true,
     });
 
@@ -23,31 +24,28 @@ const AppProvider = ({ children }) => {
 
             const name = response.data.data.name || "";
             const roles = response.data.data.roles;
-            const storedActiveRole = localStorage.getItem(
-                ACTIVE_ROLE_STORAGE_KEY,
-            );
+            const subAdminProfile = response.data.data.subAdminProfile || null;
+            const storedActiveRole = localStorage.getItem(ACTIVE_ROLE_STORAGE_KEY);
             const resolvedActiveRole =
                 roles.length === 1
                     ? roles[0]
                     : roles.includes(storedActiveRole)
                       ? storedActiveRole
                       : null;
-            const mustChangePassword =
-                response.data.data.mustChangePassword || false;
+            const mustChangePassword = response.data.data.mustChangePassword || false;
+
             setUser({
                 isLoggedIn: true,
                 name,
                 roles,
                 activeRole: resolvedActiveRole,
                 mustChangePassword,
+                subAdminProfile,
                 loading: false,
             });
 
             if (resolvedActiveRole) {
-                localStorage.setItem(
-                    ACTIVE_ROLE_STORAGE_KEY,
-                    resolvedActiveRole,
-                );
+                localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, resolvedActiveRole);
             } else {
                 localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
             }
@@ -58,48 +56,38 @@ const AppProvider = ({ children }) => {
                 roles: [],
                 activeRole: null,
                 mustChangePassword: false,
+                subAdminProfile: null,
                 loading: false,
             });
             localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
-
             console.log("------🔴Erorr in CheckAuth-----", err.message);
         }
     };
 
     const handleSetUser = (data) => {
-        setUser((prev) => ({
-            ...prev,
-            ...data,
-            loading: false,
-        }));
+        setUser((prev) => ({ ...prev, ...data, loading: false }));
     };
 
     const setActiveRole = (role) => {
         setUser((prev) => {
-            if (!role || !prev.roles?.includes(role)) {
-                return prev;
-            }
+            if (!role || !prev.roles?.includes(role)) return prev;
             return { ...prev, activeRole: role };
         });
-        if (role) {
-            localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, role);
-        }
+        if (role) localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, role);
     };
 
     const handleLogout = async () => {
         try {
             setLogoutLoading(true);
-
             await axiosInstance.get("/auth/logout");
-
             showSuccessToast("Logout successful!");
-
             setUser({
                 isLoggedIn: false,
                 name: "",
                 roles: [],
                 activeRole: null,
                 mustChangePassword: false,
+                subAdminProfile: null,
                 loading: false,
             });
             localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);

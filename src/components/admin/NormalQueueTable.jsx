@@ -1,7 +1,7 @@
 import { Table } from "../ui/Table";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
-import { Check, PencilLine, X } from "lucide-react";
+import { Check, PencilLine, X, CheckCircle, Clock, ExternalLink } from "lucide-react";
 
 const NormalQueueTable = ({
     appointments,
@@ -104,6 +104,48 @@ const NormalQueueTable = ({
             key: "status",
             header: "Verification Status",
             render: (_, apt) => <Badge type="status" value={apt.status} />,
+        },
+        {
+            key: "payment",
+            header: "Payment",
+            render: (_, apt) => {
+                const p = apt.payment;
+                if (!p) {
+                    return (
+                        <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 font-medium">
+                            <Clock className="w-3.5 h-3.5" />
+                            No record
+                        </span>
+                    );
+                }
+                if (p.status === "paid") {
+                    return (
+                        <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Paid ₹{p.amount ?? ""}
+                            </span>
+                            {p.razorpayPaymentId && (
+                                <a
+                                    href={`https://dashboard.razorpay.com/app/payments/${p.razorpayPaymentId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                                >
+                                    <ExternalLink className="w-3 h-3" />
+                                    {p.razorpayPaymentId.slice(0, 14)}…
+                                </a>
+                            )}
+                        </div>
+                    );
+                }
+                return (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        {p.status === "created" ? "Pending" : p.status}
+                    </span>
+                );
+            },
         },
         {
             key: "actions",
