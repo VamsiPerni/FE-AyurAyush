@@ -25,6 +25,7 @@ import { AllAppointmentsPage } from "../pages/Doctor/AllAppointmentsPage";
 import { AppointmentDetailPage } from "../pages/Doctor/AppointmentDetailPage";
 import { TreatmentReferencePage } from "../pages/Doctor/TreatmentReferencePage";
 import { DoctorProfilePage } from "../pages/Doctor/DoctorProfilePage";
+import { AvailabilityManagementPage } from "../pages/Doctor/AvailabilityManagementPage";
 
 import { AdminDashboardPage } from "../pages/Admin/AdminDashboardPage";
 import { AppointmentQueuesPage } from "../pages/Admin/AppointmentQueuesPage";
@@ -166,6 +167,14 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/doctor/availability"
+                    element={
+                        <ProtectedRoute allowedRoles={["doctor"]}>
+                            <AvailabilityManagementPage />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Admin Routes */}
                 <Route
@@ -177,7 +186,7 @@ const AppRoutes = () => {
                     }
                 />
                 <Route
-                    path="/admin/queues"
+                    path="/admin/queues/:queueType?"
                     element={
                         <ProtectedRoute allowedRoles={["admin"]}>
                             <AppointmentQueuesPage />

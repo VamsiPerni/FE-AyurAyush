@@ -22,6 +22,13 @@ export const doctorService = {
         return response.data;
     },
 
+    getUpcomingAppointments: async () => {
+        const response = await axiosInstance.get(
+            "/doctor/appointments/upcoming",
+        );
+        return response.data;
+    },
+
     callNextQueuePatient: async () => {
         const response = await axiosInstance.post(
             "/doctor/appointments/queue/next-call",
@@ -91,8 +98,53 @@ export const doctorService = {
     addCustomReference: async (activeTab, itemPayload) => {
         const response = await axiosInstance.post("/doctor/references", {
             activeTab,
-            itemPayload
+            itemPayload,
         });
+        return response.data;
+    },
+
+    getOwnAvailability: async (date = "") => {
+        const query = date ? `?date=${encodeURIComponent(date)}` : "";
+        const response = await axiosInstance.get(
+            `/doctor/availability${query}`,
+        );
+        return response.data;
+    },
+
+    updateOwnAvailability: async (data) => {
+        const response = await axiosInstance.put("/doctor/availability", data);
+        return response.data;
+    },
+
+    setOwnAvailabilityForDate: async (date, slots) => {
+        const response = await axiosInstance.put("/doctor/availability/date", {
+            date,
+            slots,
+        });
+        return response.data;
+    },
+
+    addOwnAvailabilitySlotForDate: async (date, slot) => {
+        const response = await axiosInstance.post(
+            "/doctor/availability/date/slot",
+            {
+                date,
+                slot,
+            },
+        );
+        return response.data;
+    },
+
+    removeOwnAvailabilitySlotForDate: async (date, slot) => {
+        const response = await axiosInstance.delete(
+            "/doctor/availability/date/slot",
+            {
+                data: {
+                    date,
+                    slot,
+                },
+            },
+        );
         return response.data;
     },
 };

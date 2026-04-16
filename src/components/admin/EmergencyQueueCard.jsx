@@ -11,6 +11,8 @@ const EmergencyQueueCard = ({ appointment, onEditApprove, onReject }) => {
         doctorName,
         date,
         timeSlot,
+        slotBookingCount,
+        slotCapacity = 2,
     } = appointment;
     const id = _id || appointmentId;
 
@@ -55,6 +57,15 @@ const EmergencyQueueCard = ({ appointment, onEditApprove, onReject }) => {
                         <span className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5" /> {timeSlot}
                         </span>
+                        {slotBookingCount != null && (
+                            <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
+                                slotBookingCount >= slotCapacity
+                                    ? "bg-red-200 text-red-900 dark:bg-red-800/40 dark:text-red-200"
+                                    : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            }`}>
+                                {slotBookingCount}/{slotCapacity}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

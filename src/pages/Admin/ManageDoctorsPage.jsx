@@ -8,6 +8,7 @@ import {
     Users,
     Power,
     PowerOff,
+    Clock,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { PageHeader } from "../../components/shared/PageHeader";
@@ -307,6 +308,16 @@ const ManageDoctorsPage = () => {
 
                 return (
                     <div className="flex justify-end gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            icon={Clock}
+                            onClick={() =>
+                                navigate(`/admin/doctors/${encodeURIComponent(id)}/availability`)
+                            }
+                        >
+                            Manage Availability
+                        </Button>
                         <Button
                             size="sm"
                             variant={isActive ? "outline" : "success"}

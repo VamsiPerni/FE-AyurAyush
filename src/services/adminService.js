@@ -121,6 +121,40 @@ export const adminService = {
         return response.data;
     },
 
+    getDoctorAvailability: async (doctorId, date) => {
+        const query = date ? `?date=${encodeURIComponent(date)}` : "";
+        const response = await axiosInstance.get(
+            `/admin/doctors/${encodeURIComponent(doctorId)}/availability${query}`,
+        );
+        return response.data;
+    },
+
+    setDoctorAvailabilityForDate: async (doctorId, payload) => {
+        const response = await axiosInstance.put(
+            `/admin/doctors/${encodeURIComponent(doctorId)}/availability/date`,
+            payload,
+        );
+        return response.data;
+    },
+
+    addDoctorAvailabilitySlotForDate: async (doctorId, payload) => {
+        const response = await axiosInstance.post(
+            `/admin/doctors/${encodeURIComponent(doctorId)}/availability/date/slot`,
+            payload,
+        );
+        return response.data;
+    },
+
+    removeDoctorAvailabilitySlotForDate: async (doctorId, payload) => {
+        const response = await axiosInstance.delete(
+            `/admin/doctors/${encodeURIComponent(doctorId)}/availability/date/slot`,
+            {
+                data: payload,
+            },
+        );
+        return response.data;
+    },
+
     offlineBookAppointment: async (data) => {
         const response = await axiosInstance.post(
             "/admin/appointments/offline-book",

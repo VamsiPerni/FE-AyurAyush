@@ -20,6 +20,8 @@ const AppointmentRow = ({
         tokenNumber,
         queueStatus,
         queueCallCount,
+        slotBookingCount,
+        slotCapacity = 2,
     } = appointment;
     const id = _id || appointmentId;
     const name = patient?.name || patientName || "Patient";
@@ -52,6 +54,15 @@ const AppointmentRow = ({
                         <div className="flex items-center gap-1.5 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{timeSlot}</span>
+                            {slotBookingCount != null && (
+                                <span className={`inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded-lg font-mono text-xs border ${
+                                    slotBookingCount >= slotCapacity
+                                        ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/50"
+                                        : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50"
+                                }`}>
+                                    {slotBookingCount}/{slotCapacity}
+                                </span>
+                            )}
                             {tokenNumber && (
                                 <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-mono border border-primary-100 dark:border-primary-800/50">
                                     <Hash className="w-3 h-3" />

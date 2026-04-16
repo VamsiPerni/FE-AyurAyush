@@ -260,6 +260,7 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
                                 <th className="py-2 pr-3">Patient</th>
                                 <th className="py-2 pr-3">Doctor</th>
                                 <th className="py-2 pr-3">Time</th>
+                                <th className="py-2 pr-3">Slot Fill</th>
                                 <th className="py-2 pr-3">Status</th>
                                 <th className="py-2 pr-3">Call Count</th>
                                 <th className="py-2 pr-3">Delivery</th>
@@ -286,6 +287,17 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
                                         </td>
                                         <td className="py-2 pr-3">
                                             {apt.timeSlot}
+                                        </td>
+                                        <td className="py-2 pr-3">
+                                            {apt.slotBookingCount != null ? (
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${
+                                                    apt.slotBookingCount >= (apt.slotCapacity || 2)
+                                                        ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                                                        : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                                }`}>
+                                                    {apt.slotBookingCount}/{apt.slotCapacity || 2}
+                                                </span>
+                                            ) : "-"}
                                         </td>
                                         <td className="py-2 pr-3">
                                             <Badge

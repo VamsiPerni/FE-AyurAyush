@@ -9,6 +9,7 @@ import {
     LayoutDashboard,
     CalendarPlus,
     Calendar,
+    Clock,
     MessageSquare,
     User,
     CalendarCheck,
@@ -61,6 +62,11 @@ const navLinks = {
             label: "Clinical Reference",
             icon: BookOpen,
         },
+        {
+            path: "/doctor/availability",
+            label: "Manage Availability",
+            icon: Clock,
+        },
         { path: "/doctor/profile", label: "Profile", icon: User },
     ],
     admin: [
@@ -69,6 +75,14 @@ const navLinks = {
             path: "/admin/queues",
             label: "Appointment Queues",
             icon: ListOrdered,
+            subLinks: [
+                { path: "/admin/queues/live", label: "Live Queue" },
+                {
+                    path: "/admin/queues/emergency",
+                    label: "Emergency Priority",
+                },
+                { path: "/admin/queues/standard", label: "Standard Check-ins" },
+            ],
         },
         { path: "/admin/doctors", label: "Manage Doctors", icon: Stethoscope },
         {
@@ -147,28 +161,53 @@ const Sidebar = () => {
                         location.pathname === link.path ||
                         location.pathname.startsWith(`${link.path}/`);
                     return (
-                        <NavLink
-                            key={link.path}
-                            to={link.path}
-                            aria-current={isActive ? "page" : undefined}
-                            className={`
-                group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-                transition-all duration-200
-                ${
-                    isActive
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 shadow-sm"
-                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-dark-hover dark:hover:text-neutral-200"
-                }
-              `}
-                        >
-                            {isActive && (
-                                <span className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full" />
+                        <div key={link.path} className="space-y-1">
+                            <NavLink
+                                to={link.path}
+                                aria-current={isActive ? "page" : undefined}
+                                className={`
+                    group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                    transition-all duration-200
+                    ${
+                        isActive
+                            ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 shadow-sm"
+                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-dark-hover dark:hover:text-neutral-200"
+                    }
+                `}
+                            >
+                                {isActive && (
+                                    <span className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full" />
+                                )}
+                                <link.icon
+                                    className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-primary-600 dark:text-primary-400" : "text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300"}`}
+                                />
+                                <span className="flex-1">{link.label}</span>
+                            </NavLink>
+                            {link.subLinks && isActive && (
+                                <div className="pl-10 space-y-1 border-l-2 border-neutral-100 dark:border-dark-border ml-4">
+                                    {link.subLinks.map((subLink) => {
+                                        const isSubActive =
+                                            location.pathname === subLink.path;
+                                        return (
+                                            <NavLink
+                                                key={subLink.path}
+                                                to={subLink.path}
+                                                className={`
+                                                    block px-3 py-2 rounded-xl text-sm font-medium transition-colors
+                                                    ${
+                                                        isSubActive
+                                                            ? "bg-neutral-100 text-primary-600 dark:bg-dark-hover dark:text-primary-400"
+                                                            : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-dark-hover"
+                                                    }
+                                                `}
+                                            >
+                                                {subLink.label}
+                                            </NavLink>
+                                        );
+                                    })}
+                                </div>
                             )}
-                            <link.icon
-                                className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-primary-600 dark:text-primary-400" : "text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300"}`}
-                            />
-                            <span className="flex-1">{link.label}</span>
-                        </NavLink>
+                        </div>
                     );
                 })}
 
@@ -197,7 +236,9 @@ const Sidebar = () => {
             {/* Footer — theme toggle + logout */}
             <div className="p-3 border-t border-neutral-100 dark:border-dark-border space-y-1">
                 <div className="flex items-center justify-between px-3 py-2">
-                    <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">Theme</span>
+                    <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
+                        Theme
+                    </span>
                     <ThemeToggle size="sm" />
                 </div>
                 <button

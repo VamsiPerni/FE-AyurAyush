@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router";
 import {
     ShieldAlert,
     Users,
@@ -35,6 +36,7 @@ import {
 } from "../../utils/toastMessageHelper";
 
 const AppointmentQueuesPage = () => {
+    const { queueType } = useParams();
     const [emergencyQueue, setEmergencyQueue] = useState([]);
     const [normalQueue, setNormalQueue] = useState([]);
 
@@ -343,6 +345,7 @@ const AppointmentQueuesPage = () => {
     }
 
     const queueTotal = emergencyQueue.length + normalQueue.length;
+    const isLiveQueueView = !queueType || queueType === "live";
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in">
@@ -365,7 +368,7 @@ const AppointmentQueuesPage = () => {
 
             <EmergencyDelayBanner />
 
-            {insights ? (
+            {isLiveQueueView && insights ? (
                 (() => {
                     const currentInsights = insights[selectedQueueType] || insights.global || insights;
                     return (
@@ -481,67 +484,72 @@ const AppointmentQueuesPage = () => {
                 })()
             ) : null}
 
-            <TodayQueue 
-                externalQueueType={selectedQueueType}
-                onQueueTypeChange={setSelectedQueueType}
-            />
+            {(!queueType || queueType === "live") && (
+                <TodayQueue 
+                    externalQueueType={selectedQueueType}
+                    onQueueTypeChange={setSelectedQueueType}
+                />
+            )}
 
             {/* EMERGENCY QUEUE */}
-            <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
-                <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
-                    <div className="flex items-center gap-3">
-                        <ShieldAlert className="w-5 h-5 text-red-600" />
-                        <CardTitle className="text-red-900 dark:text-red-300 tracking-tight">
-                            Emergency Queue
-                        </CardTitle>
-                    </div>
-                    <Badge
-                        type="status"
-                        value="emergency"
-                        className="shadow-xs font-bold ring-1 ring-red-300"
+            {(!queueType || queueType === "emergency") && (
+                <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
+                    <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
+                        <div className="flex items-center gap-3">
+                            <ShieldAlert className="w-5 h-5 text-red-600" />
+                            <CardTitle className="text-red-900 dark:text-red-300 tracking-tight">
+                                Emergency Queue
+                            </CardTitle>
+                        </div>
+                        <Badge
+                            type="status"
+                            value="emergency"
+                            className="shadow-xs font-bold ring-1 ring-red-300"
+                        >
+                            {emergencyQueue.length} Priority Un-Checked
+                        </Badge>
+                    </CardHeader>
+                    <CardContent
+                        className={
+                            emergencyQueue.length > 0
+                                ? "p-4 sm:p-6 bg-red-50/10"
+                                : "p-0"
+                        }
                     >
-                        {emergencyQueue.length} Priority Un-Checked
-                    </Badge>
-                </CardHeader>
-                <CardContent
-                    className={
-                        emergencyQueue.length > 0
-                            ? "p-4 sm:p-6 bg-red-50/10"
-                            : "p-0"
-                    }
-                >
-                    {emergencyQueue.length === 0 ? (
-                        <div className="py-12 bg-white dark:bg-dark-card flex flex-col items-center justify-center">
-                            <div className="w-16 h-16 bg-success-50 text-success-500 rounded-full flex items-center justify-center mb-4 border border-success-100">
-                                <ShieldAlert className="w-8 h-8 opacity-50" />
+                        {emergencyQueue.length === 0 ? (
+                            <div className="py-12 bg-white dark:bg-dark-card flex flex-col items-center justify-center">
+                                <div className="w-16 h-16 bg-success-50 text-success-500 rounded-full flex items-center justify-center mb-4 border border-success-100">
+                                    <ShieldAlert className="w-8 h-8 opacity-50" />
+                                </div>
+                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
+                                    No active emergencies
+                                </h3>
+                                <p className="text-neutral-500 text-sm">
+                                    Crisis triage is clear right now. Good work.
+                                </p>
                             </div>
-                            <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
-                                No active emergencies
-                            </h3>
-                            <p className="text-neutral-500 text-sm">
-                                Crisis triage is clear right now. Good work.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-4">
-                            {emergencyQueue.map((apt) => (
-                                <EmergencyQueueCard
-                                    key={apt._id || apt.appointmentId}
-                                    appointment={apt}
-                                    onEditApprove={openEditApproveModal}
-                                    onReject={openRejectModal}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-4">
+                                {emergencyQueue.map((apt) => (
+                                    <EmergencyQueueCard
+                                        key={apt._id || apt.appointmentId}
+                                        appointment={apt}
+                                        onEditApprove={openEditApproveModal}
+                                        onReject={openRejectModal}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* NORMAL QUEUE */}
-            <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
-                <CardHeader className="bg-neutral-50/50 dark:bg-dark-elevated/50 border-b border-neutral-100 dark:border-dark-border flex flex-row items-center justify-between pb-4">
-                    <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary-600" />
+            {(!queueType || queueType === "standard") && (
+                <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
+                    <CardHeader className="bg-neutral-50/50 dark:bg-dark-elevated/50 border-b border-neutral-100 dark:border-dark-border flex flex-row items-center justify-between pb-4">
+                        <div className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-primary-600" />
                         <CardTitle className="text-neutral-800">
                             Standard Check-Ins
                         </CardTitle>
@@ -617,9 +625,10 @@ const AppointmentQueuesPage = () => {
                             onToggleSelect={toggleNormalSelect}
                             onToggleSelectAll={toggleAllNormalSelect}
                         />
-                    )}
-                </CardContent>
-            </Card>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             <EditAppointmentModal
                 isOpen={editModalOpen}

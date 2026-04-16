@@ -82,6 +82,15 @@ const NormalQueueTable = ({
                         <span className="text-neutral-500 dark:text-neutral-400 text-sm ml-1.5">
                             • {apt.timeSlot}
                         </span>
+                        {apt.slotBookingCount != null && (
+                            <span className={`inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-xs font-semibold ${
+                                apt.slotBookingCount >= (apt.slotCapacity || 2)
+                                    ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                                    : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                            }`}>
+                                {apt.slotBookingCount}/{apt.slotCapacity || 2}
+                            </span>
+                        )}
                     </div>
                     {apt.waitingTime && (
                         <div className="text-amber-600 dark:text-amber-500 text-xs mt-0.5 font-medium flex items-center">

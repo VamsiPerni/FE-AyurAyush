@@ -75,6 +75,15 @@ const TodaySchedule = ({ appointments = [], onSelect, loading }) => {
                                     <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                                         <Clock className="w-3 h-3" />
                                         <span>{apt.timeSlot}</span>
+                                        {apt.slotBookingCount != null && (
+                                            <span className={`px-1.5 py-0.5 rounded font-semibold ${
+                                                apt.slotBookingCount >= (apt.slotCapacity || 2)
+                                                    ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                            }`}>
+                                                {apt.slotBookingCount}/{apt.slotCapacity || 2}
+                                            </span>
+                                        )}
                                         {(apt.symptoms ||
                                             apt.aiSummary?.symptoms) && (
                                             <span className="truncate">

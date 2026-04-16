@@ -46,6 +46,7 @@ const DoctorDashboardPage = () => {
         completedToday: 0,
         uniquePatients: 0,
     });
+    const [upcomingAppointments, setUpcomingAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -77,14 +78,17 @@ const DoctorDashboardPage = () => {
                 setLoading(true);
                 setError("");
             }
-            const [dashboardResult, appointmentsResult] = await Promise.all([
+            const [dashboardResult, appointmentsResult, upcomingResult] = await Promise.all([
                 doctorService.getDashboard(),
                 doctorService.getAppointments(),
+                doctorService.getUpcomingAppointments(),
             ]);
 
             const dashboardPayload =
                 dashboardResult?.data || dashboardResult || {};
             setDashboard(dashboardPayload);
+
+            setUpcomingAppointments(upcomingResult?.data || []);
 
             const appointmentsPayload =
                 appointmentsResult?.data || appointmentsResult || {};
@@ -380,6 +384,67 @@ const DoctorDashboardPage = () => {
                                     actionLoadingId={actionLoadingId}
                                 />
                             ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Upcoming Agenda Grid */}
+            <Card>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-dark-border">
+                    <div className="flex items-center gap-2">
+                        <CalendarCheck className="w-5 h-5 text-indigo-600" />
+                        <CardTitle>Upcoming Agenda</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    {upcomingAppointments.length === 0 ? (
+                        <div className="py-12">
+                            <EmptyState
+                                icon={CalendarCheck}
+                                title="No upcoming appointments"
+                                description="Your calendar is clear for the coming days."
+                            />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-neutral-50 dark:bg-dark-elevated">
+                                    <tr className="text-left border-b border-neutral-200 dark:border-dark-border">
+                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Date</th>
+                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Time</th>
+                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Patient</th>
+                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {upcomingAppointments.map((apt) => (
+                                        <tr key={apt.appointmentId} className="border-b border-neutral-100 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors">
+                                            <td className="py-3 px-4">
+                                                {new Date(apt.date).toLocaleDateString()}
+                                            </td>
+                                            <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400 font-medium">
+                                                {apt.timeSlot}
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <div className="font-semibold text-neutral-800 dark:text-neutral-200">
+                                                    {apt.patient?.name || "Unknown"}
+                                                </div>
+                                                <div className="text-xs text-neutral-500">
+                                                    {apt.patient?.phone}
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                {apt.urgencyLevel === "emergency" ? (
+                                                    <span className="text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Emergency</span>
+                                                ) : (
+                                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-gray-300">Standard</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </CardContent>
