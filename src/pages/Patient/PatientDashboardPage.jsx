@@ -264,8 +264,8 @@ const PatientDashboardPage = () => {
                 />
             </div>
 
-            {liveQueueAppointment?.doctor?.id && (
-                <PossibleDelayWarning doctorId={liveQueueAppointment.doctor.id} />
+            {(liveQueueAppointment?.doctor?.userId || liveQueueAppointment?.doctor?.id) && (
+                <PossibleDelayWarning doctorId={liveQueueAppointment.doctor.userId || liveQueueAppointment.doctor.id} />
             )}
 
             <Card className="border border-primary-100 dark:border-primary-800/30 bg-linear-to-r from-primary-50/90 to-white dark:from-primary-900/10 dark:to-dark-card">

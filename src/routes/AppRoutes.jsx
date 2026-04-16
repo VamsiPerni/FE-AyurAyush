@@ -23,6 +23,7 @@ import { DoctorDashboardPage } from "../pages/Doctor/DoctorDashboardPage";
 import { TodayAppointmentsPage } from "../pages/Doctor/TodayAppointmentsPage";
 import { AllAppointmentsPage } from "../pages/Doctor/AllAppointmentsPage";
 import { AppointmentDetailPage } from "../pages/Doctor/AppointmentDetailPage";
+import { TreatmentReferencePage } from "../pages/Doctor/TreatmentReferencePage";
 import { DoctorProfilePage } from "../pages/Doctor/DoctorProfilePage";
 
 import { AdminDashboardPage } from "../pages/Admin/AdminDashboardPage";
@@ -146,6 +147,14 @@ const AppRoutes = () => {
                     element={
                         <ProtectedRoute allowedRoles={["doctor"]}>
                             <AppointmentDetailPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/doctor/reference"
+                    element={
+                        <ProtectedRoute allowedRoles={["doctor"]}>
+                            <TreatmentReferencePage />
                         </ProtectedRoute>
                     }
                 />

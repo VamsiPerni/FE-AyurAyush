@@ -25,6 +25,7 @@ import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { CardSkeleton } from "../../components/ui/Skeleton";
 import { AISummaryViewer } from "../../components/doctor/AISummaryViewer";
+import { PatientChatHistory } from "../../components/doctor/PatientChatHistory";
 import { PrescriptionForm } from "../../components/doctor/PrescriptionForm";
 import {
     showErrorToast,
@@ -39,6 +40,7 @@ const AppointmentDetailPage = () => {
     const [appointment, setAppointment] = useState(null);
     const [patientDetails, setPatientDetails] = useState(null);
     const [chatSummary, setChatSummary] = useState(null);
+    const [chatHistory, setChatHistory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -63,6 +65,7 @@ const AppointmentDetailPage = () => {
                 payload?.patient || normalizedAppointment?.patient || null,
             );
             setChatSummary(payload?.chatDetails?.summary || null);
+            setChatHistory(payload?.chatDetails?.fullConversation || null);
         } catch (err) {
             const message =
                 err.response?.data?.message ||
@@ -475,6 +478,19 @@ const AppointmentDetailPage = () => {
                                     summaries were recorded for this case.
                                 </p>
                             </div>
+                        )}
+
+                        {chatHistory && chatHistory.length > 0 && (
+                            <Card className="mt-4 border-blue-100 dark:border-blue-900/30 overflow-hidden shadow-sm">
+                                <div className="bg-blue-50/50 dark:bg-blue-900/10 px-5 py-3 border-b border-blue-100 dark:border-blue-800/30">
+                                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 uppercase tracking-wide text-[11px]">
+                                        AI Triage Transcript
+                                    </h4>
+                                </div>
+                                <CardContent className="p-5 max-h-[400px] overflow-y-auto scrollbar-thin bg-neutral-50/30 dark:bg-dark-elevated">
+                                    <PatientChatHistory chatHistory={chatHistory} />
+                                </CardContent>
+                            </Card>
                         )}
                     </div>
 

@@ -82,4 +82,17 @@ export const doctorService = {
         );
         return response.data;
     },
+
+    getCustomReferences: async () => {
+        const response = await axiosInstance.get("/doctor/references");
+        return response.data;
+    },
+
+    addCustomReference: async (activeTab, itemPayload) => {
+        const response = await axiosInstance.post("/doctor/references", {
+            activeTab,
+            itemPayload
+        });
+        return response.data;
+    },
 };

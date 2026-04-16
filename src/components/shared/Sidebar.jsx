@@ -15,6 +15,7 @@ import {
     ListOrdered,
     Stethoscope,
     ClipboardList,
+    BookOpen,
 } from "lucide-react";
 import { useAuthContext } from "../../contexts/AppContext";
 import { ThemeToggle } from "../ui/ThemeToggle";
@@ -54,6 +55,11 @@ const navLinks = {
             path: "/doctor/appointments",
             label: "All Appointments",
             icon: Calendar,
+        },
+        {
+            path: "/doctor/reference",
+            label: "Clinical Reference",
+            icon: BookOpen,
         },
         { path: "/doctor/profile", label: "Profile", icon: User },
     ],
