@@ -9,6 +9,11 @@ import {
     ClipboardList,
     AlertCircle,
     FileText,
+    ChevronLeft,
+    ChevronRight,
+    Calendar,
+    User,
+    ShieldAlert,
 } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { useAuthContext } from "../../contexts/AppContext";
@@ -47,6 +52,10 @@ const DoctorDashboardPage = () => {
         uniquePatients: 0,
     });
     const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+    const [upcomingMeta, setUpcomingMeta] = useState({ totalCount: 0, page: 1, totalPages: 1 });
+    const [upcomingPage, setUpcomingPage] = useState(1);
+    const [upcomingDate, setUpcomingDate] = useState("");
+    const [upcomingLoading, setUpcomingLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -72,23 +81,38 @@ const DoctorDashboardPage = () => {
         return [];
     };
 
+    const loadUpcoming = useCallback(async ({ page = 1, date = "" } = {}) => {
+        try {
+            setUpcomingLoading(true);
+            const result = await doctorService.getUpcomingAppointments({ page, date, limit: 5 });
+            const payload = result?.data || result || {};
+            setUpcomingAppointments(payload.appointments || []);
+            setUpcomingMeta({
+                totalCount: payload.totalCount || 0,
+                page: payload.page || 1,
+                totalPages: payload.totalPages || 1,
+            });
+        } catch {
+            // silent fail
+        } finally {
+            setUpcomingLoading(false);
+        }
+    }, []);
+
     const loadDashboard = useCallback(async ({ silent = false } = {}) => {
         try {
             if (!silent) {
                 setLoading(true);
                 setError("");
             }
-            const [dashboardResult, appointmentsResult, upcomingResult] = await Promise.all([
+            const [dashboardResult, appointmentsResult] = await Promise.all([
                 doctorService.getDashboard(),
                 doctorService.getAppointments(),
-                doctorService.getUpcomingAppointments(),
             ]);
 
             const dashboardPayload =
                 dashboardResult?.data || dashboardResult || {};
             setDashboard(dashboardPayload);
-
-            setUpcomingAppointments(upcomingResult?.data || []);
 
             const appointmentsPayload =
                 appointmentsResult?.data || appointmentsResult || {};
@@ -160,7 +184,12 @@ const DoctorDashboardPage = () => {
 
     useEffect(() => {
         loadDashboard();
-    }, [loadDashboard]);
+        loadUpcoming({ page: 1, date: "" });
+    }, [loadDashboard, loadUpcoming]);
+
+    useEffect(() => {
+        loadUpcoming({ page: upcomingPage, date: upcomingDate });
+    }, [upcomingPage, upcomingDate, loadUpcoming]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -389,63 +418,143 @@ const DoctorDashboardPage = () => {
                 </CardContent>
             </Card>
 
-            {/* Upcoming Agenda Grid */}
+            {/* Upcoming Agenda */}
             <Card>
                 <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-dark-border">
                     <div className="flex items-center gap-2">
                         <CalendarCheck className="w-5 h-5 text-indigo-600" />
                         <CardTitle>Upcoming Agenda</CardTitle>
+                        {upcomingMeta.totalCount > 0 && (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/50">
+                                {upcomingMeta.totalCount} total
+                            </span>
+                        )}
+                    </div>
+                    {/* Date Picker */}
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex items-center">
+                            <Calendar className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+                            <input
+                                type="date"
+                                value={upcomingDate}
+                                onChange={(e) => {
+                                    setUpcomingDate(e.target.value);
+                                    setUpcomingPage(1);
+                                }}
+                                className="pl-9 pr-3 h-9 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                            />
+                        </div>
+                        {upcomingDate && (
+                            <button
+                                onClick={() => { setUpcomingDate(""); setUpcomingPage(1); }}
+                                className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 underline"
+                            >
+                                Clear
+                            </button>
+                        )}
                     </div>
                 </CardHeader>
+
                 <CardContent className="p-0">
-                    {upcomingAppointments.length === 0 ? (
+                    {upcomingLoading ? (
+                        <div className="p-6 space-y-3">
+                            {[1,2,3].map((i) => (
+                                <div key={i} className="h-16 bg-neutral-100 dark:bg-dark-elevated rounded-xl animate-pulse" />
+                            ))}
+                        </div>
+                    ) : upcomingAppointments.length === 0 ? (
                         <div className="py-12">
                             <EmptyState
                                 icon={CalendarCheck}
-                                title="No upcoming appointments"
-                                description="Your calendar is clear for the coming days."
+                                title={upcomingDate ? "No appointments on this date" : "No upcoming appointments"}
+                                description={upcomingDate ? "Try selecting a different date." : "Your calendar is clear for the coming days."}
                             />
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead className="bg-neutral-50 dark:bg-dark-elevated">
-                                    <tr className="text-left border-b border-neutral-200 dark:border-dark-border">
-                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Date</th>
-                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Time</th>
-                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Patient</th>
-                                        <th className="py-3 px-4 font-semibold text-neutral-600 dark:text-neutral-300">Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {upcomingAppointments.map((apt) => (
-                                        <tr key={apt.appointmentId} className="border-b border-neutral-100 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors">
-                                            <td className="py-3 px-4">
-                                                {new Date(apt.date).toLocaleDateString()}
-                                            </td>
-                                            <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400 font-medium">
-                                                {apt.timeSlot}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="font-semibold text-neutral-800 dark:text-neutral-200">
-                                                    {apt.patient?.name || "Unknown"}
+                        <>
+                            <div className="divide-y divide-neutral-100 dark:divide-dark-border">
+                                {upcomingAppointments.map((apt) => {
+                                    const isEmergency = apt.urgencyLevel === "emergency";
+                                    const dateObj = new Date(apt.date);
+                                    const dayName = dateObj.toLocaleDateString("en-IN", { weekday: "short" });
+                                    const dayNum = dateObj.toLocaleDateString("en-IN", { day: "2-digit" });
+                                    const month = dateObj.toLocaleDateString("en-IN", { month: "short" });
+                                    return (
+                                        <div
+                                            key={apt.appointmentId}
+                                            className={`flex items-center gap-4 px-5 py-4 hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors ${
+                                                isEmergency ? "border-l-4 border-red-500" : ""
+                                            }`}
+                                        >
+                                            {/* Date Block */}
+                                            <div className="shrink-0 w-14 h-14 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 flex flex-col items-center justify-center">
+                                                <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-wide">{dayName}</span>
+                                                <span className="text-xl font-bold text-indigo-700 dark:text-indigo-300 leading-none">{dayNum}</span>
+                                                <span className="text-xs text-indigo-500 dark:text-indigo-400">{month}</span>
+                                            </div>
+
+                                            {/* Time + Patient */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                                                    <span className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
+                                                        {apt.timeSlot}
+                                                    </span>
+                                                    {isEmergency && (
+                                                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                                            <ShieldAlert className="w-3 h-3" /> Emergency
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <div className="text-xs text-neutral-500">
-                                                    {apt.patient?.phone}
+                                                <div className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400">
+                                                    <User className="w-3.5 h-3.5 shrink-0" />
+                                                    <span className="font-medium truncate">{apt.patient?.name || "Patient"}</span>
+                                                    {apt.patient?.phone && (
+                                                        <span className="text-neutral-400 dark:text-neutral-500 text-xs">• {apt.patient.phone}</span>
+                                                    )}
                                                 </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                {apt.urgencyLevel === "emergency" ? (
-                                                    <span className="text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Emergency</span>
-                                                ) : (
-                                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-gray-300">Standard</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            <div className="shrink-0">
+                                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${
+                                                    apt.status === "confirmed"
+                                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-700/50"
+                                                        : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50"
+                                                }`}>
+                                                    {apt.status === "confirmed" ? "Confirmed" : "Pending"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Pagination */}
+                            {upcomingMeta.totalPages > 1 && (
+                                <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/30">
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        Page {upcomingMeta.page} of {upcomingMeta.totalPages} • {upcomingMeta.totalCount} appointments
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => setUpcomingPage((p) => Math.max(1, p - 1))}
+                                            disabled={upcomingMeta.page <= 1}
+                                            className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setUpcomingPage((p) => Math.min(upcomingMeta.totalPages, p + 1))}
+                                            disabled={upcomingMeta.page >= upcomingMeta.totalPages}
+                                            className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </CardContent>
             </Card>

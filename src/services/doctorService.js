@@ -22,9 +22,14 @@ export const doctorService = {
         return response.data;
     },
 
-    getUpcomingAppointments: async () => {
+    getUpcomingAppointments: async ({ date = "", page = 1, limit = 5 } = {}) => {
+        const params = new URLSearchParams();
+        if (date) params.append("date", date);
+        if (page) params.append("page", page);
+        if (limit) params.append("limit", limit);
+        const query = params.toString() ? `?${params.toString()}` : "";
         const response = await axiosInstance.get(
-            "/doctor/appointments/upcoming",
+            `/doctor/appointments/upcoming${query}`,
         );
         return response.data;
     },
