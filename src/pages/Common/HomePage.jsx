@@ -307,7 +307,12 @@ const HomePage = () => {
 
     const getDashboardLink = () => {
         if (!isLoggedIn || !roles?.length) return "/login";
-        if (roles.length === 1) return `/${roles[0]}/dashboard`;
+        if (roles.length === 1) {
+            const role = roles[0];
+            if (role === "sub_admin") return "/sub-admin/dashboard";
+            if (role === "admin") return "/super-admin/dashboard";
+            return `/${role}/dashboard`;
+        }
         return "/choose-role";
     };
 

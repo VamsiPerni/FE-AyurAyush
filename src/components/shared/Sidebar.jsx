@@ -123,11 +123,8 @@ const Sidebar = () => {
         if (perms.viewQueues) {
             links.push({ path: "/admin/queues", label: "Appointment Queues", icon: ListOrdered });
         }
-        if (perms.viewDoctors) {
+        if (perms.viewDoctors || perms.manageAvailability) {
             links.push({ path: "/admin/doctors", label: "Doctors", icon: Stethoscope });
-        }
-        if (perms.manageAvailability) {
-            links.push({ path: "/admin/doctors", label: "Manage Availability", icon: Clock });
         }
         if (perms.viewDoctorApplications) {
             links.push({ path: "/admin/doctor-applications", label: "Doctor Applications", icon: ClipboardList });

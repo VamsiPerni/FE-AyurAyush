@@ -37,7 +37,12 @@ export const useAuth = () => {
             if (mustChangePassword) {
                 navigate("/change-password");
             } else if (roles.length === 1) {
-                navigate(`/${roles[0]}/dashboard`);
+                const role = roles[0];
+                const dashboardPath =
+                    role === "sub_admin" ? "/sub-admin/dashboard" :
+                    role === "admin"     ? "/super-admin/dashboard" :
+                    `/${role}/dashboard`;
+                navigate(dashboardPath);
             } else {
                 navigate("/choose-role");
             }

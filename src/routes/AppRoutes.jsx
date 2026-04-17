@@ -37,6 +37,7 @@ import { CreateDoctorAccountPage } from "../pages/Admin/CreateDoctorAccountPage"
 import { RevenueAdminPage } from "../pages/Admin/RevenueAdminPage";
 import { SuperAdminDashboardPage } from "../pages/SuperAdmin/SuperAdminDashboardPage";
 import { ManageSubAdminsPage } from "../pages/SuperAdmin/ManageSubAdminsPage";
+import { SubAdminDashboardPage } from "../pages/SubAdmin/SubAdminDashboardPage";
 
 const AppRoutes = () => {
     return (
@@ -276,7 +277,7 @@ const AppRoutes = () => {
                     path="/sub-admin/dashboard"
                     element={
                         <ProtectedRoute allowedRoles={["sub_admin"]}>
-                            <AdminDashboardPage />
+                            <SubAdminDashboardPage />
                         </ProtectedRoute>
                     }
                 />
