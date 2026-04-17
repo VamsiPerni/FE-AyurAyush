@@ -1,11 +1,12 @@
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 const Textarea = forwardRef(({
   label, error, hint, required = false,
   id, rows = 4, className = '', containerClassName = '', ...props
 }, ref) => {
-  const textareaId = id || `textarea-${Math.random().toString(36).slice(2, 9)}`;
+  const generatedId = useId();
+  const textareaId = id || generatedId;
   return (
     <div className={containerClassName}>
       {label && (

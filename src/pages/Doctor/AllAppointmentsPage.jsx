@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
     Search,
@@ -6,6 +6,9 @@ import {
     AlertCircle,
     FileText,
     ChevronRight,
+    ChevronLeft,
+    ChevronRight as ChevronRightIcon,
+    Calendar,
 } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { PageHeader } from "../../components/shared/PageHeader";
@@ -18,9 +21,11 @@ import { Badge } from "../../components/ui/Badge";
 import { TableSkeleton } from "../../components/ui/Skeleton";
 import { showErrorToast } from "../../utils/toastMessageHelper";
 
+const LIMIT = 15;
+
 const filterCategories = [
-    { id: "all", label: "All" },
-    { id: "pending", label: "Pending" },
+    { id: "all",       label: "All" },
+    { id: "pending",   label: "Pending" },
     { id: "confirmed", label: "Confirmed" },
     { id: "completed", label: "Completed" },
     { id: "cancelled", label: "Cancelled" },
@@ -28,206 +33,136 @@ const filterCategories = [
 
 const AllAppointmentsPage = () => {
     const navigate = useNavigate();
-    const [appointments, setAppointments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [activeTab, setActiveTab] = useState("all");
+
+    // Filter state
+    const [activeTab,     setActiveTab]     = useState("all");
     const [urgencyFilter, setUrgencyFilter] = useState("all");
-    const [sortOrder, setSortOrder] = useState("latest");
+    const [dateFilter,    setDateFilter]    = useState("");
+    const [searchQuery,   setSearchQuery]   = useState("");
+    const [page,          setPage]          = useState(1);
 
-    const normalizeAppointmentRow = (item = {}) => ({
-        ...item,
-        appointmentId: item?.appointmentId || item?._id,
-        patientName: String(
-            item?.patient?.name || item?.patientName || "Patient",
-        ),
-        status: String(item?.status || "pending_admin_approval").toLowerCase(),
-        urgencyLevel:
-            item?.urgencyLevel === "emergency" ? "emergency" : "normal",
-        date: item?.appointmentDetails?.date || item?.date || null,
-        timeSlot: item?.appointmentDetails?.timeSlot || item?.timeSlot || "-",
-        queueStatus:
-            item?.queueStatus || item?.appointmentDetails?.queueStatus || null,
-        queueCallCount: Number.isFinite(Number(item?.queueCallCount))
-            ? Number(item.queueCallCount)
-            : Number.isFinite(Number(item?.appointmentDetails?.queueCallCount))
-              ? Number(item.appointmentDetails.queueCallCount)
-              : 0,
-        lastCalledAt:
-            item?.lastCalledAt ||
-            item?.appointmentDetails?.lastCalledAt ||
-            null,
-        consultationStartedAt:
-            item?.consultationStartedAt ||
-            item?.appointmentDetails?.consultationStartedAt ||
-            null,
-        consultationDurationSeconds: Number.isFinite(
-            Number(item?.consultationDurationSeconds),
-        )
-            ? Number(item.consultationDurationSeconds)
-            : Number.isFinite(
-                    Number(
-                        item?.appointmentDetails?.consultationDurationSeconds,
-                    ),
-                )
-              ? Number(item.appointmentDetails.consultationDurationSeconds)
-              : null,
-    });
+    // Data state
+    const [appointments,  setAppointments]  = useState([]);
+    const [totalCount,    setTotalCount]    = useState(0);
+    const [totalPages,    setTotalPages]    = useState(1);
+    const [counts,        setCounts]        = useState({ all: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 });
+    const [loading,       setLoading]       = useState(true);
+    const [error,         setError]         = useState("");
 
-    const normalizeAppointments = (payload) => {
-        if (Array.isArray(payload?.appointments)) {
-            return payload.appointments.map(normalizeAppointmentRow);
-        }
-        if (
-            Array.isArray(payload?.emergencyAppointments) ||
-            Array.isArray(payload?.normalAppointments)
-        ) {
-            return [
-                ...(Array.isArray(payload.emergencyAppointments)
-                    ? payload.emergencyAppointments
-                    : []),
-                ...(Array.isArray(payload.normalAppointments)
-                    ? payload.normalAppointments
-                    : []),
-            ].map(normalizeAppointmentRow);
-        }
-        if (Array.isArray(payload)) {
-            return payload.map(normalizeAppointmentRow);
-        }
-        return [];
+    // Debounce search
+    const searchTimer = useRef(null);
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    const handleSearchChange = (e) => {
+        const val = e.target.value;
+        setSearchQuery(val);
+        clearTimeout(searchTimer.current);
+        searchTimer.current = setTimeout(() => {
+            setDebouncedSearch(val);
+            setPage(1);
+        }, 400);
     };
 
-    const loadAppointments = async () => {
+    // Map tab → status param
+    const tabToStatus = (tab) => {
+        if (tab === "pending")   return "pending_admin_approval";
+        if (tab === "confirmed") return "confirmed";
+        if (tab === "completed") return "completed";
+        if (tab === "cancelled") return "cancelled";
+        return "";
+    };
+
+    const loadAppointments = useCallback(async () => {
         try {
             setLoading(true);
             setError("");
-            const fetchFn =
-                doctorService.getAllAppointments ||
-                doctorService.getAppointments;
-            const result = await fetchFn();
+            const result = await doctorService.getAppointments({
+                status:       tabToStatus(activeTab),
+                date:         dateFilter,
+                urgencyLevel: urgencyFilter === "all" ? "" : urgencyFilter,
+                patientName:  debouncedSearch,
+                page,
+                limit:        LIMIT,
+            });
             const payload = result?.data || result || {};
-            setAppointments(normalizeAppointments(payload));
+            const list = payload.appointments ||
+                [...(payload.emergencyAppointments || []), ...(payload.normalAppointments || [])];
+            setAppointments(list);
+            setTotalCount(payload.totalCount || 0);
+            setTotalPages(payload.totalPages || 1);
         } catch (err) {
-            const message =
-                err.response?.data?.message ||
-                "Failed to load appointments history.";
+            const message = err.response?.data?.message || "Failed to load appointments.";
             setError(message);
             showErrorToast(message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab, dateFilter, urgencyFilter, debouncedSearch, page]);
+
+    // Load counts once on mount (unfiltered, just totals per status)
+    const loadCounts = useCallback(async () => {
+        try {
+            const [allRes, pendingRes, confirmedRes, completedRes, cancelledRes] = await Promise.all([
+                doctorService.getAppointments({ limit: 1, page: 1 }),
+                doctorService.getAppointments({ status: "pending_admin_approval", limit: 1, page: 1 }),
+                doctorService.getAppointments({ status: "confirmed",              limit: 1, page: 1 }),
+                doctorService.getAppointments({ status: "completed",              limit: 1, page: 1 }),
+                doctorService.getAppointments({ status: "cancelled",              limit: 1, page: 1 }),
+            ]);
+            setCounts({
+                all:       allRes?.data?.totalCount       || 0,
+                pending:   pendingRes?.data?.totalCount   || 0,
+                confirmed: confirmedRes?.data?.totalCount || 0,
+                completed: completedRes?.data?.totalCount || 0,
+                cancelled: cancelledRes?.data?.totalCount || 0,
+            });
+        } catch {
+            // silent — counts are non-critical
+        }
+    }, []);
 
     useEffect(() => {
         loadAppointments();
-    }, []);
+    }, [loadAppointments]);
+
+    useEffect(() => {
+        loadCounts();
+    }, [loadCounts]);
+
+    // Reset to page 1 when filters change
+    const handleTabChange = (tab) => { setActiveTab(tab); setPage(1); };
+    const handleUrgencyChange = (e) => { setUrgencyFilter(e.target.value); setPage(1); };
+    const handleDateChange = (e) => { setDateFilter(e.target.value); setPage(1); };
+    const clearFilters = () => {
+        setActiveTab("all");
+        setUrgencyFilter("all");
+        setDateFilter("");
+        setSearchQuery("");
+        setDebouncedSearch("");
+        setPage(1);
+    };
 
     const formatDateIN = (dateStr) => {
         if (!dateStr) return "-";
         return new Date(dateStr).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
+            day: "2-digit", month: "short", year: "numeric",
         });
     };
-
-    const getAppointmentTimestamp = (apt) => {
-        if (!apt?.date) return 0;
-
-        const baseDate = new Date(apt.date);
-        if (Number.isNaN(baseDate.getTime())) return 0;
-
-        let hours = 0;
-        let minutes = 0;
-        const slot = String(apt.timeSlot || "").trim();
-        const startPart = slot.split("-")[0]?.trim();
-        const match = startPart?.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-
-        if (match) {
-            const rawHour = Number(match[1]);
-            minutes = Number(match[2] || "0");
-            const meridiem = (match[3] || "").toUpperCase();
-
-            if (meridiem === "PM" && rawHour < 12) {
-                hours = rawHour + 12;
-            } else if (meridiem === "AM" && rawHour === 12) {
-                hours = 0;
-            } else {
-                hours = rawHour;
-            }
-        }
-
-        return new Date(
-            baseDate.getFullYear(),
-            baseDate.getMonth(),
-            baseDate.getDate(),
-            hours,
-            minutes,
-            0,
-            0,
-        ).getTime();
-    };
-
-    const filteredAppointments = useMemo(() => {
-        const safeAppointments = Array.isArray(appointments)
-            ? appointments
-            : [];
-        const result = safeAppointments.filter((apt) => {
-            const name = (apt.patientName || "").toLowerCase();
-            if (searchQuery && !name.includes(searchQuery.toLowerCase())) {
-                return false;
-            }
-
-            if (urgencyFilter !== "all" && apt.urgencyLevel !== urgencyFilter) {
-                return false;
-            }
-
-            if (activeTab === "all") return true;
-            if (activeTab === "pending") {
-                return apt.status === "pending_admin_approval";
-            }
-            if (activeTab === "confirmed") return apt.status === "confirmed";
-            if (activeTab === "completed") return apt.status === "completed";
-            if (activeTab === "cancelled") {
-                return ["cancelled", "rejected"].includes(apt.status);
-            }
-            return true;
-        });
-
-        return result.sort((a, b) => {
-            const diff =
-                getAppointmentTimestamp(b) - getAppointmentTimestamp(a);
-            return sortOrder === "latest" ? diff : -diff;
-        });
-    }, [appointments, activeTab, searchQuery, urgencyFilter, sortOrder]);
-
-    const counts = useMemo(() => {
-        const safeAppointments = Array.isArray(appointments)
-            ? appointments
-            : [];
-        return {
-            all: safeAppointments.length,
-            pending: safeAppointments.filter(
-                (a) => a.status === "pending_admin_approval",
-            ).length,
-            confirmed: safeAppointments.filter((a) => a.status === "confirmed")
-                .length,
-            completed: safeAppointments.filter((a) => a.status === "completed")
-                .length,
-            cancelled: safeAppointments.filter((a) =>
-                ["cancelled", "rejected"].includes(a.status),
-            ).length,
-        };
-    }, [appointments]);
 
     const handleRowClick = (apt) => {
         const id = apt.appointmentId || apt._id;
-        if (id)
-            navigate(`/doctor/appointments/${id}`, {
-                state: { from: "/doctor/appointments" },
-            });
+        if (id) navigate(`/doctor/appointments/${id}`, { state: { from: "/doctor/appointments" } });
     };
+
+    const normalizeRow = (item = {}) => ({
+        ...item,
+        appointmentId: item?.appointmentId || item?._id,
+        patientName: String(item?.patient?.name || item?.patientName || "Patient"),
+        status: String(item?.status || "pending_admin_approval").toLowerCase(),
+        urgencyLevel: item?.urgencyLevel === "emergency" ? "emergency" : "normal",
+        date: item?.appointmentDetails?.date || item?.date || null,
+        timeSlot: item?.appointmentDetails?.timeSlot || item?.timeSlot || "-",
+    });
 
     const columns = [
         {
@@ -262,13 +197,9 @@ const AllAppointmentsPage = () => {
             label: "Urgency",
             render: (_, row) =>
                 row.urgencyLevel === "emergency" ? (
-                    <Badge type="status" value="emergency">
-                        Emergency
-                    </Badge>
+                    <Badge type="status" value="emergency">Emergency</Badge>
                 ) : (
-                    <span className="text-neutral-400 font-medium text-sm">
-                        Normal
-                    </span>
+                    <span className="text-neutral-400 font-medium text-sm">Normal</span>
                 ),
         },
         {
@@ -285,10 +216,7 @@ const AllAppointmentsPage = () => {
                     <Button
                         size="sm"
                         variant="secondary"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleRowClick(row);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); handleRowClick(row); }}
                         className="rounded-full"
                         icon={ChevronRight}
                     />
@@ -297,32 +225,26 @@ const AllAppointmentsPage = () => {
         },
     ];
 
-    if (loading) {
+    const hasActiveFilters = activeTab !== "all" || urgencyFilter !== "all" || dateFilter || debouncedSearch;
+    const normalizedRows = appointments.map(normalizeRow);
+
+    if (loading && page === 1 && !hasActiveFilters) {
         return (
             <div className="max-w-7xl mx-auto space-y-6 pb-8">
-                <PageHeader
-                    title="All Appointments"
-                    subtitle="Fetching comprehensive schedule history..."
-                />
-                <Card className="p-6">
-                    <TableSkeleton rows={8} columns={6} />
-                </Card>
+                <PageHeader title="All Appointments" subtitle="Fetching schedule history..." />
+                <Card className="p-6"><TableSkeleton rows={8} columns={6} /></Card>
             </div>
         );
     }
 
-    if (error && (!Array.isArray(appointments) || appointments.length === 0)) {
+    if (error && appointments.length === 0) {
         return (
             <div className="max-w-7xl mx-auto py-12">
                 <EmptyState
                     icon={AlertCircle}
-                    title="Data Synchronization Error"
+                    title="Failed to load appointments"
                     description={error}
-                    action={
-                        <Button icon={RefreshCw} onClick={loadAppointments}>
-                            Retry Synchronization
-                        </Button>
-                    }
+                    action={<Button icon={RefreshCw} onClick={loadAppointments}>Retry</Button>}
                 />
             </div>
         );
@@ -332,104 +254,111 @@ const AllAppointmentsPage = () => {
         <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in">
             <PageHeader
                 title="All Appointments"
-                subtitle={`Managing ${counts.all} total registered case${counts.all !== 1 ? "s" : ""}`}
+                subtitle={`${totalCount} total appointment${totalCount !== 1 ? "s" : ""}`}
                 backTo="/doctor/dashboard"
                 action={
-                    <Button
-                        variant="outline"
-                        icon={RefreshCw}
-                        onClick={loadAppointments}
-                    >
-                        Refresh Ledger
+                    <Button variant="outline" icon={RefreshCw} onClick={loadAppointments}>
+                        Refresh
                     </Button>
                 }
             />
 
-            <Card className="overflow-hidden shadow-sm border border-neutral-100 dark:border-dark-border min-h-125">
-                <div className="bg-neutral-50/50 dark:bg-dark-elevated/50 p-5 border-b border-neutral-100 dark:border-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <Card className="overflow-hidden shadow-sm border border-neutral-100 dark:border-dark-border">
+                {/* Filter bar */}
+                <div className="bg-neutral-50/50 dark:bg-dark-elevated/50 p-5 border-b border-neutral-100 dark:border-dark-border space-y-4">
+                    {/* Status tabs */}
                     <div className="flex flex-wrap items-center gap-2">
                         {filterCategories.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => setActiveTab(cat.id)}
-                                className={`
-                  flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors
-                  ${
-                      activeTab === cat.id
-                          ? "bg-primary-600 text-white"
-                          : "bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover hover:text-neutral-800 dark:hover:text-neutral-100"
-                  }
-                `}
+                                onClick={() => handleTabChange(cat.id)}
+                                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                    activeTab === cat.id
+                                        ? "bg-primary-600 text-white"
+                                        : "bg-white dark:bg-dark-card text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-hover"
+                                }`}
                             >
                                 {cat.label}
-                                <span
-                                    className={`
-                  px-2 py-0.5 rounded-full text-xs font-bold
-                  ${
-                      activeTab === cat.id
-                          ? "bg-primary-500/30 text-white"
-                          : "bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400"
-                  }
-                `}
-                                >
-                                    {counts[cat.id]}
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                    activeTab === cat.id
+                                        ? "bg-primary-500/30 text-white"
+                                        : "bg-neutral-100 dark:bg-dark-elevated text-neutral-500 dark:text-neutral-400"
+                                }`}>
+                                    {counts[cat.id] ?? 0}
                                 </span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row gap-2 sm:items-center">
+                    {/* Filter controls */}
+                    <div className="flex flex-wrap items-center gap-3">
+                        {/* Patient name search */}
+                        <div className="w-full sm:w-56">
+                            <Input
+                                icon={Search}
+                                placeholder="Search patient name..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className="bg-white dark:bg-dark-card"
+                            />
+                        </div>
+
+                        {/* Date filter */}
+                        <div className="relative flex items-center">
+                            <Calendar className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+                            <input
+                                type="date"
+                                value={dateFilter}
+                                onChange={handleDateChange}
+                                className="pl-9 pr-3 h-10 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            />
+                        </div>
+
+                        {/* Urgency */}
                         <select
                             value={urgencyFilter}
-                            onChange={(e) => setUrgencyFilter(e.target.value)}
-                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                            aria-label="Filter by urgency"
+                            onChange={handleUrgencyChange}
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                         >
                             <option value="all">All Urgency</option>
                             <option value="normal">Normal</option>
                             <option value="emergency">Emergency</option>
                         </select>
 
-                        <select
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value)}
-                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                            aria-label="Sort appointments"
-                        >
-                            <option value="latest">Latest to Oldest</option>
-                            <option value="oldest">Oldest to Latest</option>
-                        </select>
+                        {/* Clear filters */}
+                        {hasActiveFilters && (
+                            <button
+                                onClick={clearFilters}
+                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium"
+                            >
+                                Clear filters
+                            </button>
+                        )}
 
-                        <div className="w-full sm:w-64">
-                            <Input
-                                icon={Search}
-                                placeholder="Search patients..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-white"
-                            />
-                        </div>
+                        <span className="ml-auto text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                            {totalCount} result{totalCount !== 1 ? "s" : ""}
+                        </span>
                     </div>
                 </div>
 
-                <div className="w-full">
-                    {filteredAppointments.length === 0 ? (
+                {/* Table */}
+                <div className="w-full min-h-64">
+                    {loading ? (
+                        <div className="p-6"><TableSkeleton rows={6} columns={6} /></div>
+                    ) : normalizedRows.length === 0 ? (
                         <div className="py-24">
                             <EmptyState
                                 icon={FileText}
-                                title="No appointments discovered"
+                                title="No appointments found"
                                 description={
-                                    searchQuery
-                                        ? `No matching records found for \"${searchQuery}\".`
-                                        : `No ${filterCategories.find((c) => c.id === activeTab)?.label.toLowerCase()} cases logged yet.`
+                                    hasActiveFilters
+                                        ? "No records match the selected filters."
+                                        : "No appointments logged yet."
                                 }
                                 action={
-                                    searchQuery ? (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setSearchQuery("")}
-                                        >
-                                            Clear Search
+                                    hasActiveFilters ? (
+                                        <Button variant="outline" onClick={clearFilters}>
+                                            Clear Filters
                                         </Button>
                                     ) : undefined
                                 }
@@ -437,14 +366,52 @@ const AllAppointmentsPage = () => {
                         </div>
                     ) : (
                         <div className="table-responsive">
-                            <Table
-                                columns={columns}
-                                data={filteredAppointments}
-                                striped
-                            />
+                            <Table columns={columns} data={normalizedRows} striped />
                         </div>
                     )}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/30">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                            Page {page} of {totalPages} &bull; {totalCount} appointments
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                                className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            {/* Page number pills */}
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                const p = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        className={`w-8 h-8 rounded-lg text-xs font-semibold border transition-colors ${
+                                            p === page
+                                                ? "bg-primary-600 text-white border-primary-600"
+                                                : "border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover"
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                            <button
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                                className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronRightIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Card>
         </div>
     );

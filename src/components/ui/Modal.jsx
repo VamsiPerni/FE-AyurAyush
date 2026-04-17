@@ -16,15 +16,20 @@ const Modal = ({
 
   useEffect(() => {
     if (isOpen) {
-      previousFocus.current = document.activeElement;
+      const activeElement = document.activeElement;
       document.body.style.overflow = 'hidden';
-      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        activeElement?.focus();
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKeyDown);
-      previousFocus.current?.focus();
-    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
   }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;

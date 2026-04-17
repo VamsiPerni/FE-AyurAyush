@@ -530,7 +530,7 @@ const BookAppointmentPage = () => {
     // Date boundaries
     const today = new Date().toISOString().split("T")[0];
     const maxDateObj = new Date();
-    maxDateObj.setDate(maxDateObj.getDate() + 30);
+    maxDateObj.setDate(maxDateObj.getDate() + 7);
     const maxDate = maxDateObj.toISOString().split("T")[0];
 
     const canNavigateToStep = (targetStep) => {

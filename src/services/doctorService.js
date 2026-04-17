@@ -10,14 +10,16 @@ export const doctorService = {
         return response.data;
     },
 
-    getAppointments: async (status = "", date = "") => {
+    getAppointments: async ({ status = "", date = "", urgencyLevel = "", patientName = "", page = 1, limit = 15 } = {}) => {
         const params = new URLSearchParams();
-        if (status) params.append("status", status);
-        if (date) params.append("date", date);
+        if (status)       params.append("status", status);
+        if (date)         params.append("date", date);
+        if (urgencyLevel) params.append("urgencyLevel", urgencyLevel);
+        if (patientName)  params.append("patientName", patientName);
+        if (page)         params.append("page", page);
+        if (limit)        params.append("limit", limit);
         const query = params.toString() ? `?${params.toString()}` : "";
-        const response = await axiosInstance.get(
-            `/doctor/appointments${query}`,
-        );
+        const response = await axiosInstance.get(`/doctor/appointments${query}`);
         return response.data;
     },
 

@@ -13,6 +13,7 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState([]);
     const [selectedDoctorId, setSelectedDoctorId] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
     const [callingId, setCallingId] = useState(null);
     const [nowTick, setNowTick] = useState(Date.now());
     const [auditLoading, setAuditLoading] = useState(false);
@@ -164,11 +165,19 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
         if (type !== externalQueueType) {
             if (onQueueTypeChange) onQueueTypeChange(type);
             setSelectedDoctorId("all");
+            setStatusFilter("all");
         }
     };
 
+    const parseSlotMinutes = (timeSlot) => {
+        const start = String(timeSlot || "").split("-")[0].trim();
+        const match = start.match(/^(\d{1,2}):(\d{2})/);
+        if (!match) return 9999;
+        return Number(match[1]) * 60 + Number(match[2]);
+    };
+
     const filteredByQueueType = appointments.filter((apt) => (apt.queueType || "normal") === externalQueueType);
-    
+
     const uniqueDoctors = [];
     const docSet = new Set();
     filteredByQueueType.forEach(apt => {
@@ -179,9 +188,14 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
         }
     });
 
-    const displayedAppointments = selectedDoctorId === "all" 
-        ? filteredByQueueType 
-        : filteredByQueueType.filter(apt => apt.doctor?.id === selectedDoctorId);
+    const displayedAppointments = filteredByQueueType
+        .filter(apt => selectedDoctorId === "all" || apt.doctor?.id === selectedDoctorId)
+        .filter(apt => statusFilter === "all" || (apt.queueStatus || "waiting") === statusFilter)
+        .sort((a, b) => {
+            const slotDiff = parseSlotMinutes(a.timeSlot) - parseSlotMinutes(b.timeSlot);
+            if (slotDiff !== 0) return slotDiff;
+            return (a.tokenSequence ?? 9999) - (b.tokenSequence ?? 9999);
+        });
 
     const QUEUE_TYPES = [
         { id: "ayurveda", label: "Ayurveda" },
@@ -217,7 +231,7 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
             </div>
 
             {uniqueDoctors.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wide mr-1">Doctors:</span>
                     <button
                         onClick={() => setSelectedDoctorId("all")}
@@ -244,6 +258,24 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
                     ))}
                 </div>
             )}
+
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wide">Status:</span>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="h-8 px-3 rounded-lg border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-xs text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                    <option value="all">All Statuses</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="called">Called</option>
+                    <option value="in_consultation">In Consultation</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {displayedAppointments.length} patient{displayedAppointments.length !== 1 ? "s" : ""}
+                </span>
+            </div>
 
             {loading ? (
                 <LoadingSkeleton type="table" count={3} />

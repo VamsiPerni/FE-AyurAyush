@@ -29,25 +29,33 @@ const ManageDoctorsPage = () => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [totalCount, setTotalCount] = useState(0);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const LIMIT = 10;
 
     const [searchQuery, setSearchQuery] = useState("");
     const [togglingId, setTogglingId] = useState(null);
     const [statusFilter, setStatusFilter] = useState("all");
     const [specializationFilter, setSpecializationFilter] = useState("all");
+    const [experienceFilter, setExperienceFilter] = useState("all");
+    const [feeFilter, setFeeFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("name_asc");
 
     const resetFilters = () => {
         setSearchQuery("");
         setStatusFilter("all");
         setSpecializationFilter("all");
+        setExperienceFilter("all");
+        setFeeFilter("all");
         setSortOrder("name_asc");
     };
 
-    const loadDoctors = async () => {
+    const loadDoctors = async (targetPage = 1) => {
         try {
             setLoading(true);
             setError("");
-            const result = await adminService.getDoctors();
+            const result = await adminService.getDoctors("", targetPage, LIMIT);
 
             const payload = result?.data?.doctors
                 ? result.data
@@ -62,6 +70,10 @@ const ManageDoctorsPage = () => {
                 : Array.isArray(result)
                   ? result
                   : [];
+
+            setTotalCount(payload.totalCount || list.length);
+            setTotalPages(payload.totalPages || 1);
+            setPage(targetPage);
 
             const normalized = list.map((doc) => {
                 const name =
@@ -181,56 +193,57 @@ const ManageDoctorsPage = () => {
         return ["all", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
     }, [doctors]);
 
-    // Client-Side Searching Map natively
     const filteredDoctors = useMemo(() => {
         const result = doctors.filter((doc) => {
             const lowerQuery = searchQuery.toLowerCase();
-            const nameMatch = (doc.name || "")
-                .toLowerCase()
-                .includes(lowerQuery);
-            const specMatch = (doc.specialization || "")
-                .toLowerCase()
-                .includes(lowerQuery);
-
+            const nameMatch = (doc.name || "").toLowerCase().includes(lowerQuery);
+            const specMatch = (doc.specialization || "").toLowerCase().includes(lowerQuery);
             if (searchQuery && !(nameMatch || specMatch)) return false;
 
-            const statusVal = (
-                doc.status || (doc.isActive ? "active" : "inactive")
-            ).toLowerCase();
-            if (statusFilter !== "all" && statusVal !== statusFilter) {
-                return false;
+            const statusVal = (doc.status || (doc.isActive ? "active" : "inactive")).toLowerCase();
+            if (statusFilter !== "all" && statusVal !== statusFilter) return false;
+
+            if (specializationFilter !== "all" && (doc.specialization || "") !== specializationFilter) return false;
+
+            // Experience filter
+            if (experienceFilter !== "all") {
+                const exp = Number(doc.experience || 0);
+                if (experienceFilter === "0-3"  && !(exp >= 0  && exp <= 3))  return false;
+                if (experienceFilter === "4-7"  && !(exp >= 4  && exp <= 7))  return false;
+                if (experienceFilter === "8-15" && !(exp >= 8  && exp <= 15)) return false;
+                if (experienceFilter === "15+"  && !(exp > 15))               return false;
             }
 
-            if (
-                specializationFilter !== "all" &&
-                (doc.specialization || "") !== specializationFilter
-            ) {
-                return false;
+            // Fee filter
+            if (feeFilter !== "all") {
+                const fee = Number(doc.consultationFee || 0);
+                if (feeFilter === "0-500"    && !(fee >= 0    && fee <= 500))   return false;
+                if (feeFilter === "501-1000" && !(fee >= 501  && fee <= 1000))  return false;
+                if (feeFilter === "1001-2000"&& !(fee >= 1001 && fee <= 2000))  return false;
+                if (feeFilter === "2000+"    && !(fee > 2000))                  return false;
             }
 
             return true;
         });
 
         result.sort((a, b) => {
-            if (sortOrder === "name_desc") {
-                return (b.name || "").localeCompare(a.name || "");
-            }
-            if (sortOrder === "fee_high") {
-                return (b.consultationFee || 0) - (a.consultationFee || 0);
-            }
-            if (sortOrder === "fee_low") {
-                return (a.consultationFee || 0) - (b.consultationFee || 0);
-            }
+            if (sortOrder === "name_desc")  return (b.name || "").localeCompare(a.name || "");
+            if (sortOrder === "fee_high")   return (b.consultationFee || 0) - (a.consultationFee || 0);
+            if (sortOrder === "fee_low")    return (a.consultationFee || 0) - (b.consultationFee || 0);
+            if (sortOrder === "exp_high")   return (b.experience || 0) - (a.experience || 0);
+            if (sortOrder === "exp_low")    return (a.experience || 0) - (b.experience || 0);
             return (a.name || "").localeCompare(b.name || "");
         });
 
         return result;
-    }, [doctors, searchQuery, statusFilter, specializationFilter, sortOrder]);
+    }, [doctors, searchQuery, statusFilter, specializationFilter, experienceFilter, feeFilter, sortOrder]);
 
     const hasActiveFilters =
         !!searchQuery ||
         statusFilter !== "all" ||
         specializationFilter !== "all" ||
+        experienceFilter !== "all" ||
+        feeFilter !== "all" ||
         sortOrder !== "name_asc";
 
     // Layout Table Configuration
@@ -375,7 +388,7 @@ const ManageDoctorsPage = () => {
         <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in">
             <PageHeader
                 title="Manage Doctors"
-                subtitle={`Total registered practitioners in system: ${doctors.length}`}
+                subtitle={`${totalCount} total registered practitioner${totalCount !== 1 ? "s" : ""}`}
                 action={
                     <div className="flex items-center gap-3">
                         <Button
@@ -422,19 +435,41 @@ const ManageDoctorsPage = () => {
 
                         <select
                             value={specializationFilter}
-                            onChange={(e) =>
-                                setSpecializationFilter(e.target.value)
-                            }
+                            onChange={(e) => setSpecializationFilter(e.target.value)}
                             className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Filter by specialization"
                         >
                             {specializationOptions.map((spec) => (
                                 <option key={spec} value={spec}>
-                                    {spec === "all"
-                                        ? "All Specializations"
-                                        : spec}
+                                    {spec === "all" ? "All Specializations" : spec}
                                 </option>
                             ))}
+                        </select>
+
+                        <select
+                            value={experienceFilter}
+                            onChange={(e) => setExperienceFilter(e.target.value)}
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            aria-label="Filter by experience"
+                        >
+                            <option value="all">All Experience</option>
+                            <option value="0-3">0 – 3 yrs</option>
+                            <option value="4-7">4 – 7 yrs</option>
+                            <option value="8-15">8 – 15 yrs</option>
+                            <option value="15+">15+ yrs</option>
+                        </select>
+
+                        <select
+                            value={feeFilter}
+                            onChange={(e) => setFeeFilter(e.target.value)}
+                            className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                            aria-label="Filter by consultation fee"
+                        >
+                            <option value="all">All Fees</option>
+                            <option value="0-500">₹0 – ₹500</option>
+                            <option value="501-1000">₹501 – ₹1,000</option>
+                            <option value="1001-2000">₹1,001 – ₹2,000</option>
+                            <option value="2000+">₹2,000+</option>
                         </select>
 
                         <select
@@ -443,21 +478,22 @@ const ManageDoctorsPage = () => {
                             className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-elevated text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
                             aria-label="Sort doctors"
                         >
-                            <option value="name_asc">Name (A-Z)</option>
-                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="name_asc">Name (A–Z)</option>
+                            <option value="name_desc">Name (Z–A)</option>
                             <option value="fee_high">Fee (High to Low)</option>
                             <option value="fee_low">Fee (Low to High)</option>
+                            <option value="exp_high">Experience (High to Low)</option>
+                            <option value="exp_low">Experience (Low to High)</option>
                         </select>
 
-                        {hasActiveFilters && (
-                            <Button
-                                variant="outline"
-                                onClick={resetFilters}
-                                className="h-10"
-                            >
-                                Reset Filters
-                            </Button>
-                        )}
+                        <Button
+                            variant="outline"
+                            onClick={resetFilters}
+                            disabled={!hasActiveFilters}
+                            className="h-10"
+                        >
+                            Reset Filters
+                        </Button>
 
                         <Badge
                             type="info"
@@ -514,6 +550,47 @@ const ManageDoctorsPage = () => {
                                 data={filteredDoctors}
                                 striped
                             />
+                        </div>
+                    )}
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/30">
+                            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                Page {page} of {totalPages} &bull; {totalCount} doctors
+                            </span>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => loadDoctors(page - 1)}
+                                    disabled={page <= 1}
+                                    className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    const p = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                                    return (
+                                        <button
+                                            key={p}
+                                            onClick={() => loadDoctors(p)}
+                                            className={`w-8 h-8 rounded-lg text-xs font-semibold border transition-colors ${
+                                                p === page
+                                                    ? "bg-primary-600 text-white border-primary-600"
+                                                    : "border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover"
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    );
+                                })}
+                                <button
+                                    onClick={() => loadDoctors(page + 1)}
+                                    disabled={page >= totalPages}
+                                    className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </CardContent>

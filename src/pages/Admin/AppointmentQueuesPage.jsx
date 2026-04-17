@@ -9,6 +9,9 @@ import {
     BarChart3,
     Timer,
     Siren,
+    Clock,
+    MailX,
+    History,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { PageHeader } from "../../components/shared/PageHeader";
@@ -30,6 +33,7 @@ import { NormalQueueTable } from "../../components/admin/NormalQueueTable";
 import { EditAppointmentModal } from "../../components/admin/EditAppointmentModal";
 import { TodayQueue } from "../../components/admin/TodayQueue";
 import EmergencyDelayBanner from "../../components/admin/EmergencyDelayBanner";
+import { PastAppointmentsTab } from "../../components/admin/PastAppointmentsTab";
 import {
     showErrorToast,
     showSuccessToast,
@@ -39,6 +43,10 @@ const AppointmentQueuesPage = () => {
     const { queueType } = useParams();
     const [emergencyQueue, setEmergencyQueue] = useState([]);
     const [normalQueue, setNormalQueue] = useState([]);
+    const [overdueQueue, setOverdueQueue] = useState([]);
+    const [overdueLoading, setOverdueLoading] = useState(false);
+    const [cancellingOverdue, setCancellingOverdue] = useState(false);
+    const [activeTab, setActiveTab] = useState("pending");
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -145,6 +153,19 @@ const AppointmentQueuesPage = () => {
         }
     };
 
+    const loadOverdueQueue = async () => {
+        try {
+            setOverdueLoading(true);
+            const res = await adminService.getOverdueAppointments();
+            const list = res?.data?.appointments || [];
+            setOverdueQueue(list);
+        } catch {
+            setOverdueQueue([]);
+        } finally {
+            setOverdueLoading(false);
+        }
+    };
+
     const loadInsights = async () => {
         try {
             const result = await adminService.getQueueInsights();
@@ -157,6 +178,7 @@ const AppointmentQueuesPage = () => {
     useEffect(() => {
         loadQueues();
         loadInsights();
+        loadOverdueQueue();
     }, []);
 
     useEffect(() => {
@@ -179,7 +201,8 @@ const AppointmentQueuesPage = () => {
             await Promise.all([loadQueues(), loadInsights()]);
         } catch (err) {
             showErrorToast(
-                err.response?.data?.message || "Failed to quick approve appointment.",
+                err.response?.data?.message ||
+                    "Failed to quick approve appointment.",
             );
         }
     };
@@ -237,6 +260,40 @@ const AppointmentQueuesPage = () => {
             setIsRejecting(false);
         }
     };
+
+    const handleCancelOverdue = async () => {
+        if (
+            !window.confirm(
+                `Cancel all ${overdueQueue.length} overdue appointment(s) and send apology emails to patients?`,
+            )
+        )
+            return;
+        try {
+            setCancellingOverdue(true);
+            const res = await adminService.cancelOverdueAppointments();
+            showSuccessToast(
+                res?.message ||
+                    "Overdue appointments cancelled and apology emails sent.",
+            );
+            await Promise.all([loadQueues(), loadOverdueQueue()]);
+        } catch (err) {
+            showErrorToast(
+                err.response?.data?.message ||
+                    "Failed to cancel overdue appointments.",
+            );
+        } finally {
+            setCancellingOverdue(false);
+        }
+    };
+
+    const formatDate = (d) =>
+        d
+            ? new Date(d).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+              })
+            : "—";
 
     const formatDuration = (seconds) => {
         const value = Math.max(0, Number(seconds) || 0);
@@ -359,6 +416,7 @@ const AppointmentQueuesPage = () => {
                         onClick={() => {
                             loadQueues();
                             loadInsights();
+                            loadOverdueQueue();
                         }}
                     >
                         Refresh Sync
@@ -368,267 +426,463 @@ const AppointmentQueuesPage = () => {
 
             <EmergencyDelayBanner />
 
-            {isLiveQueueView && insights ? (
-                (() => {
-                    const currentInsights = insights[selectedQueueType] || insights.global || insights;
-                    return (
-                        <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <StatCard
-                            label="Avg Queue Wait"
-                            value={formatDuration(
-                                currentInsights.sla?.averageWaitSeconds,
-                            )}
-                            icon={Timer}
-                            variant="info"
-                        />
-                        <StatCard
-                            label="SLA Breaches"
-                            value={currentInsights.sla?.breachCount ?? 0}
-                            icon={Siren}
-                            variant="warning"
-                        />
-                        <StatCard
-                            label="Notifications Delivered"
-                            value={`${currentInsights.notificationDelivery?.delivered ?? 0}/${currentInsights.notificationDelivery?.sent ?? 0}`}
-                            icon={BarChart3}
-                            variant="success"
-                        />
-                    </div>
+            <div className="flex gap-1 border-b border-neutral-200 bg-white rounded-t-xl px-2 pt-2">
+                {[
+                    {
+                        key: "pending",
+                        label: "Pending Requests",
+                        count: queueTotal,
+                    },
+                    {
+                        key: "overdue",
+                        label: "Overdue Requests",
+                        count: overdueQueue.length,
+                        warn: overdueQueue.length > 0,
+                    },
+                    {
+                        key: "past",
+                        label: "Past Appointments",
+                        count: 0,
+                    },
+                ].map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
+                            activeTab === tab.key
+                                ? tab.warn
+                                    ? "border-orange-500 text-orange-700 bg-orange-50"
+                                    : "border-primary-600 text-primary-700 bg-primary-50"
+                                : "border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
+                        }`}
+                    >
+                        {tab.key === "overdue" ? (
+                            <Clock className="w-4 h-4" />
+                        ) : tab.key === "past" ? (
+                            <History className="w-4 h-4" />
+                        ) : (
+                            <Users className="w-4 h-4" />
+                        )}
+                        {tab.label}
+                        {tab.count > 0 && (
+                            <span
+                                className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                    tab.warn
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-primary-100 text-primary-700"
+                                }`}
+                            >
+                                {tab.count}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
 
-                    {currentInsights.longestWaiting?.appointmentId ? (
-                        <Card className="border-amber-200 dark:border-amber-700/40 bg-amber-50/50 dark:bg-amber-900/10">
-                            <CardContent className="pt-5 pb-5">
-                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                                    Longest waiting patient alert
-                                </p>
-                                <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                                    {currentInsights.longestWaiting.patientName} with
-                                    Dr. {currentInsights.longestWaiting.doctorName} is
-                                    waiting for{" "}
-                                    {formatDuration(
-                                        currentInsights.longestWaiting
-                                            .waitingForSeconds,
-                                    )}{" "}
-                                    ({currentInsights.longestWaiting.queueStatus}).
-                                </p>
-                            </CardContent>
-                        </Card>
-                    ) : null}
+            {isLiveQueueView && insights && activeTab === "pending"
+                ? (() => {
+                      const currentInsights =
+                          insights[selectedQueueType] ||
+                          insights.global ||
+                          insights;
+                      return (
+                          <>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <StatCard
+                                      label="Avg Queue Wait"
+                                      value={formatDuration(
+                                          currentInsights.sla
+                                              ?.averageWaitSeconds,
+                                      )}
+                                      icon={Timer}
+                                      variant="info"
+                                  />
+                                  <StatCard
+                                      label="SLA Breaches"
+                                      value={
+                                          currentInsights.sla?.breachCount ?? 0
+                                      }
+                                      icon={Siren}
+                                      variant="warning"
+                                  />
+                                  <StatCard
+                                      label="Notifications Delivered"
+                                      value={`${currentInsights.notificationDelivery?.delivered ?? 0}/${currentInsights.notificationDelivery?.sent ?? 0}`}
+                                      icon={BarChart3}
+                                      variant="success"
+                                  />
+                              </div>
 
-                    <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
-                        <CardHeader>
-                            <CardTitle>
-                                Bottleneck Analytics (Doctor x Slot)
-                            </CardTitle>
+                              {currentInsights.longestWaiting?.appointmentId ? (
+                                  <Card className="border-amber-200 dark:border-amber-700/40 bg-amber-50/50 dark:bg-amber-900/10">
+                                      <CardContent className="pt-5 pb-5">
+                                          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                              Longest waiting patient alert
+                                          </p>
+                                          <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                                              {
+                                                  currentInsights.longestWaiting
+                                                      .patientName
+                                              }{" "}
+                                              with Dr.{" "}
+                                              {
+                                                  currentInsights.longestWaiting
+                                                      .doctorName
+                                              }{" "}
+                                              is waiting for{" "}
+                                              {formatDuration(
+                                                  currentInsights.longestWaiting
+                                                      .waitingForSeconds,
+                                              )}{" "}
+                                              (
+                                              {
+                                                  currentInsights.longestWaiting
+                                                      .queueStatus
+                                              }
+                                              ).
+                                          </p>
+                                      </CardContent>
+                                  </Card>
+                              ) : null}
+
+                              <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
+                                  <CardHeader>
+                                      <CardTitle>
+                                          Bottleneck Analytics (Doctor x Slot)
+                                      </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                      {(currentInsights.bottlenecks || [])
+                                          .length === 0 ? (
+                                          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                              No bottlenecks detected right now.
+                                          </p>
+                                      ) : (
+                                          <div className="overflow-x-auto">
+                                              <table className="min-w-full text-sm">
+                                                  <thead>
+                                                      <tr className="text-left border-b border-neutral-200 dark:border-dark-border">
+                                                          <th className="py-2 pr-3">
+                                                              Doctor
+                                                          </th>
+                                                          <th className="py-2 pr-3">
+                                                              Slot
+                                                          </th>
+                                                          <th className="py-2 pr-3">
+                                                              Waiting/Called
+                                                          </th>
+                                                          <th className="py-2 pr-3">
+                                                              Avg Wait
+                                                          </th>
+                                                      </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                      {(
+                                                          currentInsights.bottlenecks ||
+                                                          []
+                                                      ).map((item) => (
+                                                          <tr
+                                                              key={`${item.doctorName}-${item.timeSlot}`}
+                                                              className="border-b border-neutral-100 dark:border-dark-border"
+                                                          >
+                                                              <td className="py-2 pr-3">
+                                                                  Dr.{" "}
+                                                                  {
+                                                                      item.doctorName
+                                                                  }
+                                                              </td>
+                                                              <td className="py-2 pr-3">
+                                                                  {
+                                                                      item.timeSlot
+                                                                  }
+                                                              </td>
+                                                              <td className="py-2 pr-3 font-semibold">
+                                                                  {
+                                                                      item.waitingOrCalled
+                                                                  }
+                                                              </td>
+                                                              <td className="py-2 pr-3">
+                                                                  {formatDuration(
+                                                                      item.avgWaitSeconds,
+                                                                  )}
+                                                              </td>
+                                                          </tr>
+                                                      ))}
+                                                  </tbody>
+                                              </table>
+                                          </div>
+                                      )}
+                                  </CardContent>
+                              </Card>
+                          </>
+                      );
+                  })()
+                : null}
+
+            {activeTab === "pending" &&
+                (!queueType || queueType === "live") && (
+                    <TodayQueue
+                        externalQueueType={selectedQueueType}
+                        onQueueTypeChange={setSelectedQueueType}
+                    />
+                )}
+
+            {/* EMERGENCY QUEUE */}
+            {activeTab === "pending" &&
+                (!queueType || queueType === "emergency") && (
+                    <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
+                        <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
+                            <div className="flex items-center gap-3">
+                                <ShieldAlert className="w-5 h-5 text-red-600" />
+                                <CardTitle className="text-red-900 dark:text-red-300 tracking-tight">
+                                    Emergency Queue
+                                </CardTitle>
+                            </div>
+                            <Badge
+                                type="status"
+                                value="emergency"
+                                className="shadow-xs font-bold ring-1 ring-red-300"
+                            >
+                                {emergencyQueue.length} Priority Un-Checked
+                            </Badge>
                         </CardHeader>
-                        <CardContent>
-                            {(currentInsights.bottlenecks || []).length === 0 ? (
-                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    No bottlenecks detected right now.
-                                </p>
+                        <CardContent
+                            className={
+                                emergencyQueue.length > 0
+                                    ? "p-4 sm:p-6 bg-red-50/10"
+                                    : "p-0"
+                            }
+                        >
+                            {emergencyQueue.length === 0 ? (
+                                <div className="py-12 bg-white dark:bg-dark-card flex flex-col items-center justify-center">
+                                    <div className="w-16 h-16 bg-success-50 text-success-500 rounded-full flex items-center justify-center mb-4 border border-success-100">
+                                        <ShieldAlert className="w-8 h-8 opacity-50" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
+                                        No active emergencies
+                                    </h3>
+                                    <p className="text-neutral-500 text-sm">
+                                        Crisis triage is clear right now. Good
+                                        work.
+                                    </p>
+                                </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full text-sm">
-                                        <thead>
-                                            <tr className="text-left border-b border-neutral-200 dark:border-dark-border">
-                                                <th className="py-2 pr-3">
-                                                    Doctor
-                                                </th>
-                                                <th className="py-2 pr-3">
-                                                    Slot
-                                                </th>
-                                                <th className="py-2 pr-3">
-                                                    Waiting/Called
-                                                </th>
-                                                <th className="py-2 pr-3">
-                                                    Avg Wait
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(currentInsights.bottlenecks || []).map(
-                                                (item) => (
-                                                    <tr
-                                                        key={`${item.doctorName}-${item.timeSlot}`}
-                                                        className="border-b border-neutral-100 dark:border-dark-border"
-                                                    >
-                                                        <td className="py-2 pr-3">
-                                                            Dr.{" "}
-                                                            {item.doctorName}
-                                                        </td>
-                                                        <td className="py-2 pr-3">
-                                                            {item.timeSlot}
-                                                        </td>
-                                                        <td className="py-2 pr-3 font-semibold">
-                                                            {
-                                                                item.waitingOrCalled
-                                                            }
-                                                        </td>
-                                                        <td className="py-2 pr-3">
-                                                            {formatDuration(
-                                                                item.avgWaitSeconds,
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ),
-                                            )}
-                                        </tbody>
-                                    </table>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {emergencyQueue.map((apt) => (
+                                        <EmergencyQueueCard
+                                            key={apt._id || apt.appointmentId}
+                                            appointment={apt}
+                                            onEditApprove={openEditApproveModal}
+                                            onReject={openRejectModal}
+                                        />
+                                    ))}
                                 </div>
                             )}
                         </CardContent>
                     </Card>
-                        </>
-                    );
-                })()
-            ) : null}
-
-            {(!queueType || queueType === "live") && (
-                <TodayQueue 
-                    externalQueueType={selectedQueueType}
-                    onQueueTypeChange={setSelectedQueueType}
-                />
-            )}
-
-            {/* EMERGENCY QUEUE */}
-            {(!queueType || queueType === "emergency") && (
-                <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
-                    <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
-                        <div className="flex items-center gap-3">
-                            <ShieldAlert className="w-5 h-5 text-red-600" />
-                            <CardTitle className="text-red-900 dark:text-red-300 tracking-tight">
-                                Emergency Queue
-                            </CardTitle>
-                        </div>
-                        <Badge
-                            type="status"
-                            value="emergency"
-                            className="shadow-xs font-bold ring-1 ring-red-300"
-                        >
-                            {emergencyQueue.length} Priority Un-Checked
-                        </Badge>
-                    </CardHeader>
-                    <CardContent
-                        className={
-                            emergencyQueue.length > 0
-                                ? "p-4 sm:p-6 bg-red-50/10"
-                                : "p-0"
-                        }
-                    >
-                        {emergencyQueue.length === 0 ? (
-                            <div className="py-12 bg-white dark:bg-dark-card flex flex-col items-center justify-center">
-                                <div className="w-16 h-16 bg-success-50 text-success-500 rounded-full flex items-center justify-center mb-4 border border-success-100">
-                                    <ShieldAlert className="w-8 h-8 opacity-50" />
-                                </div>
-                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
-                                    No active emergencies
-                                </h3>
-                                <p className="text-neutral-500 text-sm">
-                                    Crisis triage is clear right now. Good work.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-4">
-                                {emergencyQueue.map((apt) => (
-                                    <EmergencyQueueCard
-                                        key={apt._id || apt.appointmentId}
-                                        appointment={apt}
-                                        onEditApprove={openEditApproveModal}
-                                        onReject={openRejectModal}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+                )}
 
             {/* NORMAL QUEUE */}
-            {(!queueType || queueType === "standard") && (
-                <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
-                    <CardHeader className="bg-neutral-50/50 dark:bg-dark-elevated/50 border-b border-neutral-100 dark:border-dark-border flex flex-row items-center justify-between pb-4">
-                        <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-primary-600" />
-                        <CardTitle className="text-neutral-800">
-                            Standard Check-Ins
-                        </CardTitle>
-                    </div>
-                    <div className="bg-primary-50 dark:bg-primary-900/10 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-full text-xs font-bold border border-primary-200 dark:border-primary-700/40">
-                        {normalQueue.length} Awaiting Approval
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {normalQueue.length > 0 ? (
-                        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/40 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-                            <div className="text-sm text-neutral-600 dark:text-neutral-300">
-                                {selectedNormalIds.length} selected
+            {activeTab === "pending" &&
+                (!queueType || queueType === "standard") && (
+                    <Card className="shadow-sm border-neutral-200 dark:border-dark-border">
+                        <CardHeader className="bg-neutral-50/50 dark:bg-dark-elevated/50 border-b border-neutral-100 dark:border-dark-border flex flex-row items-center justify-between pb-4">
+                            <div className="flex items-center gap-2">
+                                <Users className="w-5 h-5 text-primary-600" />
+                                <CardTitle className="text-neutral-800">
+                                    Standard Check-Ins
+                                </CardTitle>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                                <select
-                                    className="h-10 px-3 border border-neutral-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-card text-sm"
-                                    value={batchReasonPreset}
-                                    onChange={(e) =>
-                                        setBatchReasonPreset(e.target.value)
-                                    }
-                                >
-                                    <option>Doctor unavailable</option>
-                                    <option>Duplicate booking detected</option>
-                                    <option>Invalid patient details</option>
-                                    <option>Slot unavailable</option>
-                                    <option>Clinical triage mismatch</option>
-                                </select>
-                                <Button
-                                    size="sm"
-                                    variant="success"
-                                    disabled={
-                                        batchLoading ||
-                                        selectedNormalIds.length === 0
-                                    }
-                                    onClick={() =>
-                                        handleBatchDecision("approve")
-                                    }
-                                >
-                                    Batch Approve
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    disabled={
-                                        batchLoading ||
-                                        selectedNormalIds.length === 0
-                                    }
-                                    onClick={() =>
-                                        handleBatchDecision("reject")
-                                    }
-                                >
-                                    Batch Reject
-                                </Button>
+                            <div className="bg-primary-50 dark:bg-primary-900/10 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-full text-xs font-bold border border-primary-200 dark:border-primary-700/40">
+                                {normalQueue.length} Awaiting Approval
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {normalQueue.length > 0 ? (
+                                <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/40 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+                                    <div className="text-sm text-neutral-600 dark:text-neutral-300">
+                                        {selectedNormalIds.length} selected
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                                        <select
+                                            className="h-10 px-3 border border-neutral-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-card text-sm"
+                                            value={batchReasonPreset}
+                                            onChange={(e) =>
+                                                setBatchReasonPreset(
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option>Doctor unavailable</option>
+                                            <option>
+                                                Duplicate booking detected
+                                            </option>
+                                            <option>
+                                                Invalid patient details
+                                            </option>
+                                            <option>Slot unavailable</option>
+                                            <option>
+                                                Clinical triage mismatch
+                                            </option>
+                                        </select>
+                                        <Button
+                                            size="sm"
+                                            variant="success"
+                                            disabled={
+                                                batchLoading ||
+                                                selectedNormalIds.length === 0
+                                            }
+                                            onClick={() =>
+                                                handleBatchDecision("approve")
+                                            }
+                                        >
+                                            Batch Approve
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="danger"
+                                            disabled={
+                                                batchLoading ||
+                                                selectedNormalIds.length === 0
+                                            }
+                                            onClick={() =>
+                                                handleBatchDecision("reject")
+                                            }
+                                        >
+                                            Batch Reject
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : null}
+                            {normalQueue.length === 0 ? (
+                                <div className="py-20">
+                                    <EmptyState
+                                        icon={AlertTriangle}
+                                        title="Normal Queue Cleared"
+                                        description="There are currently no standard appointments pending your direct review."
+                                    />
+                                </div>
+                            ) : (
+                                <NormalQueueTable
+                                    appointments={normalQueue}
+                                    onEditApprove={openEditApproveModal}
+                                    onApprove={handleQuickApprove}
+                                    onReject={openRejectModal}
+                                    selectedIds={selectedNormalIds}
+                                    onToggleSelect={toggleNormalSelect}
+                                    onToggleSelectAll={toggleAllNormalSelect}
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+            {/* OVERDUE REQUESTS TAB */}
+            {activeTab === "overdue" && (
+                <Card className="border-orange-200 shadow-md shadow-orange-100/30 overflow-hidden">
+                    <CardHeader className="bg-orange-50/80 border-b border-orange-100 flex flex-row items-center justify-between pb-4">
+                        <div className="flex items-center gap-3">
+                            <MailX className="w-5 h-5 text-orange-600" />
+                            <div>
+                                <CardTitle className="text-orange-900 tracking-tight">
+                                    Overdue Requests
+                                </CardTitle>
+                                <p className="text-xs text-orange-600 mt-0.5">
+                                    Appointments whose date has passed without
+                                    admin review
+                                </p>
                             </div>
                         </div>
-                    ) : null}
-                    {normalQueue.length === 0 ? (
-                        <div className="py-20">
-                            <EmptyState
-                                icon={AlertTriangle}
-                                title="Normal Queue Cleared"
-                                description="There are currently no standard appointments pending your direct review."
-                            />
-                        </div>
-                    ) : (
-                        <NormalQueueTable
-                            appointments={normalQueue}
-                            onEditApprove={openEditApproveModal}
-                            onApprove={handleQuickApprove}
-                            onReject={openRejectModal}
-                            selectedIds={selectedNormalIds}
-                            onToggleSelect={toggleNormalSelect}
-                            onToggleSelectAll={toggleAllNormalSelect}
-                        />
+                        {overdueQueue.length > 0 && (
+                            <Button
+                                variant="danger"
+                                icon={MailX}
+                                loading={cancellingOverdue}
+                                onClick={handleCancelOverdue}
+                            >
+                                Send Apology &amp; Cancel All
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        {overdueLoading ? (
+                            <div className="p-6">
+                                <TableSkeleton rows={4} columns={5} />
+                            </div>
+                        ) : overdueQueue.length === 0 ? (
+                            <div className="py-20">
+                                <EmptyState
+                                    icon={AlertTriangle}
+                                    title="No Overdue Requests"
+                                    description="All appointment requests have been reviewed within their scheduled dates."
+                                />
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-orange-50/60 border-b border-orange-100 text-left">
+                                            <th className="px-5 py-3 text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                                Patient
+                                            </th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                                Doctor
+                                            </th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                                Scheduled Date
+                                            </th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                                Time Slot
+                                            </th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                                Payment
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {overdueQueue.map((apt) => (
+                                            <tr
+                                                key={apt.appointmentId}
+                                                className="border-b border-orange-50 hover:bg-orange-50/30 transition-colors"
+                                            >
+                                                <td className="px-5 py-3 font-medium text-neutral-800">
+                                                    {apt.patientName}
+                                                </td>
+                                                <td className="px-5 py-3 text-neutral-600">
+                                                    Dr. {apt.doctorName}
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    <span className="text-orange-700 font-semibold">
+                                                        {formatDate(apt.date)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3 text-neutral-600">
+                                                    {apt.timeSlot}
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    {apt.payment ? (
+                                                        <span className="text-xs font-semibold text-success-700 bg-success-50 border border-success-200 px-2 py-0.5 rounded-md">
+                                                            Paid ₹
+                                                            {apt.payment.amount}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-neutral-400">
+                                                            Unpaid
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
             )}
+
+            {/* PAST APPOINTMENTS TAB */}
+            {activeTab === "past" && <PastAppointmentsTab />}
 
             <EditAppointmentModal
                 isOpen={editModalOpen}

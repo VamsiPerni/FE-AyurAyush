@@ -34,11 +34,12 @@ export const adminService = {
         return response.data;
     },
 
-    getDoctors: async (specialization = "") => {
-        const query = specialization
-            ? `?specialization=${encodeURIComponent(specialization)}`
-            : "";
-        const response = await axiosInstance.get(`/admin/doctors${query}`);
+    getDoctors: async (specialization = "", page = 1, limit = 10) => {
+        const params = new URLSearchParams();
+        if (specialization) params.append("specialization", specialization);
+        params.append("page", page);
+        params.append("limit", limit);
+        const response = await axiosInstance.get(`/admin/doctors?${params.toString()}`);
         return response.data;
     },
 
@@ -165,6 +166,31 @@ export const adminService = {
 
     getEmergencyDelays: async () => {
         const response = await axiosInstance.get("/admin/emergency-delays");
+        return response.data;
+    },
+
+    getOverdueAppointments: async () => {
+        const response = await axiosInstance.get("/admin/appointments/overdue");
+        return response.data;
+    },
+
+    cancelOverdueAppointments: async () => {
+        const response = await axiosInstance.post("/admin/appointments/overdue/cancel-all");
+        return response.data;
+    },
+
+    getPastAppointments: async (params = {}) => {
+        const query = new URLSearchParams();
+        Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== "") query.append(k, v); });
+        const response = await axiosInstance.get(`/admin/appointments/past?${query.toString()}`);
+        return response.data;
+    },
+
+    markNoShow: async (appointmentId, reason) => {
+        const response = await axiosInstance.post(
+            `/admin/appointments/${encodeURIComponent(appointmentId)}/no-show`,
+            { reason },
+        );
         return response.data;
     },
 };

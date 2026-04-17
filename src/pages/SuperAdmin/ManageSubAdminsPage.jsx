@@ -48,6 +48,22 @@ const SCOPE_PRESETS = {
 const defaultPermissions = () =>
     Object.fromEntries(ALL_PERMISSIONS.map((p) => [p.key, false]));
 
+const PermissionToggles = ({ permissions, onChange }) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {ALL_PERMISSIONS.map(({ key, label }) => (
+            <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                    type="checkbox"
+                    checked={!!permissions[key]}
+                    onChange={(e) => onChange({ ...permissions, [key]: e.target.checked })}
+                    className="w-4 h-4 rounded accent-primary-600"
+                />
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">{label}</span>
+            </label>
+        ))}
+    </div>
+);
+
 const ManageSubAdminsPage = () => {
     const [subAdmins, setSubAdmins] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -140,22 +156,6 @@ const ManageSubAdminsPage = () => {
             showErrorToast(err.response?.data?.message || "Failed to deactivate.");
         }
     };
-
-    const PermissionToggles = ({ permissions, onChange }) => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {ALL_PERMISSIONS.map(({ key, label }) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={!!permissions[key]}
-                        onChange={(e) => onChange({ ...permissions, [key]: e.target.checked })}
-                        className="w-4 h-4 rounded accent-primary-600"
-                    />
-                    <span className="text-sm text-neutral-700 dark:text-neutral-300">{label}</span>
-                </label>
-            ))}
-        </div>
-    );
 
     const scopeColor = (scope) => {
         if (scope === "ayurveda") return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-700/50";
