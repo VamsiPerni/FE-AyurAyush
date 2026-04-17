@@ -19,6 +19,7 @@ import { chatService } from "../../services/chatService";
 import { useAuthContext } from "../../contexts/AppContext";
 import { PageHeader } from "../../components/shared/PageHeader";
 import { DoctorCard } from "../../components/patient/DoctorCard";
+import { DateSlotStrip } from "../../components/patient/DateSlotStrip";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
 import {
@@ -845,71 +846,16 @@ const BookAppointmentPage = () => {
                     {/* STEP 2: Date & Time */}
                     {step === 2 && (
                         <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
-                            <div>
-                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-100 mb-4">
-                                    Select Date
-                                </h3>
-                                <Input
-                                    type="date"
-                                    icon={Calendar}
-                                    value={selectedDate}
-                                    onChange={handleDateChange}
-                                    min={today}
-                                    max={maxDate}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-100 mb-4">
-                                    Select Time Slot
-                                </h3>
-                                {!selectedDate ? (
-                                    <div className="p-6 text-center bg-neutral-50 dark:bg-dark-elevated rounded-lg border border-neutral-100 dark:border-dark-border text-neutral-500 dark:text-neutral-400 text-sm">
-                                        Please select a date first to view
-                                        available time slots.
-                                    </div>
-                                ) : loadingSlots ? (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div
-                                                key={i}
-                                                className="h-12 bg-neutral-100 dark:bg-dark-elevated animate-pulse rounded-lg"
-                                            />
-                                        ))}
-                                    </div>
-                                ) : availableSlots.length === 0 ? (
-                                    <div className="p-6 text-center bg-warning-50 text-warning-700 rounded-lg border border-warning-200 text-sm">
-                                        No available time slots on this date.
-                                        Please try another day.
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        {(Array.isArray(availableSlots)
-                                            ? availableSlots
-                                            : []
-                                        ).map((slot) => (
-                                            <button
-                                                key={slot}
-                                                onClick={() =>
-                                                    setSelectedSlot(slot)
-                                                }
-                                                className={`
-                          py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2
-                          ${
-                              selectedSlot === slot
-                                  ? "bg-primary-600 text-white shadow-md tracking-wide"
-                                  : "bg-white dark:bg-dark-card border border-neutral-200 dark:border-dark-border text-neutral-700 dark:text-neutral-300 hover:border-primary-300 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/10"
-                          }
-                        `}
-                                            >
-                                                <Clock className="w-4 h-4" />
-                                                {slot}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <DateSlotStrip
+                                doctorId={selectedDoctor?._id || selectedDoctor?.doctorId}
+                                selectedDate={selectedDate}
+                                selectedSlot={selectedSlot}
+                                onDateSelect={(date) => {
+                                    setSelectedDate(date);
+                                    setAvailableSlots([]);
+                                }}
+                                onSlotSelect={setSelectedSlot}
+                            />
 
                             <div className="pt-6 border-t border-neutral-100 dark:border-dark-border flex justify-between">
                                 <Button

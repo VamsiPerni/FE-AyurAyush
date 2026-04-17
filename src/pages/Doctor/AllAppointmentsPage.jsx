@@ -9,26 +9,28 @@ import {
     ChevronLeft,
     ChevronRight as ChevronRightIcon,
     Calendar,
+    AlertTriangle,
 } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { PageHeader } from "../../components/shared/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Modal } from "../../components/ui/Modal";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Table } from "../../components/ui/Table";
 import { Badge } from "../../components/ui/Badge";
 import { TableSkeleton } from "../../components/ui/Skeleton";
-import { showErrorToast } from "../../utils/toastMessageHelper";
+import { showErrorToast, showSuccessToast } from "../../utils/toastMessageHelper";
 
 const LIMIT = 15;
 
 const filterCategories = [
-    { id: "all",       label: "All" },
-    { id: "pending",   label: "Pending" },
-    { id: "confirmed", label: "Confirmed" },
-    { id: "completed", label: "Completed" },
-    { id: "cancelled", label: "Cancelled" },
+    { id: "all",        label: "All" },
+    { id: "confirmed",  label: "Confirmed" },
+    { id: "completed",  label: "Completed" },
+    { id: "cancelled",  label: "Cancelled" },
+    { id: "not_closed", label: "Not Closed" },
 ];
 
 const AllAppointmentsPage = () => {
@@ -45,9 +47,14 @@ const AllAppointmentsPage = () => {
     const [appointments,  setAppointments]  = useState([]);
     const [totalCount,    setTotalCount]    = useState(0);
     const [totalPages,    setTotalPages]    = useState(1);
-    const [counts,        setCounts]        = useState({ all: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 });
+    const [counts, setCounts] = useState({ all: 0, confirmed: 0, completed: 0, cancelled: 0, not_closed: 0 });
     const [loading,       setLoading]       = useState(true);
     const [error,         setError]         = useState("");
+
+    // No-show modal
+    const [noShowModal,   setNoShowModal]   = useState(false);
+    const [noShowTarget,  setNoShowTarget]  = useState(null);
+    const [noShowLoading, setNoShowLoading] = useState(false);
 
     // Debounce search
     const searchTimer = useRef(null);
@@ -65,10 +72,11 @@ const AllAppointmentsPage = () => {
 
     // Map tab → status param
     const tabToStatus = (tab) => {
-        if (tab === "pending")   return "pending_admin_approval";
-        if (tab === "confirmed") return "confirmed";
-        if (tab === "completed") return "completed";
-        if (tab === "cancelled") return "cancelled";
+        if (tab === "pending")    return "pending_admin_approval";
+        if (tab === "confirmed")  return "confirmed";
+        if (tab === "completed")  return "completed";
+        if (tab === "cancelled")  return "cancelled";
+        if (tab === "not_closed") return "not_closed";
         return "";
     };
 
@@ -76,13 +84,15 @@ const AllAppointmentsPage = () => {
         try {
             setLoading(true);
             setError("");
+            const isNotClosed = activeTab === "not_closed";
             const result = await doctorService.getAppointments({
-                status:       tabToStatus(activeTab),
+                status:       isNotClosed ? "confirmed" : tabToStatus(activeTab),
                 date:         dateFilter,
                 urgencyLevel: urgencyFilter === "all" ? "" : urgencyFilter,
                 patientName:  debouncedSearch,
                 page,
                 limit:        LIMIT,
+                ...(isNotClosed ? { pastOnly: "true" } : {}),
             });
             const payload = result?.data || result || {};
             const list = payload.appointments ||
@@ -99,22 +109,21 @@ const AllAppointmentsPage = () => {
         }
     }, [activeTab, dateFilter, urgencyFilter, debouncedSearch, page]);
 
-    // Load counts once on mount (unfiltered, just totals per status)
     const loadCounts = useCallback(async () => {
         try {
-            const [allRes, pendingRes, confirmedRes, completedRes, cancelledRes] = await Promise.all([
+            const [allRes, confirmedRes, completedRes, cancelledRes, notClosedRes] = await Promise.all([
                 doctorService.getAppointments({ limit: 1, page: 1 }),
-                doctorService.getAppointments({ status: "pending_admin_approval", limit: 1, page: 1 }),
                 doctorService.getAppointments({ status: "confirmed",              limit: 1, page: 1 }),
                 doctorService.getAppointments({ status: "completed",              limit: 1, page: 1 }),
                 doctorService.getAppointments({ status: "cancelled",              limit: 1, page: 1 }),
+                doctorService.getAppointments({ status: "confirmed", pastOnly: "true", limit: 1, page: 1 }),
             ]);
             setCounts({
-                all:       allRes?.data?.totalCount       || 0,
-                pending:   pendingRes?.data?.totalCount   || 0,
-                confirmed: confirmedRes?.data?.totalCount || 0,
-                completed: completedRes?.data?.totalCount || 0,
-                cancelled: cancelledRes?.data?.totalCount || 0,
+                all:        allRes?.data?.totalCount        || 0,
+                confirmed:  confirmedRes?.data?.totalCount  || 0,
+                completed:  completedRes?.data?.totalCount  || 0,
+                cancelled:  cancelledRes?.data?.totalCount  || 0,
+                not_closed: notClosedRes?.data?.totalCount  || 0,
             });
         } catch {
             // silent — counts are non-critical
@@ -152,6 +161,22 @@ const AllAppointmentsPage = () => {
     const handleRowClick = (apt) => {
         const id = apt.appointmentId || apt._id;
         if (id) navigate(`/doctor/appointments/${id}`, { state: { from: "/doctor/appointments" } });
+    };
+
+    const handleNoShowSubmit = async () => {
+        if (!noShowTarget) return;
+        try {
+            setNoShowLoading(true);
+            const res = await doctorService.markNoShow(noShowTarget.appointmentId);
+            showSuccessToast(res?.message || "Appointment marked as no-show.");
+            setNoShowModal(false);
+            setNoShowTarget(null);
+            await Promise.all([loadAppointments(), loadCounts()]);
+        } catch (err) {
+            showErrorToast(err.response?.data?.message || "Failed to mark no-show.");
+        } finally {
+            setNoShowLoading(false);
+        }
     };
 
     const normalizeRow = (item = {}) => ({
@@ -205,14 +230,26 @@ const AllAppointmentsPage = () => {
         {
             key: "status",
             label: "Status",
-            render: (_, row) => <Badge type="status" value={row.status} />,
+            render: (_, row) => activeTab === "not_closed"
+                ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200"><AlertTriangle className="w-3.5 h-3.5" />Not Closed</span>
+                : <Badge type="status" value={row.status} />,
         },
         {
             key: "actions",
             label: "Action",
             className: "text-right",
             render: (_, row) => (
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                    {activeTab === "not_closed" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => { e.stopPropagation(); setNoShowTarget(row); setNoShowModal(true); }}
+                            className="text-error-600 border-error-200 hover:bg-error-50"
+                        >
+                            Mark No-Show
+                        </Button>
+                    )}
                     <Button
                         size="sm"
                         variant="secondary"
@@ -413,6 +450,34 @@ const AllAppointmentsPage = () => {
                     </div>
                 )}
             </Card>
+
+            {/* No-Show Confirmation Modal */}
+            <Modal
+                isOpen={noShowModal}
+                onClose={() => !noShowLoading && setNoShowModal(false)}
+                title="Mark as No-Show"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    {noShowTarget && (
+                        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-sm">
+                            <p className="font-semibold text-neutral-800">{noShowTarget.patientName}</p>
+                            <p className="text-neutral-500">{formatDateIN(noShowTarget.date)} &bull; {noShowTarget.timeSlot}</p>
+                        </div>
+                    )}
+                    <p className="text-sm text-neutral-600">
+                        This will cancel the appointment and send a cancellation notification to the patient.
+                    </p>
+                    <div className="flex gap-3 pt-2 border-t border-neutral-100">
+                        <Button variant="outline" onClick={() => setNoShowModal(false)} disabled={noShowLoading} className="flex-1">
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={handleNoShowSubmit} loading={noShowLoading} className="flex-1">
+                            Confirm No-Show
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

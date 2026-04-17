@@ -10,7 +10,7 @@ export const doctorService = {
         return response.data;
     },
 
-    getAppointments: async ({ status = "", date = "", urgencyLevel = "", patientName = "", page = 1, limit = 15 } = {}) => {
+    getAppointments: async ({ status = "", date = "", urgencyLevel = "", patientName = "", page = 1, limit = 15, pastOnly = "" } = {}) => {
         const params = new URLSearchParams();
         if (status)       params.append("status", status);
         if (date)         params.append("date", date);
@@ -18,6 +18,7 @@ export const doctorService = {
         if (patientName)  params.append("patientName", patientName);
         if (page)         params.append("page", page);
         if (limit)        params.append("limit", limit);
+        if (pastOnly)     params.append("pastOnly", pastOnly);
         const query = params.toString() ? `?${params.toString()}` : "";
         const response = await axiosInstance.get(`/doctor/appointments${query}`);
         return response.data;
@@ -155,6 +156,13 @@ export const doctorService = {
                     slot,
                 },
             },
+        );
+        return response.data;
+    },
+
+    markNoShow: async (appointmentId) => {
+        const response = await axiosInstance.post(
+            `/doctor/appointments/${encodeURIComponent(appointmentId)}/no-show`,
         );
         return response.data;
     },
