@@ -1,8 +1,12 @@
 import { axiosInstance } from "../axios/axiosInstance";
 
 export const doctorService = {
-    getDashboard: async () => {
-        const response = await axiosInstance.get("/doctor/dashboard");
+    getDashboard: async ({ page = 1, limit = 5 } = {}) => {
+        const params = new URLSearchParams();
+        if (page) params.append("page", page);
+        if (limit) params.append("limit", limit);
+        const query = params.toString() ? `?${params.toString()}` : "";
+        const response = await axiosInstance.get(`/doctor/dashboard${query}`);
         return response.data;
     },
 

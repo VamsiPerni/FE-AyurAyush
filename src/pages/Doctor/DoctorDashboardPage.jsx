@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
     CalendarCheck,
@@ -56,9 +56,13 @@ const DoctorDashboardPage = () => {
     const [upcomingPage, setUpcomingPage] = useState(1);
     const [upcomingDate, setUpcomingDate] = useState("");
     const [upcomingLoading, setUpcomingLoading] = useState(false);
+    const [todayMeta, setTodayMeta] = useState({ totalCount: 0, page: 1, totalPages: 1 });
+    const [todayPage, setTodayPage] = useState(1);
+    const [todayLoading, setTodayLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [actionLoadingId, setActionLoadingId] = useState(null);
+    const isFirstRender = useRef(true);
 
     const normalizeAppointments = (payload) => {
         if (Array.isArray(payload?.appointments)) return payload.appointments;
@@ -99,20 +103,27 @@ const DoctorDashboardPage = () => {
         }
     }, []);
 
-    const loadDashboard = useCallback(async ({ silent = false } = {}) => {
+    const loadDashboard = useCallback(async ({ silent = false, page = 1 } = {}) => {
         try {
             if (!silent) {
                 setLoading(true);
                 setError("");
+            } else {
+                setTodayLoading(true);
             }
             const [dashboardResult, appointmentsResult] = await Promise.all([
-                doctorService.getDashboard(),
+                doctorService.getDashboard({ page, limit: 5 }),
                 doctorService.getAppointments(),
             ]);
 
             const dashboardPayload =
                 dashboardResult?.data || dashboardResult || {};
             setDashboard(dashboardPayload);
+            setTodayMeta({
+                totalCount: dashboardPayload.todayTotalCount || 0,
+                page: dashboardPayload.todayPage || 1,
+                totalPages: dashboardPayload.todayTotalPages || 1,
+            });
 
             const appointmentsPayload =
                 appointmentsResult?.data || appointmentsResult || {};
@@ -178,26 +189,28 @@ const DoctorDashboardPage = () => {
         } finally {
             if (!silent) {
                 setLoading(false);
+            } else {
+                setTodayLoading(false);
             }
         }
     }, []);
 
     useEffect(() => {
-        loadDashboard();
+        loadDashboard({ page: 1 });
         loadUpcoming({ page: 1, date: "" });
     }, [loadDashboard, loadUpcoming]);
 
     useEffect(() => {
-        loadUpcoming({ page: upcomingPage, date: upcomingDate });
-    }, [upcomingPage, upcomingDate, loadUpcoming]);
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        loadDashboard({ silent: true, page: todayPage });
+    }, [todayPage, loadDashboard]);
 
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            loadDashboard({ silent: true });
-        }, 10000);
-
-        return () => clearInterval(intervalId);
-    }, [loadDashboard]);
+        loadUpcoming({ page: upcomingPage, date: upcomingDate });
+    }, [upcomingPage, upcomingDate, loadUpcoming]);
 
     // 1. Loading State
     if (loading) {
@@ -235,7 +248,17 @@ const DoctorDashboardPage = () => {
 
     // 3. Data Extraction
     const stats = dashboard?.stats || {};
-    const todayAppointments = dashboard?.todayAppointments || [];
+
+    const parseSlotMinutes = (slot) => {
+        const start = String(slot || "").split("-")[0]?.trim();
+        const match = start?.match(/^(\d{1,2}):(\d{2})/);
+        if (!match) return 9999;
+        return Number(match[1]) * 60 + Number(match[2]);
+    };
+
+    const todayAppointments = [...(dashboard?.todayAppointments || [])].sort(
+        (a, b) => parseSlotMinutes(a.timeSlot) - parseSlotMinutes(b.timeSlot),
+    );
 
     const resolveCount = (primary, fallback = 0) => {
         const p = Number(primary);
@@ -358,62 +381,85 @@ const DoctorDashboardPage = () => {
                 />
             </div>
 
-            {/* Today's Appointments Grid */}
+            {/* Today's Appointments */}
             <Card>
                 <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-dark-border">
                     <div className="flex items-center gap-2">
                         <ClipboardList className="w-5 h-5 text-primary-600" />
                         <CardTitle>Today's Appointments</CardTitle>
+                        {todayMeta.totalCount > 0 && (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700/50">
+                                {todayMeta.totalCount} total
+                            </span>
+                        )}
                     </div>
-                    {todayAppointments.length > 0 && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate("/doctor/today")}
-                        >
+                    {todayMeta.totalCount > 0 && (
+                        <Button variant="ghost" size="sm" onClick={() => navigate("/doctor/today")}>
                             View Full Schedule
                         </Button>
                     )}
                 </CardHeader>
 
                 <CardContent className="p-0">
-                    {todayAppointments.length === 0 ? (
+                    {todayLoading ? (
+                        <div className="p-6 space-y-3">
+                            {[1,2,3].map((i) => (
+                                <div key={i} className="h-20 bg-neutral-100 dark:bg-dark-elevated rounded-xl animate-pulse" />
+                            ))}
+                        </div>
+                    ) : todayAppointments.length === 0 ? (
                         <div className="py-12">
                             <EmptyState
                                 icon={FileText}
                                 title="No appointments today"
                                 description="Your schedule is clear for today. Take a break!"
-                                action={
-                                    <Button
-                                        variant="outline"
-                                        onClick={loadDashboard}
-                                    >
-                                        Refresh Flow
-                                    </Button>
-                                }
+                                action={<Button variant="outline" onClick={() => loadDashboard()}>Refresh</Button>}
                             />
                         </div>
                     ) : (
-                        <div className="flex flex-col">
-                            {todayAppointments.slice(0, 5).map((apt) => (
-                                <AppointmentRow
-                                    key={apt._id || apt.appointmentId}
-                                    appointment={apt}
-                                    onView={(id) =>
-                                        navigate(`/doctor/appointments/${id}`, {
-                                            state: {
-                                                from: "/doctor/dashboard",
-                                            },
-                                        })
-                                    }
-                                    onCall={handleCallPatient}
-                                    onStartConsultation={
-                                        handleStartConsultation
-                                    }
-                                    actionLoadingId={actionLoadingId}
-                                />
-                            ))}
-                        </div>
+                        <>
+                            <div className="flex flex-col">
+                                {todayAppointments.map((apt) => (
+                                    <AppointmentRow
+                                        key={apt._id || apt.appointmentId}
+                                        appointment={apt}
+                                        onView={(id) =>
+                                            navigate(`/doctor/appointments/${id}`, {
+                                                state: { from: "/doctor/dashboard" },
+                                            })
+                                        }
+                                        onCall={handleCallPatient}
+                                        onStartConsultation={handleStartConsultation}
+                                        actionLoadingId={actionLoadingId}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Pagination */}
+                            {todayMeta.totalPages > 1 && (
+                                <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/30">
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        Page {todayMeta.page} of {todayMeta.totalPages} • {todayMeta.totalCount} appointments
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => setTodayPage((p) => Math.max(1, p - 1))}
+                                            disabled={todayMeta.page <= 1}
+                                            className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setTodayPage((p) => Math.min(todayMeta.totalPages, p + 1))}
+                                            disabled={todayMeta.page >= todayMeta.totalPages}
+                                            className="p-1.5 rounded-lg border border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-dark-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </CardContent>
             </Card>

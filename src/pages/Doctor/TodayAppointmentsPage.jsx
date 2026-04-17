@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { RefreshCw, AlertCircle, FileText } from "lucide-react";
+import { RefreshCw, AlertCircle, FileText, Search, ArrowUpDown } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { AppointmentRow } from "../../components/doctor/AppointmentRow";
 import EmergencyDelayToggle from "../../components/doctor/EmergencyDelayToggle";
 import { PageHeader } from "../../components/shared/PageHeader";
 import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { TableSkeleton } from "../../components/ui/Skeleton";
 import {
@@ -28,6 +29,10 @@ const TodayAppointmentsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("all");
+    const [queueFilter, setQueueFilter] = useState("all");
+    const [urgencyFilter, setUrgencyFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortOrder, setSortOrder] = useState("asc"); // time asc by default
     const [callingNext, setCallingNext] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [actionFeedback, setActionFeedback] = useState(null);
@@ -215,17 +220,48 @@ const TodayAppointmentsPage = () => {
 
     const todayDateString = formatter.format(new Date());
 
-    // Client-side filtering
+    // Parse timeSlot string "HH:mm - HH:mm" to minutes for sorting
+    const parseSlotMinutes = (slot) => {
+        const start = String(slot || "").split("-")[0]?.trim();
+        const match = start?.match(/^(\d{1,2}):(\d{2})/);
+        if (!match) return 9999;
+        return Number(match[1]) * 60 + Number(match[2]);
+    };
+
+    // Client-side filtering + sorting
     const filteredAppointments = useMemo(() => {
-        return appointments.filter((apt) => {
-            if (activeTab === "all") return true;
-            if (activeTab === "pending")
-                return ["pending_admin_approval"].includes(apt.status);
-            if (activeTab === "confirmed") return apt.status === "confirmed";
-            if (activeTab === "completed") return apt.status === "completed";
+        let result = appointments.filter((apt) => {
+            // Status tab
+            if (activeTab === "pending" && !(["pending_admin_approval"].includes(apt.status))) return false;
+            if (activeTab === "confirmed" && apt.status !== "confirmed") return false;
+            if (activeTab === "completed" && apt.status !== "completed") return false;
+
+            // Queue status filter
+            if (queueFilter !== "all") {
+                const qs = apt.queueStatus || "waiting";
+                if (qs !== queueFilter) return false;
+            }
+
+            // Urgency filter
+            if (urgencyFilter !== "all" && apt.urgencyLevel !== urgencyFilter) return false;
+
+            // Search by patient name
+            if (searchQuery.trim()) {
+                const name = (apt.patient?.name || apt.patientName || "").toLowerCase();
+                if (!name.includes(searchQuery.toLowerCase())) return false;
+            }
+
             return true;
         });
-    }, [appointments, activeTab]);
+
+        // Sort by time slot
+        result.sort((a, b) => {
+            const diff = parseSlotMinutes(a.timeSlot) - parseSlotMinutes(b.timeSlot);
+            return sortOrder === "asc" ? diff : -diff;
+        });
+
+        return result;
+    }, [appointments, activeTab, queueFilter, urgencyFilter, searchQuery, sortOrder]);
 
     const counts = useMemo(() => {
         return {
@@ -321,7 +357,7 @@ const TodayAppointmentsPage = () => {
                 </div>
             )}
 
-            {/* Filter Tabs */}
+            {/* Status Filter Tabs */}
             <div className="flex flex-wrap items-center gap-2">
                 {filterCategories.map((cat) => (
                     <button
@@ -351,6 +387,66 @@ const TodayAppointmentsPage = () => {
                         </span>
                     </button>
                 ))}
+            </div>
+
+            {/* Additional Filters Row */}
+            <div className="flex flex-wrap items-center gap-3">
+                {/* Search */}
+                <div className="w-full sm:w-56">
+                    <Input
+                        icon={Search}
+                        placeholder="Search patient name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                {/* Queue Status */}
+                <select
+                    value={queueFilter}
+                    onChange={(e) => setQueueFilter(e.target.value)}
+                    className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                    <option value="all">All Queue States</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="called">Notified</option>
+                    <option value="in_consultation">In Consultation</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                {/* Urgency */}
+                <select
+                    value={urgencyFilter}
+                    onChange={(e) => setUrgencyFilter(e.target.value)}
+                    className="h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                    <option value="all">All Urgency</option>
+                    <option value="normal">Normal</option>
+                    <option value="emergency">Emergency</option>
+                </select>
+
+                {/* Sort Order */}
+                <button
+                    onClick={() => setSortOrder((s) => s === "asc" ? "desc" : "asc")}
+                    className="inline-flex items-center gap-2 h-10 px-3 rounded-xl border border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-dark-hover transition-colors"
+                >
+                    <ArrowUpDown className="w-4 h-4" />
+                    Time {sortOrder === "asc" ? "↑ Earliest" : "↓ Latest"}
+                </button>
+
+                {/* Active filter count + clear */}
+                {(queueFilter !== "all" || urgencyFilter !== "all" || searchQuery) && (
+                    <button
+                        onClick={() => { setQueueFilter("all"); setUrgencyFilter("all"); setSearchQuery(""); }}
+                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium"
+                    >
+                        Clear filters
+                    </button>
+                )}
+
+                <span className="ml-auto text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                    {filteredAppointments.length} of {counts.all} shown
+                </span>
             </div>
 
             <Card className="overflow-hidden min-h-100">
