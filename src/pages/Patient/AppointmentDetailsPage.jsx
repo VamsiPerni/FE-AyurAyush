@@ -100,6 +100,7 @@ const AppointmentDetailsPage = () => {
     const chatSummary =
         data.chatSummary || appointment.chatSummary || appointment.aiSummary;
     const prescription = appointment.prescription;
+    const isNotVisited = appointment.cancelledBy === "not_visited";
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -113,16 +114,13 @@ const AppointmentDetailsPage = () => {
                     <span>Back to Appointments</span>
                 </button>
                 <div className="flex items-center gap-2">
+                    {appointment.urgencyLevel === "emergency" && (
+                        <Badge type="status" value="emergency" />
+                    )}
                     <Badge
-                        variant={
-                            appointment.urgencyLevel === "emergency"
-                                ? "emergency"
-                                : "normal"
-                        }
-                    >
-                        {appointment.urgencyLevel?.toUpperCase()}
-                    </Badge>
-                    <Badge variant={appointment.status} />
+                        type="status"
+                        value={isNotVisited ? "no_show" : appointment.status}
+                    />
                 </div>
             </div>
 

@@ -1,7 +1,15 @@
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { Calendar, Clock, Hash, Stethoscope, Users, CreditCard, AlertCircle } from "lucide-react";
+import {
+    Calendar,
+    Clock,
+    Hash,
+    Stethoscope,
+    Users,
+    CreditCard,
+    AlertCircle,
+} from "lucide-react";
 import { PaymentButton } from "./PaymentButton";
 
 const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
@@ -21,6 +29,7 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
         lastCalledAt,
         symptoms,
         aiSummary,
+        cancelledBy,
     } = appointment;
 
     const id = appointmentId || _id;
@@ -55,12 +64,19 @@ const AppointmentCard = ({ appointment, onView, onCancel, loading }) => {
                             Emergency
                         </Badge>
                     )}
-                    <Badge type="status" value={status}>
-                        {status === "pending_payment"
-                            ? "Awaiting Payment"
-                            : status === "pending_admin_approval"
-                              ? "Pending Approval"
-                              : status}
+                    <Badge
+                        type="status"
+                        value={
+                            cancelledBy === "not_visited" ? "no_show" : status
+                        }
+                    >
+                        {cancelledBy === "not_visited"
+                            ? "No-Show"
+                            : status === "pending_payment"
+                              ? "Awaiting Payment"
+                              : status === "pending_admin_approval"
+                                ? "Pending Approval"
+                                : status}
                     </Badge>
                 </div>
             </div>
