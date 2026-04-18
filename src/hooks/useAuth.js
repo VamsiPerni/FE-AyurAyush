@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { flushSync } from "react-dom";
 import { useAuthContext } from "../contexts/AppContext";
 import { authService } from "../services/authService";
 import { otpService } from "../services/otpService";
@@ -8,7 +9,7 @@ import { showErrorToast, showSuccessToast } from "../utils/toastMessageHelper";
 export const useAuth = () => {
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
-    const { handleSetUser, setActiveRole } = useAuthContext();
+    const { handleSetUser, setActiveRole, checkAuth } = useAuthContext();
     const navigate = useNavigate();
 
     const login = async (email, password) => {
@@ -18,26 +19,23 @@ export const useAuth = () => {
             const result = await authService.login(email, password);
             showSuccessToast("Login successful!");
 
-            const name = result.data.name || "";
             const roles = result.data.roles;
-            const resolvedActiveRole = roles.length === 1 ? roles[0] : null;
             const mustChangePassword = result.data.mustChangePassword || false;
-            handleSetUser({
-                isLoggedIn: true,
-                name,
-                roles,
-                activeRole: resolvedActiveRole,
-                mustChangePassword,
+
+            // Fetch full context (including subAdminProfile) and force sync commit
+            let resolvedUser = null;
+            flushSync(() => {
+                // flushSync ensures state is committed before navigate fires
             });
+            resolvedUser = await checkAuth();
 
-            if (resolvedActiveRole) {
-                setActiveRole(resolvedActiveRole);
-            }
+            const resolvedRoles = resolvedUser?.roles || roles;
+            const resolvedMustChange = resolvedUser?.mustChangePassword ?? mustChangePassword;
 
-            if (mustChangePassword) {
+            if (resolvedMustChange) {
                 navigate("/change-password");
-            } else if (roles.length === 1) {
-                const role = roles[0];
+            } else if (resolvedRoles.length === 1) {
+                const role = resolvedRoles[0];
                 const dashboardPath =
                     role === "sub_admin" ? "/sub-admin/dashboard" :
                     role === "admin"     ? "/super-admin/dashboard" :

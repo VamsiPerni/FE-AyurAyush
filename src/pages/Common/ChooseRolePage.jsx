@@ -9,7 +9,8 @@ const roleConfig = {
         desc: "Book appointments & consult",
         iconBg: "bg-success-50 dark:bg-success-900/20",
         iconColor: "text-success-600 dark:text-success-400",
-        borderHover: "hover:border-success-300 dark:hover:border-success-700/50",
+        borderHover:
+            "hover:border-success-300 dark:hover:border-success-700/50",
         gradient: "from-green-500 to-emerald-600",
     },
     doctor: {
@@ -18,17 +19,29 @@ const roleConfig = {
         desc: "Manage patients & schedules",
         iconBg: "bg-primary-50 dark:bg-primary-900/20",
         iconColor: "text-primary-600 dark:text-primary-400",
-        borderHover: "hover:border-primary-300 dark:hover:border-primary-700/50",
+        borderHover:
+            "hover:border-primary-300 dark:hover:border-primary-700/50",
         gradient: "from-primary-500 to-primary-700",
     },
     admin: {
         icon: Shield,
-        label: "Admin",
+        label: "Super Admin",
         desc: "Hospital management",
         iconBg: "bg-warning-50 dark:bg-warning-900/20",
         iconColor: "text-warning-600 dark:text-warning-500",
-        borderHover: "hover:border-warning-300 dark:hover:border-warning-700/50",
+        borderHover:
+            "hover:border-warning-300 dark:hover:border-warning-700/50",
         gradient: "from-amber-500 to-orange-600",
+    },
+    sub_admin: {
+        icon: Shield,
+        label: "Sub Admin",
+        desc: "Scoped queue and operations management",
+        iconBg: "bg-primary-50 dark:bg-primary-900/20",
+        iconColor: "text-primary-600 dark:text-primary-400",
+        borderHover:
+            "hover:border-primary-300 dark:hover:border-primary-700/50",
+        gradient: "from-primary-500 to-primary-700",
     },
 };
 
@@ -39,7 +52,13 @@ const ChooseRolePage = () => {
     const handleRoleSelect = (role) => {
         handleSetUser({ isLoggedIn: true, roles, activeRole: role });
         setActiveRole(role);
-        navigate(`/${role}/dashboard`);
+        const roleRoutes = {
+            patient: "/patient/dashboard",
+            doctor: "/doctor/dashboard",
+            admin: "/super-admin/dashboard",
+            sub_admin: "/sub-admin/dashboard",
+        };
+        navigate(roleRoutes[role] || "/");
     };
 
     return (
@@ -77,10 +96,7 @@ const ChooseRolePage = () => {
                                 <div
                                     className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-gradient-to-br ${config.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}
                                 >
-                                    <Icon
-                                        size={28}
-                                        className="text-white"
-                                    />
+                                    <Icon size={28} className="text-white" />
                                 </div>
                                 <p className="font-semibold text-neutral-900 dark:text-neutral-100 text-lg">
                                     {config.label}

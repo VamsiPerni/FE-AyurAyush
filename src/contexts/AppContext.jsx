@@ -34,7 +34,7 @@ const AppProvider = ({ children }) => {
                       : null;
             const mustChangePassword = response.data.data.mustChangePassword || false;
 
-            setUser({
+            const nextUser = {
                 isLoggedIn: true,
                 name,
                 roles,
@@ -42,15 +42,19 @@ const AppProvider = ({ children }) => {
                 mustChangePassword,
                 subAdminProfile,
                 loading: false,
-            });
+            };
+
+            setUser(nextUser);
 
             if (resolvedActiveRole) {
                 localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, resolvedActiveRole);
             } else {
                 localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
             }
+
+            return nextUser;
         } catch (err) {
-            setUser({
+            const failedUser = {
                 isLoggedIn: false,
                 name: "",
                 roles: [],
@@ -58,9 +62,11 @@ const AppProvider = ({ children }) => {
                 mustChangePassword: false,
                 subAdminProfile: null,
                 loading: false,
-            });
+            };
+            setUser(failedUser);
             localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
             console.log("------🔴Erorr in CheckAuth-----", err.message);
+            return failedUser;
         }
     };
 
@@ -110,6 +116,7 @@ const AppProvider = ({ children }) => {
                 setActiveRole,
                 handleLogout,
                 logoutLoading,
+                checkAuth,
             }}
         >
             {children}

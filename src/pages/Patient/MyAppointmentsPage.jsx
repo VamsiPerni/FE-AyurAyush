@@ -63,7 +63,7 @@ const MyAppointmentsPage = () => {
                 status: getStatusParam(activeTab),
                 page: currentPage,
                 limit: PAGE_SIZE,
-                sort: "asc",
+                sort: (activeTab === "all" || activeTab === "completed" || activeTab === "cancelled") ? "desc" : "asc",
             });
             const nextAppointments =
                 result.data?.appointments || result.data || [];

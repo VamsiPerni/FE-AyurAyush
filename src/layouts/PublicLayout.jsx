@@ -21,10 +21,12 @@ const PublicLayout = () => {
             const routes = {
                 patient: "/patient/dashboard",
                 doctor: "/doctor/dashboard",
-                admin: "/admin/dashboard",
+                admin: "/super-admin/dashboard",
+                sub_admin: "/sub-admin/dashboard",
             };
             const from = location.state?.from?.pathname;
-            return <Navigate to={from || routes[activeRole]} replace />;
+            const fallbackRoute = routes[activeRole] || "/choose-role";
+            return <Navigate to={from || fallbackRoute} replace />;
         }
 
         if (roles?.length > 1) return <Navigate to="/choose-role" replace />;
