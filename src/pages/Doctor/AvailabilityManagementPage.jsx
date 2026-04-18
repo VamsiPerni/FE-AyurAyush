@@ -11,15 +11,23 @@ import {
 } from "lucide-react";
 import { doctorService } from "../../services/doctorService";
 import { PageHeader } from "../../components/shared/PageHeader";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { showErrorToast, showSuccessToast } from "../../utils/toastMessageHelper";
+import {
+    showErrorToast,
+    showSuccessToast,
+} from "../../utils/toastMessageHelper";
 
-// Returns array of 7 date strings for days 8–14 from today
+// Returns array of 15 date strings for today through day 14
 const getEditWindow = () => {
     const dates = [];
-    for (let i = 8; i <= 14; i++) {
+    for (let i = 0; i <= 14; i++) {
         const d = new Date();
         d.setDate(d.getDate() + i);
         dates.push(d.toISOString().slice(0, 10));
@@ -52,14 +60,15 @@ const AvailabilityManagementPage = () => {
         try {
             const results = await Promise.all(
                 editDates.map((date) =>
-                    doctorService.getOwnAvailability(date)
+                    doctorService
+                        .getOwnAvailability(date)
                         .then((res) => ({
                             date,
                             slots: res.data?.dateView?.slots || [],
                             source: res.data?.dateView?.source || "weekly",
                         }))
-                        .catch(() => ({ date, slots: [], source: "weekly" }))
-                )
+                        .catch(() => ({ date, slots: [], source: "weekly" })),
+                ),
             );
             const map = {};
             results.forEach(({ date, slots, source }) => {
@@ -96,7 +105,10 @@ const AvailabilityManagementPage = () => {
                 const src = res.data?.dateView?.source || "weekly";
                 setDateSlots(sortSlots(slots));
                 setSource(src);
-                setSlotMap((prev) => ({ ...prev, [date]: { slots, source: src } }));
+                setSlotMap((prev) => ({
+                    ...prev,
+                    [date]: { slots, source: src },
+                }));
             } catch {
                 showErrorToast("Failed to load slots for this date.");
             } finally {
@@ -127,7 +139,10 @@ const AvailabilityManagementPage = () => {
     const handleSaveDateSlots = async () => {
         try {
             setIsSaving(true);
-            await doctorService.setOwnAvailabilityForDate(selectedDate, dateSlots);
+            await doctorService.setOwnAvailabilityForDate(
+                selectedDate,
+                dateSlots,
+            );
             showSuccessToast("Date availability updated successfully.");
             // Refresh this date in the map
             setSlotMap((prev) => ({
@@ -136,7 +151,9 @@ const AvailabilityManagementPage = () => {
             }));
             setSource("date_specific");
         } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to save date slots.");
+            showErrorToast(
+                err.response?.data?.message || "Failed to save date slots.",
+            );
         } finally {
             setIsSaving(false);
         }
@@ -144,7 +161,10 @@ const AvailabilityManagementPage = () => {
 
     const handleRemoveSlot = async (slot) => {
         try {
-            await doctorService.removeOwnAvailabilitySlotForDate(selectedDate, slot);
+            await doctorService.removeOwnAvailabilitySlotForDate(
+                selectedDate,
+                slot,
+            );
             showSuccessToast("Slot removed successfully.");
             const updated = dateSlots.filter((s) => s !== slot);
             setDateSlots(updated);
@@ -153,15 +173,16 @@ const AvailabilityManagementPage = () => {
                 [selectedDate]: { slots: updated, source: "date_specific" },
             }));
         } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to remove slot.");
+            showErrorToast(
+                err.response?.data?.message || "Failed to remove slot.",
+            );
         }
     };
 
     const formatDayName = (dateStr) =>
         new Date(dateStr).toLocaleDateString("en-IN", { weekday: "short" });
 
-    const formatDayNum = (dateStr) =>
-        new Date(dateStr).getDate();
+    const formatDayNum = (dateStr) => new Date(dateStr).getDate();
 
     const formatMonth = (dateStr) =>
         new Date(dateStr).toLocaleDateString("en-IN", { month: "short" });
@@ -170,23 +191,25 @@ const AvailabilityManagementPage = () => {
         <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in">
             <PageHeader
                 title="Manage Availability"
-                subtitle="Set your slots for the upcoming week (days 8–14 from today)"
+                subtitle="Set your slots for today through the next 14 days"
             />
 
             {/* Info banner */}
-            <div className="flex items-start gap-2 text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-xl px-4 py-3">
+            <div className="flex items-start gap-2 text-sm text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/15 border border-primary-200 dark:border-primary-700/40 rounded-xl px-4 py-3">
                 <Info className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>
-                    You are managing <strong>days 8 to 14</strong> from today.
-                    Days 1–7 are currently visible to patients for booking and cannot be edited.
+                    You can add slots for <strong>today through day 14</strong>.
+                    Slots within <strong>today to day 7</strong> cannot be
+                    removed once added. Days 8–14 keep the existing removal
+                    checks.
                 </span>
             </div>
 
             {/* 7-day strip */}
-            <Card className="border-primary-100 shadow-sm overflow-hidden">
-                <CardHeader className="bg-primary-50/50 border-b border-primary-100 pb-4">
+            <Card className="border-primary-100 dark:border-dark-border shadow-sm overflow-hidden">
+                <CardHeader className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-dark-border pb-4">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-primary-800 flex items-center gap-2">
+                        <CardTitle className="text-primary-800 dark:text-primary-300 flex items-center gap-2">
                             <Clock className="w-5 h-5" />
                             Select a Date to Edit
                         </CardTitle>
@@ -203,13 +226,16 @@ const AvailabilityManagementPage = () => {
                 </CardHeader>
                 <CardContent className="p-5">
                     {loadingMap ? (
-                        <div className="grid grid-cols-7 gap-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
                             {editDates.map((d) => (
-                                <div key={d} className="h-24 bg-neutral-100 rounded-xl animate-pulse" />
+                                <div
+                                    key={d}
+                                    className="h-24 bg-neutral-100 dark:bg-dark-elevated rounded-xl animate-pulse"
+                                />
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-7 gap-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
                             {editDates.map((date) => {
                                 const count = slotMap[date]?.slots?.length ?? 0;
                                 const isSelected = selectedDate === date;
@@ -222,33 +248,49 @@ const AvailabilityManagementPage = () => {
                                             isSelected
                                                 ? "bg-primary-600 border-primary-600 text-white shadow-md"
                                                 : count > 0
-                                                  ? "bg-white border-neutral-200 text-neutral-700 hover:border-primary-400 hover:bg-primary-50"
-                                                  : "bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-primary-300 hover:bg-primary-50/50"
+                                                  ? "bg-white dark:bg-dark-card border-neutral-200 dark:border-dark-border text-neutral-700 dark:text-neutral-200 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                                                  : "bg-neutral-50 dark:bg-dark-elevated border-neutral-100 dark:border-dark-border text-neutral-400 dark:text-neutral-500 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50/50 dark:hover:bg-primary-900/10"
                                         }`}
                                     >
-                                        <span className={`text-xs font-semibold uppercase tracking-wide ${
-                                            isSelected ? "text-primary-100" : "text-neutral-500"
-                                        }`}>
+                                        <span
+                                            className={`text-xs font-semibold uppercase tracking-wide ${
+                                                isSelected
+                                                    ? "text-primary-100"
+                                                    : "text-neutral-500 dark:text-neutral-400"
+                                            }`}
+                                        >
                                             {formatDayName(date)}
                                         </span>
-                                        <span className={`text-lg font-bold leading-none ${
-                                            isSelected ? "text-white" : "text-neutral-800"
-                                        }`}>
+                                        <span
+                                            className={`text-lg font-bold leading-none ${
+                                                isSelected
+                                                    ? "text-white"
+                                                    : "text-neutral-800 dark:text-neutral-100"
+                                            }`}
+                                        >
                                             {formatDayNum(date)}
                                         </span>
-                                        <span className={`text-xs ${
-                                            isSelected ? "text-primary-100" : "text-neutral-400"
-                                        }`}>
+                                        <span
+                                            className={`text-xs ${
+                                                isSelected
+                                                    ? "text-primary-100"
+                                                    : "text-neutral-400 dark:text-neutral-500"
+                                            }`}
+                                        >
                                             {formatMonth(date)}
                                         </span>
-                                        <span className={`text-xs font-bold mt-0.5 px-1.5 py-0.5 rounded-full ${
-                                            isSelected
-                                                ? "bg-primary-500 text-white"
-                                                : count > 0
-                                                  ? "bg-primary-50 text-primary-700"
-                                                  : "bg-neutral-100 text-neutral-400"
-                                        }`}>
-                                            {count > 0 ? `${count} slot${count !== 1 ? "s" : ""}` : "No slots"}
+                                        <span
+                                            className={`text-xs font-bold mt-0.5 px-1.5 py-0.5 rounded-full ${
+                                                isSelected
+                                                    ? "bg-primary-500 text-white"
+                                                    : count > 0
+                                                      ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300"
+                                                      : "bg-neutral-100 dark:bg-dark-hover text-neutral-400 dark:text-neutral-500"
+                                            }`}
+                                        >
+                                            {count > 0
+                                                ? `${count} slot${count !== 1 ? "s" : ""}`
+                                                : "No slots"}
                                         </span>
                                     </button>
                                 );
@@ -260,35 +302,42 @@ const AvailabilityManagementPage = () => {
 
             {/* Slot editor — shown only when a date is selected */}
             {selectedDate && (
-                <Card className="border-primary-100 shadow-sm overflow-hidden animate-in fade-in">
-                    <CardHeader className="bg-primary-50/50 border-b border-primary-100 pb-4">
+                <Card className="border-primary-100 dark:border-dark-border shadow-sm overflow-hidden animate-in fade-in">
+                    <CardHeader className="bg-primary-50/50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-dark-border pb-4">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-primary-800">
-                                Slots for {new Date(selectedDate).toLocaleDateString("en-IN", {
-                                    weekday: "long", day: "2-digit", month: "long",
-                                })}
+                            <CardTitle className="text-primary-800 dark:text-primary-300">
+                                Slots for{" "}
+                                {new Date(selectedDate).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                        weekday: "long",
+                                        day: "2-digit",
+                                        month: "long",
+                                    },
+                                )}
                             </CardTitle>
-                            <span className="text-xs text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-lg capitalize">
+                            <span className="text-xs text-neutral-500 dark:text-neutral-300 bg-neutral-100 dark:bg-dark-elevated px-2.5 py-1 rounded-lg capitalize border border-transparent dark:border-dark-border">
                                 Source: {source.replaceAll("_", " ")}
                             </span>
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-5">
-
                         {/* Add slot row */}
                         <div className="flex flex-col sm:flex-row items-center gap-2">
                             <input
                                 type="time"
                                 value={startTime}
                                 onChange={(e) => setStartTime(e.target.value)}
-                                className="w-full sm:w-auto bg-white border border-neutral-300 text-neutral-800 text-sm rounded-lg px-3 py-2"
+                                className="w-full sm:w-auto bg-white dark:bg-dark-card border border-neutral-300 dark:border-dark-border text-neutral-800 dark:text-neutral-100 text-sm rounded-lg px-3 py-2"
                             />
-                            <span className="text-neutral-400 hidden sm:block">to</span>
+                            <span className="text-neutral-400 dark:text-neutral-500 hidden sm:block">
+                                to
+                            </span>
                             <input
                                 type="time"
                                 value={endTime}
                                 onChange={(e) => setEndTime(e.target.value)}
-                                className="w-full sm:w-auto bg-white border border-neutral-300 text-neutral-800 text-sm rounded-lg px-3 py-2"
+                                className="w-full sm:w-auto bg-white dark:bg-dark-card border border-neutral-300 dark:border-dark-border text-neutral-800 dark:text-neutral-100 text-sm rounded-lg px-3 py-2"
                             />
                             <Button
                                 variant="outline"
@@ -305,28 +354,34 @@ const AvailabilityManagementPage = () => {
                         {loadingDate ? (
                             <div className="flex gap-2">
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-9 w-32 bg-neutral-100 rounded-lg animate-pulse" />
+                                    <div
+                                        key={i}
+                                        className="h-9 w-32 bg-neutral-100 dark:bg-dark-elevated rounded-lg animate-pulse"
+                                    />
                                 ))}
                             </div>
                         ) : dateSlots.length === 0 ? (
-                            <p className="text-sm text-neutral-500">
-                                No slots configured for this date yet. Add slots above.
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                No slots configured for this date yet. Add slots
+                                above.
                             </p>
                         ) : (
                             <div className="flex flex-wrap gap-2">
                                 {dateSlots.map((slot) => (
                                     <div
                                         key={slot}
-                                        className="flex items-center bg-primary-50 border border-primary-200/60 rounded-lg overflow-hidden"
+                                        className="flex items-center bg-primary-50 dark:bg-primary-900/15 border border-primary-200/60 dark:border-primary-700/40 rounded-lg overflow-hidden"
                                     >
-                                        <span className="px-3 py-1.5 text-sm font-semibold text-primary-800 flex items-center gap-1.5">
+                                        <span className="px-3 py-1.5 text-sm font-semibold text-primary-800 dark:text-primary-300 flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5 opacity-60" />
                                             {slot}
                                         </span>
                                         <button
                                             type="button"
-                                            onClick={() => handleRemoveSlot(slot)}
-                                            className="px-2 py-1.5 hover:bg-red-100 hover:text-red-600 text-primary-400 transition-colors h-full border-l border-primary-200/60"
+                                            onClick={() =>
+                                                handleRemoveSlot(slot)
+                                            }
+                                            className="px-2 py-1.5 hover:bg-red-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 text-primary-400 dark:text-primary-500 transition-colors h-full border-l border-primary-200/60 dark:border-primary-700/40"
                                             title="Remove slot"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -336,7 +391,7 @@ const AvailabilityManagementPage = () => {
                             </div>
                         )}
 
-                        <div className="pt-2 border-t border-neutral-200 flex items-center gap-3">
+                        <div className="pt-2 border-t border-neutral-200 dark:border-dark-border flex items-center gap-3">
                             <Button
                                 variant="primary"
                                 icon={Save}

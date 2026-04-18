@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useAuthContext } from "../../contexts/AppContext";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { NotificationBell } from "./NotificationBell";
 
 const navLinks = {
     patient: [
@@ -287,13 +288,16 @@ const Sidebar = () => {
                 )}
             </nav>
 
-            {/* Footer — theme toggle + logout */}
+            {/* Footer — theme toggle + notifications + logout */}
             <div className="p-3 border-t border-neutral-100 dark:border-dark-border space-y-1">
                 <div className="flex items-center justify-between px-3 py-2">
                     <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
                         Theme
                     </span>
-                    <ThemeToggle size="sm" />
+                    <div className="flex items-center gap-2">
+                        <NotificationBell />
+                        <ThemeToggle size="sm" />
+                    </div>
                 </div>
                 <button
                     onClick={onLogout}
