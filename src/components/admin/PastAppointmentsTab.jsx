@@ -37,7 +37,9 @@ const PastAppointmentsTab = () => {
         try {
             if (!silent) setLoading(true);
             setError("");
-            const params = { page: targetPage, limit: LIMIT };
+
+            const attendedParam = subTab === "attended" ? "true" : "false";
+            const params = { page: targetPage, limit: LIMIT, attended: attendedParam };
             if (fromDate) params.from = fromDate;
             if (toDate) params.to = toDate;
 
@@ -54,9 +56,10 @@ const PastAppointmentsTab = () => {
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [fromDate, toDate]);
+    }, [subTab, fromDate, toDate]);
 
     useEffect(() => {
+        setPage(1);
         loadData({ targetPage: 1 });
     }, [loadData]);
 
@@ -109,13 +112,11 @@ const PastAppointmentsTab = () => {
         return Number(match[1]) * 60 + Number(match[2]);
     };
 
-    const displayList = appointments
-        .filter((apt) => subTab === "attended" ? apt.attended : !apt.attended)
-        .sort((a, b) => {
-            const dateDiff = new Date(b.date) - new Date(a.date);
-            if (dateDiff !== 0) return dateDiff;
-            return parseSlotMinutes(b.timeSlot) - parseSlotMinutes(a.timeSlot);
-        });
+    const displayList = [...appointments].sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        return parseSlotMinutes(b.timeSlot) - parseSlotMinutes(a.timeSlot);
+    });
 
     return (
         <Card className="border-neutral-200 shadow-sm overflow-hidden">

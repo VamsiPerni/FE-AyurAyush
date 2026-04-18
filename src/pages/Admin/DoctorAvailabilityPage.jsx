@@ -32,6 +32,18 @@ const getTomorrowDateString = () => {
     return d.toISOString().slice(0, 10);
 };
 
+const getEditWindowDates = () => {
+    const min = new Date();
+    min.setDate(min.getDate() + 8);
+    const max = new Date();
+    max.setDate(max.getDate() + 14);
+    return {
+        minDate: min.toISOString().slice(0, 10),
+        maxDate: max.toISOString().slice(0, 10),
+        defaultDate: min.toISOString().slice(0, 10),
+    };
+};
+
 const sortSlots = (slots = []) =>
     [...slots].sort((a, b) => String(a).localeCompare(String(b)));
 
@@ -43,7 +55,8 @@ const DoctorAvailabilityPage = () => {
     const [selectedDoctorId, setSelectedDoctorId] = useState(
         routeDoctorId || "",
     );
-    const [selectedDate, setSelectedDate] = useState(getTomorrowDateString());
+    const { minDate, maxDate, defaultDate } = getEditWindowDates();
+    const [selectedDate, setSelectedDate] = useState(defaultDate);
     const [dateSlots, setDateSlots] = useState([]);
     const [source, setSource] = useState("weekly");
     const [loadingInitial, setLoadingInitial] = useState(true);
@@ -299,7 +312,8 @@ const DoctorAvailabilityPage = () => {
                                 </label>
                                 <input
                                     type="date"
-                                    min={new Date().toISOString().slice(0, 10)}
+                                    min={minDate}
+                                    max={maxDate}
                                     value={selectedDate}
                                     onChange={(e) =>
                                         setSelectedDate(e.target.value)
@@ -319,9 +333,7 @@ const DoctorAvailabilityPage = () => {
 
                         <div className="text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2 flex items-start gap-2">
                             <ShieldAlert className="w-4 h-4 mt-0.5" />
-                            Slot removal is allowed only when the selected
-                            appointment date is at least 7 days away and no
-                            patient is booked in that slot.
+                            You can only manage availability for <strong>days 8 to 14 from today</strong>. Days 1–7 are visible to patients for booking and are locked.
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-center gap-2">
