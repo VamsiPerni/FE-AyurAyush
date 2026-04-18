@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
-import { History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { paymentService } from "../../services/paymentService";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -32,6 +33,11 @@ const PastAppointmentsTab = () => {
     const [noShowTarget, setNoShowTarget] = useState(null);
     const [noShowReason, setNoShowReason] = useState("");
     const [noShowLoading, setNoShowLoading] = useState(false);
+
+    const [refundModal, setRefundModal] = useState(false);
+    const [refundTarget, setRefundTarget] = useState(null);
+    const [refundReason, setRefundReason] = useState("");
+    const [refundLoading, setRefundLoading] = useState(false);
 
     const loadData = useCallback(async ({ silent = false, targetPage = 1 } = {}) => {
         try {
@@ -80,6 +86,30 @@ const PastAppointmentsTab = () => {
         setNoShowTarget(apt);
         setNoShowReason("");
         setNoShowModal(true);
+    };
+
+    const openRefundModal = (apt) => {
+        setRefundTarget(apt);
+        setRefundReason("");
+        setRefundModal(true);
+    };
+
+    const handleRefundSubmit = async () => {
+        if (!refundReason.trim()) {
+            showErrorToast("Please provide a refund reason.");
+            return;
+        }
+        try {
+            setRefundLoading(true);
+            await paymentService.initiateRefund(refundTarget.appointmentId, refundReason);
+            showSuccessToast("Refund initiated successfully.");
+            setRefundModal(false);
+            await loadData({ silent: true, targetPage: page });
+        } catch (err) {
+            showErrorToast(err.response?.data?.message || "Failed to initiate refund.");
+        } finally {
+            setRefundLoading(false);
+        }
     };
 
     const handleNoShowSubmit = async () => {
@@ -251,14 +281,27 @@ const PastAppointmentsTab = () => {
                                         </td>
                                         {subTab === "not_attended" && (
                                             <td className="px-5 py-3">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => openNoShowModal(apt)}
-                                                    className="text-error-600 border-error-200 hover:bg-error-50"
-                                                >
-                                                    Mark No-Show
-                                                </Button>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => openNoShowModal(apt)}
+                                                        className="text-error-600 border-error-200 hover:bg-error-50"
+                                                    >
+                                                        Mark No-Show
+                                                    </Button>
+                                                    {apt.payment?.status === "paid" && apt.payment?.refundStatus === "none" && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            icon={RotateCcw}
+                                                            onClick={() => openRefundModal(apt)}
+                                                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                        >
+                                                            Refund
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
@@ -309,6 +352,42 @@ const PastAppointmentsTab = () => {
                     </div>
                 )}
             </CardContent>
+
+            {/* Refund Modal */}
+            <Modal
+                isOpen={refundModal}
+                onClose={() => !refundLoading && setRefundModal(false)}
+                title="Initiate Refund"
+                size="md"
+            >
+                <div className="space-y-4">
+                    {refundTarget && (
+                        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-sm">
+                            <p className="font-semibold text-neutral-800">{refundTarget.patientName}</p>
+                            <p className="text-neutral-500">Dr. {refundTarget.doctorName} &bull; {formatDate(refundTarget.date)} &bull; {refundTarget.timeSlot}</p>
+                            <p className="text-success-700 font-semibold mt-1">Paid ₹{refundTarget.payment?.amount} &mdash; full refund will be initiated</p>
+                        </div>
+                    )}
+                    <p className="text-sm text-neutral-600">This will initiate a full refund to the patient. This action cannot be undone.</p>
+                    <Textarea
+                        label="Reason"
+                        placeholder="E.g., Patient did not attend, appointment cancelled..."
+                        value={refundReason}
+                        onChange={(e) => setRefundReason(e.target.value)}
+                        disabled={refundLoading}
+                        required
+                        rows={3}
+                    />
+                    <div className="flex gap-3 pt-2 border-t border-neutral-100">
+                        <Button variant="outline" onClick={() => setRefundModal(false)} disabled={refundLoading} className="flex-1">
+                            Cancel
+                        </Button>
+                        <Button variant="primary" icon={RotateCcw} onClick={handleRefundSubmit} loading={refundLoading} className="flex-1">
+                            Confirm Refund
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* No-Show Confirmation Modal */}
             <Modal
