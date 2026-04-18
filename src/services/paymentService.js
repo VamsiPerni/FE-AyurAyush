@@ -49,4 +49,9 @@ export const paymentService = {
         );
         return response.data;
     },
+
+    syncRefunds: async () => {
+        const response = await axiosInstance.post("/payments/admin/sync-refunds");
+        return response.data;
+    },
 };

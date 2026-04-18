@@ -66,6 +66,8 @@ const RevenueAdminPage = () => {
         try {
             setLoading(true);
             setError("");
+            // Sync refund statuses from Razorpay before loading dashboard
+            await paymentService.syncRefunds().catch(() => {}); // silent fail
             const res = await paymentService.getRevenueDashboard();
             setData(res.data);
         } catch {
@@ -214,24 +216,35 @@ const RevenueAdminPage = () => {
                         {(data?.dailyRevenueLast30 || []).length === 0 ? (
                             <p className="text-sm text-neutral-500 dark:text-neutral-400 py-8 text-center">No revenue data yet.</p>
                         ) : (
-                            <div className="flex items-end gap-1 h-40 overflow-x-auto pb-2">
-                                {(data?.dailyRevenueLast30 || []).map((d) => {
-                                    const heightPct = Math.max(4, (d.revenue / maxDailyRevenue) * 100);
-                                    return (
-                                        <div key={d.date} className="flex flex-col items-center gap-1 flex-1 min-w-[20px] group relative">
-                                            <div
-                                                className="w-full bg-primary-500 dark:bg-primary-600 rounded-t-sm hover:bg-primary-600 dark:hover:bg-primary-500 transition-colors cursor-default"
-                                                style={{ height: `${heightPct}%` }}
-                                            />
-                                            <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
-                                                <div className="bg-neutral-800 dark:bg-neutral-700 text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
-                                                    <p className="font-semibold">₹{fmt(d.revenue)}</p>
-                                                    <p className="text-neutral-300">{d.date}</p>
+                            <div className="overflow-x-auto">
+                                <div className="flex items-end gap-1 pb-6 relative overflow-visible" style={{ height: "160px", minWidth: `${Math.max((data?.dailyRevenueLast30 || []).length * 32, 300)}px`, paddingLeft: "60px", paddingRight: "60px" }}>
+                                    {(data?.dailyRevenueLast30 || []).map((d) => {
+                                        const heightPx = Math.max(4, (d.revenue / maxDailyRevenue) * 140);
+                                        const dateLabel = new Date(d.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+                                        return (
+                                            <div key={d.date} className="flex flex-col items-center gap-0.5 group relative" style={{ width: "28px", minWidth: "28px" }}>
+                                                {/* Tooltip */}
+                                                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
+                                                    <div className="bg-neutral-800 text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                                                        <p className="font-semibold">₹{fmt(d.revenue)}</p>
+                                                        <p className="text-neutral-300">{d.date}</p>
+                                                        <p className="text-neutral-400">{d.count} txn{d.count !== 1 ? "s" : ""}</p>
+                                                    </div>
+                                                    <div className="w-2 h-2 bg-neutral-800 rotate-45 -mt-1" />
                                                 </div>
+                                                {/* Bar */}
+                                                <div
+                                                    className="w-full bg-primary-500 hover:bg-primary-600 rounded-t-sm transition-colors cursor-default"
+                                                    style={{ height: `${heightPx}px`, width: "20px" }}
+                                                />
+                                                {/* Date label */}
+                                                <span className="text-[9px] text-neutral-400 absolute -bottom-5 whitespace-nowrap" style={{ fontSize: "8px" }}>
+                                                    {dateLabel}
+                                                </span>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
                     </CardContent>
