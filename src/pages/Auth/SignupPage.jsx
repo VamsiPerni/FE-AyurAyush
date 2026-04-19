@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { User, Mail, Phone, Lock, KeyRound, Leaf } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { authService } from '../../services/authService';
 import { otpService } from '../../services/otpService';
+import { useAuth } from '../../hooks/useAuth';
 import { showErrorToast, showSuccessToast } from '../../utils/toastMessageHelper';
 
 const SignupPage = () => {
-  const navigate = useNavigate();
+  const { login, loading: loginLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -76,8 +77,8 @@ const SignupPage = () => {
         gender: form.gender, dob: form.dob,
         password: form.password, otp: form.otp,
       });
-      showSuccessToast('Account created! Please sign in.');
-      navigate('/login');
+      showSuccessToast('Account created! Signing you in...');
+      await login(form.email, form.password);
     } catch (err) {
       showErrorToast(err.response?.data?.message || 'Signup failed');
     } finally {
@@ -174,7 +175,7 @@ const SignupPage = () => {
             />
 
             {isOtpSent && (
-              <Button type="submit" fullWidth loading={loading}>
+              <Button type="submit" fullWidth loading={loading || loginLoading}>
                 Create Account
               </Button>
             )}
