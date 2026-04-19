@@ -93,7 +93,11 @@ const ManageSubAdminsPage = () => {
         try {
             setLoading(true);
             const res = await superAdminService.listSubAdmins();
-            setSubAdmins(res.data || []);
+            if (res.isSuccess) {
+                setSubAdmins(res.data || []);
+            } else {
+                showErrorToast(res.message || "Failed to load sub-admins.");
+            }
         } catch {
             showErrorToast("Failed to load sub-admins.");
         } finally {
@@ -116,12 +120,16 @@ const ManageSubAdminsPage = () => {
         try {
             setSaving(true);
             const res = await superAdminService.createSubAdmin(form);
-            showSuccessToast(`Sub-admin created! Temporary password: ${res.data.temporaryPassword}`);
-            setCreateOpen(false);
-            setForm({ name: "", email: "", phone: "", gender: "male", dob: "", queueScope: "all", permissions: defaultPermissions(), notes: "" });
-            load();
-        } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to create sub-admin.");
+            if (res.isSuccess) {
+                showSuccessToast(`Sub-admin created! Temporary password: ${res.data?.temporaryPassword}`);
+                setCreateOpen(false);
+                setForm({ name: "", email: "", phone: "", gender: "male", dob: "", queueScope: "all", permissions: defaultPermissions(), notes: "" });
+                load();
+            } else {
+                showErrorToast(res.message || "Failed to create sub-admin.");
+            }
+        } catch {
+            showErrorToast("Failed to create sub-admin.");
         } finally {
             setSaving(false);
         }
@@ -141,12 +149,16 @@ const ManageSubAdminsPage = () => {
     const handleUpdate = async () => {
         try {
             setSaving(true);
-            await superAdminService.updateSubAdmin(editTarget.profileId, editForm);
-            showSuccessToast("Sub-admin updated successfully.");
-            setEditOpen(false);
-            load();
-        } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to update sub-admin.");
+            const res = await superAdminService.updateSubAdmin(editTarget.profileId, editForm);
+            if (res.isSuccess) {
+                showSuccessToast("Sub-admin updated successfully.");
+                setEditOpen(false);
+                load();
+            } else {
+                showErrorToast(res.message || "Failed to update sub-admin.");
+            }
+        } catch {
+            showErrorToast("Failed to update sub-admin.");
         } finally {
             setSaving(false);
         }
@@ -155,11 +167,15 @@ const ManageSubAdminsPage = () => {
     const handleDeactivate = async (profileId, name) => {
         if (!window.confirm(`Deactivate ${name}? They will lose all access immediately.`)) return;
         try {
-            await superAdminService.deactivateSubAdmin(profileId);
-            showSuccessToast("Sub-admin deactivated.");
-            load();
-        } catch (err) {
-            showErrorToast(err.response?.data?.message || "Failed to deactivate.");
+            const res = await superAdminService.deactivateSubAdmin(profileId);
+            if (res.isSuccess) {
+                showSuccessToast("Sub-admin deactivated.");
+                load();
+            } else {
+                showErrorToast(res.message || "Failed to deactivate.");
+            }
+        } catch {
+            showErrorToast("Failed to deactivate.");
         }
     };
 

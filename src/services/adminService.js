@@ -1,6 +1,18 @@
 import { axiosInstance } from "../axios/axiosInstance";
 
 export const adminService = {
+    getSubAdminDashboard: async () => {
+        try {
+            const response = await axiosInstance.get("/admin/sub-admin-dashboard");
+            return { isSuccess: true, data: response.data.data };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                message: error.response?.data?.message || "Something went wrong",
+            };
+        }
+    },
+
     getDashboard: async () => {
         const response = await axiosInstance.get("/admin/dashboard");
         return response.data;

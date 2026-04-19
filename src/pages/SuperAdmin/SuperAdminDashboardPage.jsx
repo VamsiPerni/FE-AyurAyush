@@ -25,7 +25,12 @@ const SuperAdminDashboardPage = () => {
             setLoading(true);
             setError("");
             const res = await superAdminService.getDashboard();
-            setData(res.data);
+            if (res.isSuccess) {
+                setData(res.data);
+            } else {
+                setError(res.message || "Failed to load super admin dashboard.");
+                showErrorToast(res.message || "Failed to load super admin dashboard.");
+            }
         } catch {
             setError("Failed to load super admin dashboard.");
             showErrorToast("Failed to load super admin dashboard.");

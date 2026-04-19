@@ -219,13 +219,13 @@ const AllAppointmentsPage = () => {
             const res = await doctorService.markNoShow(
                 noShowTarget.appointmentId,
             );
-            showSuccessToast(res?.message || "Appointment flagged as not visited. Admin will confirm.");
+            showSuccessToast(res?.message || "Appointment marked as No-Show.");
             setNoShowModal(false);
             setNoShowTarget(null);
             await Promise.all([loadAppointments(), loadCounts()]);
         } catch (err) {
             showErrorToast(
-                err.response?.data?.message || "Failed to flag appointment.",
+                err.response?.data?.message || "Failed to mark No-Show.",
             );
         } finally {
             setNoShowLoading(false);
@@ -589,9 +589,8 @@ const AllAppointmentsPage = () => {
                         </div>
                     )}
                     <p className="text-sm text-neutral-600">
-                        This will flag the appointment as &quot;Not Visited&quot;.
-                        The admin will review and confirm before any cancellation
-                        or refund is processed.
+                        This will cancel the appointment and send a cancellation
+                        notification to the patient.
                     </p>
                     <div className="flex gap-3 pt-2 border-t border-neutral-100">
                         <Button

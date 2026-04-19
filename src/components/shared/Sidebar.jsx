@@ -120,7 +120,9 @@ const Sidebar = () => {
     // Build dynamic sub-admin nav based on permissions
     const buildSubAdminLinks = () => {
         const perms = subAdminProfile?.permissions || {};
-        const links = [];
+        const links = [
+            { path: "/sub-admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        ];
         if (perms.viewQueues || perms.viewEmergencyQueue || perms.viewOverdue || perms.viewPastAppointments) {
             links.push({ path: "/admin/queues", label: "Appointment Queues", icon: ListOrdered });
         }

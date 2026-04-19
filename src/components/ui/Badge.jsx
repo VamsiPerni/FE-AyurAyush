@@ -24,10 +24,6 @@ const statusConfig = {
         className:
             "bg-neutral-50 text-neutral-600 border-neutral-200 dark:bg-neutral-800/30 dark:text-neutral-400 dark:border-neutral-700/50",
     },
-    not_visited: {
-        label: "Not Visited",
-        className: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50",
-    },
     no_show: {
         label: "No-Show",
         className:
