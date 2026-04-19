@@ -401,15 +401,22 @@ const PastAppointmentsTab = () => {
                                             )}
                                         </td>
                                         <td className="px-5 py-3">
-                                            <Badge
-                                                type="status"
-                                                value={
-                                                    apt.attended
-                                                        ? "completed"
-                                                        : apt.queueStatus ||
-                                                          "waiting"
-                                                }
-                                            />
+                                            <div className="flex flex-col gap-1">
+                                                <Badge
+                                                    type="status"
+                                                    value={
+                                                        apt.attended
+                                                            ? "completed"
+                                                            : apt.queueStatus ||
+                                                              "waiting"
+                                                    }
+                                                />
+                                                {apt.queueStatus === "not_visited" && (
+                                                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md w-fit">
+                                                        Doctor flagged
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         {subTab === "not_attended" && (
                                             <td className="px-5 py-3">
@@ -622,8 +629,10 @@ const PastAppointmentsTab = () => {
                         </div>
                     )}
                     <p className="text-sm text-neutral-600">
-                        This will cancel the appointment and send a cancellation
-                        notification to the patient
+                        {noShowTarget?.queueStatus === "not_visited"
+                            ? "The doctor has already flagged this appointment as not visited. "
+                            : ""}
+                        This will cancel the appointment and notify the patient
                         {noShowTarget?.payment
                             ? ", and initiate a full refund."
                             : "."}

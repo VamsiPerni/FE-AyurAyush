@@ -16,32 +16,38 @@ import { showErrorToast, showSuccessToast } from "../../utils/toastMessageHelper
 const QUEUE_SCOPES = ["all", "ayurveda", "panchakarma", "normal"];
 
 const ALL_PERMISSIONS = [
-    { key: "viewQueues", label: "View Queues" },
-    { key: "approveAppointments", label: "Approve / Reject Appointments" },
-    { key: "callPatients", label: "Call Patients" },
-    { key: "manageAvailability", label: "Manage Doctor Availability" },
-    { key: "viewDoctors", label: "View Doctors" },
-    { key: "offlineBooking", label: "Offline Booking" },
+    { key: "viewQueues",             label: "View Live Queue" },
+    { key: "approveAppointments",    label: "Approve / Reject Appointments" },
+    { key: "callPatients",           label: "Call Patients" },
+    { key: "viewEmergencyQueue",     label: "View Emergency Queue" },
+    { key: "viewPastAppointments",   label: "View Past Appointments" },
+    { key: "markNoShow",             label: "Mark No-Show" },
+    { key: "viewOverdue",            label: "View Overdue Requests" },
+    { key: "cancelOverdue",          label: "Cancel Overdue Requests" },
+    { key: "viewAuditTrail",         label: "View Audit Trail" },
+    { key: "manageAvailability",     label: "Manage Doctor Availability" },
+    { key: "viewDoctors",            label: "View Doctors" },
+    { key: "offlineBooking",         label: "Offline Booking" },
     { key: "viewDoctorApplications", label: "View Doctor Applications" },
-    { key: "viewRevenue", label: "View Revenue Dashboard" },
+    { key: "viewRevenue",            label: "View Revenue Dashboard" },
 ];
 
 const SCOPE_PRESETS = {
     ayurveda: {
         queueScope: "ayurveda",
-        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewDoctors: true, manageAvailability: false, offlineBooking: false, viewDoctorApplications: false, viewRevenue: false },
+        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewEmergencyQueue: true, viewPastAppointments: true, markNoShow: false, viewOverdue: true, cancelOverdue: false, viewAuditTrail: false, viewDoctors: true, manageAvailability: false, offlineBooking: false, viewDoctorApplications: false, viewRevenue: false },
     },
     panchakarma: {
         queueScope: "panchakarma",
-        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewDoctors: true, manageAvailability: true, offlineBooking: false, viewDoctorApplications: false, viewRevenue: false },
+        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewEmergencyQueue: true, viewPastAppointments: true, markNoShow: false, viewOverdue: true, cancelOverdue: false, viewAuditTrail: false, viewDoctors: true, manageAvailability: true, offlineBooking: false, viewDoctorApplications: false, viewRevenue: false },
     },
     normal: {
         queueScope: "normal",
-        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewDoctors: true, manageAvailability: false, offlineBooking: true, viewDoctorApplications: false, viewRevenue: false },
+        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewEmergencyQueue: true, viewPastAppointments: true, markNoShow: false, viewOverdue: true, cancelOverdue: false, viewAuditTrail: false, viewDoctors: true, manageAvailability: false, offlineBooking: true, viewDoctorApplications: false, viewRevenue: false },
     },
     all: {
         queueScope: "all",
-        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewDoctors: true, manageAvailability: true, offlineBooking: true, viewDoctorApplications: true, viewRevenue: false },
+        permissions: { viewQueues: true, approveAppointments: true, callPatients: true, viewEmergencyQueue: true, viewPastAppointments: true, markNoShow: true, viewOverdue: true, cancelOverdue: true, viewAuditTrail: true, viewDoctors: true, manageAvailability: true, offlineBooking: true, viewDoctorApplications: true, viewRevenue: false },
     },
 };
 

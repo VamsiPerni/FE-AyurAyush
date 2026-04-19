@@ -254,8 +254,11 @@ const TodayAppointmentsPage = () => {
             return true;
         });
 
-        // Sort by time slot
+        // in_consultation always floats to top, then sort by time slot
         result.sort((a, b) => {
+            const aInConsult = (a.queueStatus === "in_consultation") ? 0 : 1;
+            const bInConsult = (b.queueStatus === "in_consultation") ? 0 : 1;
+            if (aInConsult !== bInConsult) return aInConsult - bInConsult;
             const diff = parseSlotMinutes(a.timeSlot) - parseSlotMinutes(b.timeSlot);
             return sortOrder === "asc" ? diff : -diff;
         });

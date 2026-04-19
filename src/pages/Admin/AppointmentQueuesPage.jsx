@@ -14,6 +14,7 @@ import {
     History,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
+import { useAuthContext } from "../../contexts/AppContext";
 import { PageHeader } from "../../components/shared/PageHeader";
 import { StatCard } from "../../components/shared/StatCard";
 import {
@@ -41,12 +42,19 @@ import {
 
 const AppointmentQueuesPage = () => {
     const { queueType } = useParams();
+    const { roles, subAdminProfile } = useAuthContext();
+    const isSuperAdmin = roles?.includes("admin");
+    // For sub-admins, derive permissions; super-admin gets everything
+    const perms = isSuperAdmin
+        ? { viewQueues: true, approveAppointments: true, callPatients: true, viewEmergencyQueue: true, viewPastAppointments: true, markNoShow: true, viewOverdue: true, cancelOverdue: true, viewAuditTrail: true, viewDoctors: true, manageAvailability: true, offlineBooking: true, viewDoctorApplications: true, viewRevenue: true }
+        : (subAdminProfile?.permissions || {});
     const [emergencyQueue, setEmergencyQueue] = useState([]);
     const [normalQueue, setNormalQueue] = useState([]);
     const [overdueQueue, setOverdueQueue] = useState([]);
     const [overdueLoading, setOverdueLoading] = useState(false);
     const [cancellingOverdue, setCancellingOverdue] = useState(false);
-    const [activeTab, setActiveTab] = useState("pending");
+    // activeTab starts null — set after perms are known to avoid stale-init mismatch
+    const [activeTab, setActiveTab] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -67,16 +75,21 @@ const AppointmentQueuesPage = () => {
     const [isApprovingWithEdits, setIsApprovingWithEdits] = useState(false);
 
     const loadQueues = async () => {
+        if (!perms.viewQueues && !perms.viewEmergencyQueue) return;
         try {
             setLoading(true);
             setError("");
 
-            const [emRes, normRes] = await Promise.all([
-                adminService.getEmergencyAppointments(),
-                adminService.getPendingAppointments(),
-            ]);
+            const calls = [];
+            if (perms.viewEmergencyQueue) calls.push(adminService.getEmergencyAppointments());
+            else calls.push(Promise.resolve(null));
+            if (perms.viewQueues) calls.push(adminService.getPendingAppointments());
+            else calls.push(Promise.resolve(null));
+
+            const [emRes, normRes] = await Promise.all(calls);
 
             const extractAppointments = (res) => {
+                if (!res) return [];
                 const payload = res?.data?.appointments
                     ? res.data
                     : res?.data?.data?.appointments
@@ -144,7 +157,7 @@ const AppointmentQueuesPage = () => {
             setNormalQueue([]);
             const message =
                 err.response?.status === 403
-                    ? "Admin access required. Please login with an admin account."
+                    ? "You do not have permission to view this queue."
                     : "Failed to load appointment queues. Please check connection.";
             setError(message);
             showErrorToast(message);
@@ -154,6 +167,7 @@ const AppointmentQueuesPage = () => {
     };
 
     const loadOverdueQueue = async () => {
+        if (!perms.viewOverdue) return;
         try {
             setOverdueLoading(true);
             const res = await adminService.getOverdueAppointments();
@@ -167,6 +181,7 @@ const AppointmentQueuesPage = () => {
     };
 
     const loadInsights = async () => {
+        if (!perms.viewQueues) return;
         try {
             const result = await adminService.getQueueInsights();
             setInsights(result.data || null);
@@ -175,19 +190,32 @@ const AppointmentQueuesPage = () => {
         }
     };
 
+    // Set default tab once perms are known (after context loads)
     useEffect(() => {
-        loadQueues();
-        loadInsights();
-        loadOverdueQueue();
-    }, []);
+        if (activeTab !== null) return; // already set
+        if (perms.viewQueues || perms.viewEmergencyQueue) { setActiveTab("pending"); return; }
+        if (perms.viewOverdue) { setActiveTab("overdue"); return; }
+        if (perms.viewPastAppointments) { setActiveTab("past"); return; }
+        setActiveTab("pending");
+    }, [perms, activeTab]);
 
     useEffect(() => {
+        if (activeTab === null) return; // wait for tab to be set
+        if (perms.viewQueues || perms.viewEmergencyQueue) loadQueues();
+        else setLoading(false);
+        if (perms.viewQueues) loadInsights();
+        if (perms.viewOverdue) loadOverdueQueue();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab === null ? null : "ready"]);
+
+    useEffect(() => {
+        if (!perms.viewQueues) return;
         const intervalId = setInterval(() => {
             loadInsights();
         }, 10000);
-
         return () => clearInterval(intervalId);
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [perms.viewQueues]);
 
     const openEditApproveModal = (appointment) => {
         setEditingAppointment(appointment);
@@ -367,33 +395,31 @@ const AppointmentQueuesPage = () => {
         }
     };
 
-    if (loading) {
+    // Show loading only while fetching queues the user has permission for
+    if (activeTab === null || (loading && (perms.viewQueues || perms.viewEmergencyQueue))) {
         return (
             <div className="max-w-6xl mx-auto space-y-8 pb-8">
                 <PageHeader
                     title="Appointment Queues"
-                    subtitle="Reviewing triage flows actively..."
+                    subtitle="Loading..."
                 />
-                <Card className="p-6 border-red-100 dark:border-red-900/30 bg-red-50/10 dark:bg-red-900/5">
-                    <TableSkeleton rows={2} columns={3} />
-                </Card>
                 <Card className="p-6">
-                    <TableSkeleton rows={6} columns={5} />
+                    <TableSkeleton rows={4} columns={5} />
                 </Card>
             </div>
         );
     }
 
-    if (error && emergencyQueue.length === 0 && normalQueue.length === 0) {
+    if (error && (perms.viewQueues || perms.viewEmergencyQueue)) {
         return (
             <div className="max-w-6xl mx-auto py-12">
                 <EmptyState
                     icon={AlertCircle}
-                    title="System Connection Error"
+                    title="Failed to load queues"
                     description={error}
                     action={
                         <Button icon={RefreshCw} onClick={loadQueues}>
-                            Retry Fetch
+                            Retry
                         </Button>
                     }
                 />
@@ -414,9 +440,9 @@ const AppointmentQueuesPage = () => {
                         variant="outline"
                         icon={RefreshCw}
                         onClick={() => {
-                            loadQueues();
-                            loadInsights();
-                            loadOverdueQueue();
+                            if (perms.viewQueues || perms.viewEmergencyQueue) loadQueues();
+                            if (perms.viewQueues) loadInsights();
+                            if (perms.viewOverdue) loadOverdueQueue();
                         }}
                     >
                         Refresh Sync
@@ -428,23 +454,23 @@ const AppointmentQueuesPage = () => {
 
             <div className="flex gap-1 border-b border-neutral-200 bg-white rounded-t-xl px-2 pt-2">
                 {[
-                    {
+                    perms.viewQueues && {
                         key: "pending",
                         label: "Pending Requests",
                         count: queueTotal,
                     },
-                    {
+                    perms.viewOverdue && {
                         key: "overdue",
                         label: "Overdue Requests",
                         count: overdueQueue.length,
                         warn: overdueQueue.length > 0,
                     },
-                    {
+                    perms.viewPastAppointments && {
                         key: "past",
                         label: "Past Appointments",
                         count: 0,
                     },
-                ].map((tab) => (
+                ].filter(Boolean).map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
@@ -629,6 +655,7 @@ const AppointmentQueuesPage = () => {
 
             {/* EMERGENCY QUEUE */}
             {activeTab === "pending" &&
+                perms.viewEmergencyQueue &&
                 (!queueType || queueType === "emergency") && (
                     <Card className="border-red-200 dark:border-red-700/40 shadow-md shadow-red-100/30 dark:shadow-none overflow-hidden">
                         <CardHeader className="bg-red-50/80 dark:bg-red-900/10 border-b border-red-100 dark:border-red-700/40 flex flex-row items-center justify-between pb-4">
@@ -793,7 +820,7 @@ const AppointmentQueuesPage = () => {
                                 </p>
                             </div>
                         </div>
-                        {overdueQueue.length > 0 && (
+                        {overdueQueue.length > 0 && perms.cancelOverdue && (
                             <Button
                                 variant="danger"
                                 icon={MailX}
