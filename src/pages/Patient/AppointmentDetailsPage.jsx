@@ -7,7 +7,10 @@ import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
 import { AISummaryViewer } from "../../components/doctor/AISummaryViewer";
 import { patientService } from "../../services/patientService";
 import { paymentService } from "../../services/paymentService";
-import { PaymentButton, PaymentPaidBadge } from "../../components/patient/PaymentButton";
+import {
+    PaymentButton,
+    PaymentPaidBadge,
+} from "../../components/patient/PaymentButton";
 import {
     showErrorToast,
     showSuccessToast,
@@ -21,7 +24,9 @@ import {
     FileText,
     Pill,
     IndianRupee,
+    Download,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 const AppointmentDetailsPage = () => {
     const { appointmentId } = useParams();
@@ -40,7 +45,8 @@ const AppointmentDetailsPage = () => {
             ]);
             if (detailRes.status === "fulfilled") setData(detailRes.value.data);
             else showErrorToast("Failed to load appointment details");
-            if (paymentRes.status === "fulfilled") setPaymentStatus(paymentRes.value.data);
+            if (paymentRes.status === "fulfilled")
+                setPaymentStatus(paymentRes.value.data);
         } finally {
             setLoading(false);
         }
@@ -70,6 +76,176 @@ const AppointmentDetailsPage = () => {
             month: "long",
             year: "numeric",
         });
+    };
+
+    const downloadPrescriptionPdf = () => {
+        if (!prescription || appointment.status !== "completed") {
+            showErrorToast(
+                "Prescription PDF is available only for completed appointments.",
+            );
+            return;
+        }
+
+        const doc = new jsPDF({ unit: "pt", format: "a4" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 40;
+        let cursorY = 52;
+
+        doc.setFillColor(242, 247, 255);
+        doc.roundedRect(marginX, 30, pageWidth - marginX * 2, 88, 10, 10, "F");
+
+        doc.setTextColor(17, 52, 106);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.text("AyurAyush - Medical Prescription", marginX + 16, cursorY);
+
+        doc.setFontSize(11);
+        doc.setTextColor(62, 82, 120);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+            `Generated on ${new Date().toLocaleDateString("en-IN")}`,
+            marginX + 16,
+            cursorY + 20,
+        );
+
+        cursorY = 142;
+
+        const drawMetaRow = (label, value, x, y) => {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(90, 100, 120);
+            doc.text(`${label}:`, x, y);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(25, 25, 30);
+            doc.text(String(value || "-"), x + 78, y);
+        };
+
+        drawMetaRow(
+            "Patient",
+            data?.patient?.name || "Patient",
+            marginX,
+            cursorY,
+        );
+        drawMetaRow("Doctor", doctor?.name || "N/A", marginX + 275, cursorY);
+        drawMetaRow(
+            "Date",
+            formatDate(appointment.date),
+            marginX,
+            cursorY + 18,
+        );
+        drawMetaRow(
+            "Time Slot",
+            appointment.timeSlot || "-",
+            marginX + 275,
+            cursorY + 18,
+        );
+        drawMetaRow(
+            "Appointment ID",
+            appointment.id || appointmentId,
+            marginX,
+            cursorY + 36,
+        );
+
+        cursorY += 64;
+
+        const drawSectionTitle = (title) => {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.setTextColor(17, 52, 106);
+            doc.text(title, marginX, cursorY);
+            cursorY += 10;
+            doc.setDrawColor(220, 226, 238);
+            doc.line(marginX, cursorY, pageWidth - marginX, cursorY);
+            cursorY += 18;
+        };
+
+        const writeParagraph = (text, indent = 0) => {
+            const lines = doc.splitTextToSize(
+                String(text || "-"),
+                pageWidth - marginX * 2 - indent,
+            );
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor(33, 37, 45);
+            doc.text(lines, marginX + indent, cursorY);
+            cursorY += lines.length * 15 + 6;
+        };
+
+        if (prescription.diagnosis) {
+            drawSectionTitle("Diagnosis");
+            writeParagraph(prescription.diagnosis);
+        }
+
+        if (prescription.medications?.length) {
+            drawSectionTitle("Medications");
+            prescription.medications.forEach((med, idx) => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(20, 60, 20);
+                doc.text(
+                    `${idx + 1}. ${med.name || "Medicine"}`,
+                    marginX,
+                    cursorY,
+                );
+                cursorY += 14;
+                writeParagraph(
+                    `${med.dosage || "-"}  |  ${med.frequency || "-"}  |  ${med.duration || "-"}`,
+                    12,
+                );
+                if (med.instructions) {
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(10);
+                    doc.setTextColor(98, 108, 126);
+                    const instLines = doc.splitTextToSize(
+                        `Instructions: ${med.instructions}`,
+                        pageWidth - marginX * 2 - 12,
+                    );
+                    doc.text(instLines, marginX + 12, cursorY);
+                    cursorY += instLines.length * 13 + 8;
+                }
+            });
+        }
+
+        if (prescription.tests?.length) {
+            drawSectionTitle("Recommended Tests");
+            prescription.tests.forEach((test, idx) => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(24, 72, 140);
+                doc.text(
+                    `${idx + 1}. ${test.testName || "Test"}`,
+                    marginX,
+                    cursorY,
+                );
+                cursorY += 14;
+                if (test.instructions) {
+                    writeParagraph(test.instructions, 12);
+                }
+            });
+        }
+
+        if (prescription.notes) {
+            drawSectionTitle("Doctor Notes");
+            writeParagraph(prescription.notes);
+        }
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(120, 128, 146);
+        doc.text(
+            "This is a digitally generated prescription from AyurAyush.",
+            marginX,
+            doc.internal.pageSize.getHeight() - 26,
+        );
+
+        const fileDate = new Date(appointment.date || Date.now())
+            .toISOString()
+            .slice(0, 10);
+        const safeDoctor = String(doctor?.name || "doctor")
+            .replace(/\s+/g, "_")
+            .replace(/[^a-zA-Z0-9_]/g, "");
+        doc.save(`AyurAyush_Prescription_${safeDoctor}_${fileDate}.pdf`);
+        showSuccessToast("Prescription PDF downloaded.");
     };
 
     if (loading) {
@@ -165,8 +341,13 @@ const AppointmentDetailsPage = () => {
                     <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-dark-border">
                         <div className="flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                                <IndianRupee size={15} className="text-primary-600" />
-                                <span className="font-medium">Consultation Fee:</span>
+                                <IndianRupee
+                                    size={15}
+                                    className="text-primary-600"
+                                />
+                                <span className="font-medium">
+                                    Consultation Fee:
+                                </span>
                                 <span className="font-bold text-neutral-800 dark:text-neutral-100">
                                     ₹{doctor?.consultationFee ?? "—"}
                                 </span>
@@ -206,11 +387,37 @@ const AppointmentDetailsPage = () => {
             {prescription && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Pill size={18} className="text-primary-600" />
-                            Prescription
-                        </CardTitle>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Pill size={18} className="text-primary-600" />
+                                Prescription
+                            </CardTitle>
+                            {appointment.status === "completed" && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    icon={Download}
+                                    onClick={downloadPrescriptionPdf}
+                                    className="border-primary-200 text-primary-700 hover:bg-primary-50 dark:border-primary-700/50 dark:text-primary-300 dark:hover:bg-primary-900/20"
+                                >
+                                    Download PDF
+                                </Button>
+                            )}
+                        </div>
                     </CardHeader>
+
+                    {appointment.status === "completed" ? (
+                        <div className="mb-4 rounded-xl border border-primary-200/70 dark:border-primary-700/40 bg-gradient-to-r from-primary-50 to-emerald-50 dark:from-primary-900/10 dark:to-emerald-900/10 p-4">
+                            <p className="text-sm font-semibold text-primary-800 dark:text-primary-300">
+                                Download Ready Prescription
+                            </p>
+                            <p className="text-xs text-primary-700/80 dark:text-primary-400 mt-1">
+                                A neatly formatted PDF with diagnosis,
+                                medications, tests, and doctor notes is
+                                available for this completed appointment.
+                            </p>
+                        </div>
+                    ) : null}
 
                     {prescription.diagnosis && (
                         <div className="mb-4">

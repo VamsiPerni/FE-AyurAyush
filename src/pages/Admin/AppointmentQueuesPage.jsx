@@ -430,6 +430,27 @@ const AppointmentQueuesPage = () => {
     const queueTotal = emergencyQueue.length + normalQueue.length;
     const isLiveQueueView = !queueType || queueType === "live";
 
+    // Permission denied guard for specific sub-routes
+    const subRoutePermDenied =
+        (queueType === "emergency" && !perms.viewEmergencyQueue) ||
+        (queueType === "standard" && !perms.viewQueues) ||
+        (queueType === "live" && !perms.viewQueues && !perms.viewEmergencyQueue);
+
+    if (subRoutePermDenied) {
+        return (
+            <div className="max-w-6xl mx-auto py-16">
+                <EmptyState
+                    icon={ShieldAlert}
+                    title="Permission Not Granted"
+                    description={`You do not have permission to view the ${
+                        queueType === "emergency" ? "Emergency" :
+                        queueType === "standard" ? "Standard Check-ins" : "Live"
+                    } queue. Contact your administrator to request access.`}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in">
             <PageHeader

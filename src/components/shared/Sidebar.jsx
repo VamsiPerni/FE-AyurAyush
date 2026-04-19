@@ -124,7 +124,16 @@ const Sidebar = () => {
             { path: "/sub-admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
         ];
         if (perms.viewQueues || perms.viewEmergencyQueue || perms.viewOverdue || perms.viewPastAppointments) {
-            links.push({ path: "/admin/queues", label: "Appointment Queues", icon: ListOrdered });
+            links.push({
+                path: "/admin/queues",
+                label: "Appointment Queues",
+                icon: ListOrdered,
+                subLinks: [
+                    { path: "/admin/queues/live", label: "Live Queue" },
+                    { path: "/admin/queues/emergency", label: "Emergency Priority" },
+                    { path: "/admin/queues/standard", label: "Standard Check-ins" },
+                ],
+            });
         }
         if (perms.viewDoctors || perms.manageAvailability) {
             links.push({ path: "/admin/doctors", label: "Doctors", icon: Stethoscope });
