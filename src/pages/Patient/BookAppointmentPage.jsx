@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
     Calendar,
@@ -8,10 +8,10 @@ import {
     ArrowLeft,
     ArrowRight,
     CheckCircle2,
-    FileText,
-    Trash2,
     AlertTriangle,
     CreditCard,
+    Lock,
+    MessageSquare,
 } from "lucide-react";
 import { patientService } from "../../services/patientService";
 import { paymentService } from "../../services/paymentService";
@@ -76,6 +76,8 @@ const BookAppointmentPage = () => {
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState("");
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [hoveredLockedStep, setHoveredLockedStep] = useState(null);
+    const guidedPanelRef = useRef(null);
 
     const selectedConversation = useMemo(
         () =>
@@ -197,24 +199,23 @@ const BookAppointmentPage = () => {
     };
 
     const handleDoctorSelect = (doctor) => {
-        if (!selectedConversationId) {
-            showErrorToast(
-                "Please select a completed consultation before choosing a doctor.",
-            );
-            return;
-        }
+        if (!selectedConversationId || !summaryConfirmed) return;
 
-        if (!summaryConfirmed) {
-            showErrorToast(
-                "Please review and confirm the consultation summary first.",
-            );
-            return;
-        }
+        const recommended = (selectedConversation?.summary?.recommendedSpecialist || "").trim();
+        const docSpec = (doctor.specialization || "").trim().toLowerCase();
+        const recLower = recommended.toLowerCase();
 
-        const matchEvaluation = evaluateDoctorMatch(doctor);
-        if (!matchEvaluation.isMatch) {
+        // Only check mismatch if AI actually gave a recommendation
+        const isMatch = !recLower ||
+            (docSpec.length > 0 && docSpec.includes(recLower)) ||
+            (docSpec.length > 0 && recLower.includes(docSpec));
+
+        if (!isMatch) {
             setPendingDoctorSelection(doctor);
-            setMismatchInsight(matchEvaluation);
+            setMismatchInsight({
+                isMatch: false,
+                reason: `AI recommended a ${recommended} specialist based on your symptoms. This doctor specializes in ${doctor.specialization || "a different area"}. You can still proceed if you prefer.`,
+            });
             setShowDoctorMismatchModal(true);
             return;
         }
@@ -561,140 +562,222 @@ const BookAppointmentPage = () => {
                 }
             />
 
-            <div className="rounded-xl border border-teal-200 dark:border-teal-700/40 bg-teal-50/60 dark:bg-teal-900/10 p-4 space-y-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <h3 className="text-sm font-semibold text-teal-900 dark:text-teal-300 flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Select Completed Consultation
-                    </h3>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate("/patient/chatbot")}
-                    >
-                        Start AI Consultation
-                    </Button>
-                </div>
+            {/* ── Guided Journey Panel ── */}
+            <div ref={guidedPanelRef} className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+                {/* Step 1 */}
+                <div
+                    className={`relative flex items-start gap-4 px-5 py-4 border-b border-neutral-100 transition-all duration-200 ${
+                        !selectedConversationId
+                            ? "bg-primary-50/60"
+                            : "bg-neutral-50/40"
+                    } ${
+                        hoveredLockedStep === 1 ? "ring-2 ring-inset ring-primary-400" : ""
+                    }`}
+                    onMouseEnter={() => !selectedConversationId && setHoveredLockedStep(1)}
+                    onMouseLeave={() => setHoveredLockedStep(null)}
+                >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                        selectedConversationId ? "bg-success-500 text-white" : "bg-primary-600 text-white"
+                    }`}>
+                        {selectedConversationId ? <CheckCircle2 className="w-4 h-4" /> : "1"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${
+                            selectedConversationId ? "text-neutral-500" : "text-neutral-800"
+                        }`}>
+                            Select or Start an AI Consultation
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            Use a previous completed chat or start a new one to get your symptom summary.
+                        </p>
 
-                {conversations.length === 0 ? (
-                    <p className="text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2">
-                        No completed consultations found. Please finish AI chat
-                        first, then return to book.
-                    </p>
-                ) : (
-                    <>
-                        <select
-                            value={selectedConversationId}
-                            onChange={(e) => {
-                                setSelectedConversationId(e.target.value);
-                                setSummaryConfirmed(false);
-                                setStep(1);
-                            }}
-                            className="w-full px-3 py-2 border border-teal-300 dark:border-teal-700/50 rounded-xl text-sm bg-white dark:bg-dark-elevated text-neutral-800 dark:text-neutral-100"
-                        >
-                            <option value="">Select consultation...</option>
-                            {conversations.map((c) => {
-                                const id = c.conversationId || c._id;
-                                const symptomText =
-                                    c.summary?.symptoms?.join(", ") ||
-                                    "Consultation";
-                                return (
-                                    <option key={id} value={id}>
-                                        {symptomText} -{" "}
-                                        {new Date(
-                                            c.createdAt,
-                                        ).toLocaleDateString()}
-                                        {c.summary?.recommendedSpecialist
-                                            ? ` (Recommended: ${c.summary.recommendedSpecialist})`
-                                            : ""}
-                                    </option>
-                                );
-                            })}
-                        </select>
-
-                        {selectedConversation?.summary && (
-                            <div className="bg-white dark:bg-dark-elevated border border-teal-200 dark:border-teal-700/40 rounded-xl p-3 text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
-                                <p>
-                                    <span className="font-semibold">
-                                        Symptoms:
-                                    </span>{" "}
-                                    {selectedConversation.summary.symptoms?.join(
-                                        ", ",
-                                    ) || "Not specified"}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">
-                                        Duration:
-                                    </span>{" "}
-                                    {selectedConversation.summary.duration ||
-                                        "Not specified"}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">
-                                        Urgency:
-                                    </span>{" "}
-                                    {selectedConversation.summary
-                                        .urgencyLevel || "normal"}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">
-                                        Summary:
-                                    </span>{" "}
-                                    {selectedConversation.summary
-                                        .detailedSummary ||
-                                        "Please review chat history."}
-                                </p>
+                        {/* Always show options until a conversation is selected */}
+                        {!selectedConversationId && (
+                            <div className="mt-3 space-y-3">
+                                {conversations.length > 0 && (
+                                    <>
+                                        <p className="text-xs font-medium text-neutral-600">Previous consultations available:</p>
+                                        <select
+                                            value={selectedConversationId}
+                                            onChange={(e) => {
+                                                setSelectedConversationId(e.target.value);
+                                                setSummaryConfirmed(false);
+                                            }}
+                                            className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm bg-white text-neutral-800"
+                                        >
+                                            <option value="">Select a previous consultation...</option>
+                                            {conversations.map((c) => {
+                                                const id = c.conversationId || c._id;
+                                                const symptomText = c.summary?.symptoms?.join(", ") || "Consultation";
+                                                return (
+                                                    <option key={id} value={id}>
+                                                        {symptomText} — {new Date(c.createdAt).toLocaleDateString("en-IN")}
+                                                        {c.summary?.recommendedSpecialist ? ` (Recommended: ${c.summary.recommendedSpecialist})` : ""}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                        <p className="text-xs text-neutral-400 text-center">— or —</p>
+                                    </>
+                                )}
+                                <Button size="sm" icon={MessageSquare} onClick={() => navigate("/patient/chatbot")}>
+                                    Start New AI Chat
+                                </Button>
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <p className="text-xs text-teal-800 dark:text-teal-400">
-                                Confirm this consultation summary before
-                                choosing a doctor.
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    icon={Trash2}
-                                    disabled={!selectedConversationId || deletingSummary}
-                                    loading={deletingSummary}
-                                    onClick={() => setShowDeleteSummaryModal(true)}
-                                >
-                                    Delete Summary
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    icon={Trash2}
-                                    disabled={!selectedConversationId || deletingConversation}
-                                    loading={deletingConversation}
-                                    onClick={() =>
-                                        setShowDeleteConversationModal(true)
-                                    }
-                                >
-                                    Delete Consultation
-                                </Button>
+                        {hoveredLockedStep === 1 && !selectedConversationId && (
+                            <div className="mt-3 flex items-start gap-2 bg-primary-50 border border-primary-200 rounded-xl px-3 py-2.5 animate-in fade-in duration-200">
+                                <MessageSquare className="w-4 h-4 text-primary-600 shrink-0 mt-0.5" />
+                                <p className="text-xs text-primary-700">Select a previous consultation above or start a new AI chat to continue.</p>
+                            </div>
+                        )}
+                    </div>
+                    {selectedConversationId && (
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-xs font-semibold text-success-600 bg-success-50 border border-success-200 px-2 py-1 rounded-lg">
+                                Done
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => { setSelectedConversationId(""); setSummaryConfirmed(false); }}
+                                className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
+                            >
+                                ↩ Change
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Step 2 */}
+                <div
+                    className={`relative flex items-start gap-4 px-5 py-4 border-b border-neutral-100 transition-all duration-200 ${
+                        selectedConversationId && !summaryConfirmed ? "bg-primary-50/60" : "bg-neutral-50/40"
+                    } ${
+                        hoveredLockedStep === 2 ? "ring-2 ring-inset ring-amber-400" : ""
+                    }`}
+                    onMouseEnter={() => !selectedConversationId && setHoveredLockedStep(2)}
+                    onMouseLeave={() => setHoveredLockedStep(null)}
+                >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                        summaryConfirmed
+                            ? "bg-success-500 text-white"
+                            : selectedConversationId
+                              ? "bg-primary-600 text-white"
+                              : "bg-neutral-200 text-neutral-400"
+                    }`}>
+                        {summaryConfirmed ? <CheckCircle2 className="w-4 h-4" /> : !selectedConversationId ? <Lock className="w-3.5 h-3.5" /> : "2"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${
+                            summaryConfirmed ? "text-neutral-500" :
+                            selectedConversationId ? "text-neutral-800" : "text-neutral-400"
+                        }`}>
+                            Review &amp; Confirm Your Summary
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            Check the AI-generated summary of your symptoms and confirm it's accurate.
+                        </p>
+
+                        {/* Locked tooltip */}
+                        {hoveredLockedStep === 2 && !selectedConversationId && (
+                            <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 animate-in fade-in duration-200">
+                                <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-xs font-semibold text-amber-800">Complete Step 1 first</p>
+                                    <p className="text-xs text-amber-700 mt-0.5">Select or start a consultation to unlock this step.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedConversationId && !summaryConfirmed && (
+                            <div className="mt-3 space-y-3">
+                                {selectedConversation?.summary && (
+                                    <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm text-neutral-700 space-y-1">
+                                        <p><span className="font-semibold">Symptoms:</span> {selectedConversation.summary.symptoms?.join(", ") || "Not specified"}</p>
+                                        <p><span className="font-semibold">Urgency:</span> {selectedConversation.summary.urgencyLevel || "normal"}</p>
+                                        {selectedConversation.summary.recommendedSpecialist && (
+                                            <p><span className="font-semibold">Recommended:</span> {selectedConversation.summary.recommendedSpecialist}</p>
+                                        )}
+                                        {selectedConversation.summary.detailedSummary && (
+                                            <p className="text-xs text-neutral-500 mt-1">{selectedConversation.summary.detailedSummary}</p>
+                                        )}
+                                    </div>
+                                )}
                                 <Button
                                     size="sm"
                                     disabled={!selectedConversationId}
                                     onClick={() => {
                                         setSummaryConfirmed(true);
-                                        showSuccessToast(
-                                            "Summary confirmed. You can now select a doctor.",
-                                        );
+                                        showSuccessToast("Summary confirmed. Now pick a doctor below.");
                                     }}
                                 >
-                                    {summaryConfirmed
-                                        ? "Summary Confirmed"
-                                        : "Confirm Summary"}
+                                    Confirm Summary
                                 </Button>
                             </div>
-                        </div>
-                    </>
-                )}
-            </div>
+                        )}
+                    </div>
+                    {summaryConfirmed && (
+                        <span className="text-xs font-semibold text-success-600 bg-success-50 border border-success-200 px-2 py-1 rounded-lg shrink-0">
+                            Done
+                        </span>
+                    )}
+                    {!selectedConversationId && (
+                        <Lock className="w-4 h-4 text-neutral-300 shrink-0 mt-1" />
+                    )}
+                </div>
 
+                {/* Step 3 */}
+                <div
+                    className={`relative flex items-start gap-4 px-5 py-4 transition-all duration-200 ${
+                        summaryConfirmed ? "bg-primary-50/60" : "bg-neutral-50/40"
+                    } ${
+                        hoveredLockedStep === 3 ? "ring-2 ring-inset ring-amber-400" : ""
+                    }`}
+                    onMouseEnter={() => !summaryConfirmed && setHoveredLockedStep(3)}
+                    onMouseLeave={() => setHoveredLockedStep(null)}
+                >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                        summaryConfirmed ? "bg-primary-600 text-white" : "bg-neutral-200 text-neutral-400"
+                    }`}>
+                        {summaryConfirmed ? "3" : <Lock className="w-3.5 h-3.5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${
+                            summaryConfirmed ? "text-neutral-800" : "text-neutral-400"
+                        }`}>
+                            Pick a Doctor &amp; Book
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            {summaryConfirmed
+                                ? "Scroll down to choose a doctor and select your preferred date and time."
+                                : "Complete steps 1 and 2 first to unlock doctor selection."}
+                        </p>
+                        {hoveredLockedStep === 3 && !summaryConfirmed && (
+                            <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 animate-in fade-in duration-200">
+                                <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-xs font-semibold text-amber-800">
+                                        {!selectedConversationId ? "Complete Steps 1 & 2 first" : "Complete Step 2 first"}
+                                    </p>
+                                    <p className="text-xs text-amber-700 mt-0.5">
+                                        {!selectedConversationId
+                                            ? "Select a consultation and confirm your summary to unlock doctor selection."
+                                            : "Confirm your summary above to unlock doctor selection."}
+                                    </p>
+                                    <Button
+                                        size="sm"
+                                        className="mt-2"
+                                        onClick={() => guidedPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                                    >
+                                        {!selectedConversationId ? "Go to Step 1" : "Go to Step 2"}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
             {/* Progress Indicator */}
             <div className="flex items-center justify-between mb-8 px-2 sm:px-8">
                 {[
@@ -749,7 +832,7 @@ const BookAppointmentPage = () => {
 
             {loading ? (
                 <CardSkeleton />
-            ) : (
+            ) : !summaryConfirmed ? null : (
                 <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-neutral-100 dark:border-dark-border p-6 min-h-[400px]">
                     {/* STEP 1: Select Doctor */}
                     {step === 1 && (
@@ -809,23 +892,23 @@ const BookAppointmentPage = () => {
                                                     </p>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {doctorsInCategory.map(
-                                                        (doc) => (
+                                                        (doc) => {
+                                                            const recommended = selectedConversation?.summary?.recommendedSpecialist || "";
+                                                            const isRecommended = recommended &&
+                                                                (doc.specialization || "").toLowerCase().includes(recommended.toLowerCase()) ||
+                                                                recommended.toLowerCase().includes((doc.specialization || "").toLowerCase());
+                                                            return (
                                                             <DoctorCard
-                                                                key={
-                                                                    doc.doctorId ||
-                                                                    doc._id
-                                                                }
+                                                                key={doc.doctorId || doc._id}
                                                                 doctor={doc}
-                                                                onSelect={
-                                                                    handleDoctorSelect
-                                                                }
-                                                                mostlyTreats={getMostlyTreatsLabel(
-                                                                    doc,
-                                                                )}
+                                                                onSelect={handleDoctorSelect}
+                                                                mostlyTreats={getMostlyTreatsLabel(doc)}
+                                                                isRecommended={!!isRecommended}
                                                             />
-                                                        ),
+                                                            );
+                                                        },
                                                     )}
                                                 </div>
                                             </div>
@@ -834,12 +917,6 @@ const BookAppointmentPage = () => {
                                 </div>
                             )}
 
-                            {!summaryConfirmed && conversations.length > 0 && (
-                                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-3 py-2">
-                                    Select and confirm a completed consultation
-                                    summary above to continue booking.
-                                </p>
-                            )}
                         </div>
                     )}
 
@@ -1072,8 +1149,7 @@ const BookAppointmentPage = () => {
                     setPendingDoctorSelection(null);
                     setMismatchInsight(null);
                 }}
-                title="Doctor-Symptom Match Warning"
-                description="This doctor may not be the closest match for your consultation summary."
+                title="Doctor May Not Match Your Symptoms"
                 size="sm"
                 footer={
                     <>
@@ -1085,7 +1161,7 @@ const BookAppointmentPage = () => {
                                 setMismatchInsight(null);
                             }}
                         >
-                            Select Another Doctor
+                            Choose Another Doctor
                         </Button>
                         <Button variant="primary" onClick={proceedWithPendingDoctor}>
                             Proceed Anyway
@@ -1094,13 +1170,12 @@ const BookAppointmentPage = () => {
                 }
             >
                 <div className="space-y-3 text-sm text-neutral-700">
-                    <p className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5" />
-                        <span>{mismatchInsight?.reason}</span>
-                    </p>
+                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <p>{mismatchInsight?.reason}</p>
+                    </div>
                     <p className="text-xs text-neutral-500">
-                        You can continue with this doctor if you still prefer,
-                        or choose another doctor category for a closer match.
+                        You can still proceed with this doctor if you prefer, or go back and select the recommended specialist.
                     </p>
                 </div>
             </Modal>

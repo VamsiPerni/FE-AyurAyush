@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuthContext } from "../../contexts/AppContext";
 import { Button } from "../../components/ui/Button";
 import { publicService } from "../../services/publicService";
@@ -187,7 +187,7 @@ const Section = ({ children, className = "" }) => {
 
 // ---------- Main HomePage Component ----------
 const HomePage = () => {
-    const { isLoggedIn, roles } = useAuthContext();
+    const { isLoggedIn, roles, activeRole } = useAuthContext();
 
     useEffect(() => {
         const styleId = "home-page-animations";
@@ -251,13 +251,11 @@ const HomePage = () => {
 
     const getDashboardLink = () => {
         if (!isLoggedIn || !roles?.length) return "/login";
-        if (roles.length === 1) {
-            const role = roles[0];
-            if (role === "sub_admin") return "/sub-admin/dashboard";
-            if (role === "admin") return "/super-admin/dashboard";
-            return `/${role}/dashboard`;
-        }
-        return "/choose-role";
+        const role = activeRole || (roles.length === 1 ? roles[0] : null);
+        if (!role) return "/choose-role";
+        if (role === "sub_admin") return "/sub-admin/dashboard";
+        if (role === "admin") return "/super-admin/dashboard";
+        return `/${role}/dashboard`;
     };
 
     return (
@@ -278,7 +276,12 @@ const HomePage = () => {
                 isLoggedIn={isLoggedIn}
                 getDashboardLink={getDashboardLink}
             />
-            <FooterSection />
+            <FooterSection
+                isLoggedIn={isLoggedIn}
+                roles={roles}
+                activeRole={activeRole}
+                getDashboardLink={getDashboardLink}
+            />
         </div>
     );
 };
@@ -743,6 +746,7 @@ const CarePathsSection = () => {
 
 // ---------- Doctors Scroller ----------
 const DoctorsScrollerSection = () => {
+    const navigate = useNavigate();
     const [doctors, setDoctors] = useState([]);
     const [loadingDoctors, setLoadingDoctors] = useState(true);
 
@@ -868,6 +872,7 @@ const DoctorsScrollerSection = () => {
                                                 }
                                                 className="w-full group-hover:shadow-lg transition-all duration-300"
                                                 disabled={!isAvailable}
+                                                onClick={() => isAvailable && navigate("/patient/chatbot")}
                                             >
                                                 {isAvailable
                                                     ? "Book Consultation"
@@ -1070,8 +1075,19 @@ const FinalCTASection = ({ isLoggedIn, getDashboardLink }) => (
 );
 
 // ---------- Footer ----------
-const FooterSection = () => (
-    <footer className="bg-gray-900 dark:bg-dark-surface text-gray-400 pt-16 pb-8 border-t border-gray-800 dark:border-dark-border">
+const FooterSection = ({ isLoggedIn, roles, activeRole, getDashboardLink }) => {
+    const portalLabel =
+        !isLoggedIn ? "Patient Portal" :
+        activeRole === "admin" ? "Admin Portal" :
+        activeRole === "sub_admin" ? "Sub-Admin Portal" :
+        activeRole === "doctor" ? "Doctor Portal" :
+        activeRole === "patient" ? "Patient Portal" :
+        roles?.length > 1 ? "My Portal" :
+        "Patient Portal";
+    const portalLink = !isLoggedIn ? "/patient/dashboard" : getDashboardLink();
+
+    return (
+        <footer className="bg-gray-900 dark:bg-dark-surface text-gray-400 pt-16 pb-8 border-t border-gray-800 dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
@@ -1107,10 +1123,10 @@ const FooterSection = () => (
                         </li>
                         <li>
                             <Link
-                                to="/patient/dashboard"
+                                to={portalLink}
                                 className="hover:text-white transition-colors"
                             >
-                                Patient Portal
+                                {portalLabel}
                             </Link>
                         </li>
                     </ul>
@@ -1165,6 +1181,7 @@ const FooterSection = () => (
             </div>
         </div>
     </footer>
-);
+    );
+};
 
 export { HomePage };

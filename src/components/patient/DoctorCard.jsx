@@ -1,8 +1,8 @@
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { User, Briefcase, GraduationCap } from "lucide-react";
+import { User, Briefcase, GraduationCap, Sparkles } from "lucide-react";
 
-const DoctorCard = ({ doctor, onSelect, selected, mostlyTreats }) => {
+const DoctorCard = ({ doctor, onSelect, selected, mostlyTreats, isRecommended }) => {
     const {
         name,
         specialization,
@@ -13,12 +13,23 @@ const DoctorCard = ({ doctor, onSelect, selected, mostlyTreats }) => {
     } = doctor;
 
     return (
-        <Card
-            hover
-            selected={selected}
-            onClick={() => onSelect?.(doctor)}
-            className="flex flex-col gap-3"
-        >
+        <div className="relative">
+            {isRecommended && (
+                <div className="absolute -top-2.5 left-3 z-10 flex items-center gap-1 bg-primary-600 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm">
+                    <Sparkles className="w-3 h-3" />
+                    AI Recommended
+                </div>
+            )}
+            <Card
+                hover
+                selected={selected}
+                onClick={() => onSelect?.(doctor)}
+                className={`flex flex-col gap-3 ${
+                    isRecommended
+                        ? "border-primary-300 ring-2 ring-primary-200 bg-primary-50/30"
+                        : ""
+                }`}
+            >
             <div className="flex items-center gap-3">
                 {profilePhoto ? (
                     <img
@@ -79,6 +90,7 @@ const DoctorCard = ({ doctor, onSelect, selected, mostlyTreats }) => {
                 {selected ? "Selected ✓" : "Select Doctor"}
             </Button>
         </Card>
+        </div>
     );
 };
 
