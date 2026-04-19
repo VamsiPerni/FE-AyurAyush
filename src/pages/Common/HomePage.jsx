@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { useAuthContext } from "../../contexts/AppContext";
 import { Button } from "../../components/ui/Button";
+import { publicService } from "../../services/publicService";
 import {
     Stethoscope,
     MessageSquare,
@@ -46,63 +47,6 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ---------- Mock Data ----------
-const doctorsData = [
-    {
-        id: "d1",
-        name: "Dr. Ananya Sharma",
-        specialization: "Ayurveda & Panchakarma",
-        experience: 12,
-        fee: 1200,
-        available: true,
-        image: null,
-    },
-    {
-        id: "d2",
-        name: "Dr. Rajiv Menon",
-        specialization: "General Medicine",
-        experience: 8,
-        fee: 900,
-        available: true,
-        image: null,
-    },
-    {
-        id: "d3",
-        name: "Dr. Priya Desai",
-        specialization: "Cardiology",
-        experience: 15,
-        fee: 1500,
-        available: false,
-        image: null,
-    },
-    {
-        id: "d4",
-        name: "Dr. Arjun Nair",
-        specialization: "Neurology",
-        experience: 10,
-        fee: 1400,
-        available: true,
-        image: null,
-    },
-    {
-        id: "d5",
-        name: "Dr. Meera Iyer",
-        specialization: "Pediatrics",
-        experience: 7,
-        fee: 1000,
-        available: true,
-        image: null,
-    },
-    {
-        id: "d6",
-        name: "Dr. Suresh Reddy",
-        specialization: "Orthopedics",
-        experience: 18,
-        fee: 1600,
-        available: true,
-        image: null,
-    },
-];
-
 const reviewsData = [
     {
         id: "r1",
@@ -540,7 +484,9 @@ const HowItWorksSection = () => (
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-3">
                         {step.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">{step.desc}</p>
+                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">
+                        {step.desc}
+                    </p>
                     {idx < steps.length - 1 && (
                         <div className="hidden lg:block absolute -right-4 top-1/2 text-gray-300">
                             <ArrowRight size={24} />
@@ -642,7 +588,9 @@ const CoreFeaturesSection = () => (
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-3">
                         {f.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">{f.desc}</p>
+                    <p className="text-gray-600 dark:text-neutral-400 leading-relaxed">
+                        {f.desc}
+                    </p>
                 </div>
             ))}
         </div>
@@ -795,6 +743,18 @@ const CarePathsSection = () => {
 
 // ---------- Doctors Scroller ----------
 const DoctorsScrollerSection = () => {
+    const [doctors, setDoctors] = useState([]);
+    const [loadingDoctors, setLoadingDoctors] = useState(true);
+
+    useEffect(() => {
+        publicService
+            .getPublicDoctors()
+            .then((res) => {
+                if (res.isSuccess) setDoctors(res.data?.doctors || []);
+            })
+            .finally(() => setLoadingDoctors(false));
+    }, []);
+
     const {
         visibleItems,
         next,
@@ -802,7 +762,7 @@ const DoctorsScrollerSection = () => {
         hasControls,
         pauseAutoScroll,
         resumeAutoScroll,
-    } = useCarousel(doctorsData, 4000);
+    } = useCarousel(doctors, 4000);
 
     return (
         <Section className="bg-linear-to-br from-primary-50/30 to-purple-50/30 dark:from-dark-card dark:to-dark-card py-24">
@@ -822,64 +782,104 @@ const DoctorsScrollerSection = () => {
                         hasControls={hasControls}
                     />
                 </div>
-                <div
-                    className="overflow-hidden"
-                    onMouseEnter={pauseAutoScroll}
-                    onMouseLeave={resumeAutoScroll}
-                    onFocus={pauseAutoScroll}
-                    onBlur={resumeAutoScroll}
-                >
-                    <div className="flex gap-6 transition-transform duration-500 ease-out">
-                        {visibleItems.map((doc) => (
+
+                {loadingDoctors ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[1, 2, 3, 4].map((i) => (
                             <div
-                                key={doc.id}
-                                className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white dark:bg-dark-elevated rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border overflow-hidden"
+                                key={i}
+                                className="bg-white dark:bg-dark-elevated rounded-2xl overflow-hidden border border-gray-100 dark:border-dark-border"
                             >
-                                <div className="relative h-48 bg-linear-to-br from-primary-100 to-purple-100 flex items-center justify-center">
-                                    <UserCircle
-                                        size={80}
-                                        className="text-primary-600 opacity-80"
-                                    />
-                                    {doc.available && (
-                                        <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                            Available
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-1">
-                                        {doc.name}
-                                    </h3>
-                                    <p className="text-primary-600 text-sm font-medium mb-4">
-                                        {doc.specialization}
-                                    </p>
-                                    <div className="flex justify-between text-sm text-gray-600 dark:text-neutral-400 mb-5">
-                                        <span className="flex items-center gap-1">
-                                            <Briefcase size={14} />{" "}
-                                            {doc.experience} yrs
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <IndianRupee size={14} /> {doc.fee}
-                                        </span>
-                                    </div>
-                                    <Button
-                                        variant={
-                                            doc.available
-                                                ? "primary"
-                                                : "secondary"
-                                        }
-                                        className="w-full group-hover:shadow-lg transition-all duration-300"
-                                        disabled={!doc.available}
-                                    >
-                                        {doc.available
-                                            ? "Book Consultation"
-                                            : "Unavailable"}
-                                    </Button>
+                                <div className="h-48 bg-neutral-100 dark:bg-dark-elevated animate-pulse" />
+                                <div className="p-6 space-y-3">
+                                    <div className="h-5 w-3/4 bg-neutral-100 dark:bg-dark-elevated rounded animate-pulse" />
+                                    <div className="h-4 w-1/2 bg-neutral-100 dark:bg-dark-elevated rounded animate-pulse" />
+                                    <div className="h-9 w-full bg-neutral-100 dark:bg-dark-elevated rounded-lg animate-pulse mt-4" />
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
+                ) : doctors.length === 0 ? (
+                    <p className="text-center text-gray-500 dark:text-neutral-400 py-12">
+                        No specialists available at the moment.
+                    </p>
+                ) : (
+                    <div
+                        className="overflow-hidden"
+                        onMouseEnter={pauseAutoScroll}
+                        onMouseLeave={resumeAutoScroll}
+                        onFocus={pauseAutoScroll}
+                        onBlur={resumeAutoScroll}
+                    >
+                        <div className="flex gap-6 transition-transform duration-500 ease-out">
+                            {visibleItems.map((doc) => {
+                                const isAvailable = doc.isActive !== false;
+                                return (
+                                    <div
+                                        key={doc.doctorId}
+                                        className="min-w-[calc(100%-1.5rem)] sm:min-w-[calc(50%-0.75rem)] lg:min-w-[calc(25%-1.125rem)] group bg-white dark:bg-dark-elevated rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-dark-border overflow-hidden"
+                                    >
+                                        <div className="relative h-48 bg-linear-to-br from-primary-100 to-purple-100 flex items-center justify-center">
+                                            <UserCircle
+                                                size={80}
+                                                className="text-primary-600 opacity-80"
+                                            />
+                                            <div
+                                                className={`absolute top-4 right-4 text-white text-xs px-2 py-1 rounded-full ${
+                                                    isAvailable
+                                                        ? "bg-green-500"
+                                                        : "bg-neutral-400"
+                                                }`}
+                                            >
+                                                {isAvailable
+                                                    ? "Available"
+                                                    : "Unavailable"}
+                                            </div>
+                                        </div>
+                                        <div className="p-6">
+                                            <h3 className="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-1">
+                                                {doc.name}
+                                            </h3>
+                                            <p className="text-primary-600 text-sm font-medium mb-4">
+                                                {doc.specialization ||
+                                                    "General Practice"}
+                                            </p>
+                                            <div className="flex justify-between text-sm text-gray-600 dark:text-neutral-400 mb-5">
+                                                {doc.experience && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Briefcase size={14} />{" "}
+                                                        {doc.experience} yrs
+                                                    </span>
+                                                )}
+                                                {doc.consultationFee && (
+                                                    <span className="flex items-center gap-1">
+                                                        <IndianRupee
+                                                            size={14}
+                                                        />{" "}
+                                                        {doc.consultationFee}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <Button
+                                                variant={
+                                                    isAvailable
+                                                        ? "primary"
+                                                        : "secondary"
+                                                }
+                                                className="w-full group-hover:shadow-lg transition-all duration-300"
+                                                disabled={!isAvailable}
+                                            >
+                                                {isAvailable
+                                                    ? "Book Consultation"
+                                                    : "Currently Unavailable"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
         </Section>
     );
@@ -1148,13 +1148,13 @@ const FooterSection = () => (
                     <h4 className="text-white font-semibold mb-4">Connect</h4>
                     <ul className="space-y-3 text-sm">
                         <li className="flex items-center gap-2">
-                            <PhoneCall size={14} /> 1800-102-XXXX
+                            <PhoneCall size={14} /> +91 89788 57943
                         </li>
                         <li className="flex items-center gap-2">
-                            <Mail size={14} /> care@ayurayush.com
+                            <Mail size={14} /> care@ayurayush.tech
                         </li>
                         <li className="flex items-center gap-2">
-                            <MapPin size={14} /> Multiple locations
+                            <MapPin size={14} /> LPU, India
                         </li>
                     </ul>
                 </div>

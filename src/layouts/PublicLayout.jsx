@@ -1,4 +1,5 @@
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation, Link } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { Navbar } from "../components/Navbar";
 import { PageLoader } from "../components/ui/Spinner";
 import { useAuthContext } from "../contexts/AppContext";
@@ -48,6 +49,12 @@ const PublicLayout = () => {
             {/* Decorative background orbs */}
             <div className="absolute top-20 -right-20 w-96 h-96 bg-primary-200/20 dark:bg-primary-800/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-200/20 dark:bg-purple-800/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-4 left-4">
+                <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-primary-600 font-medium transition-colors">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Home
+                </Link>
+            </div>
             <Outlet />
         </div>
     );

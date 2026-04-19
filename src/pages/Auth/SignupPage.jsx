@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { User, Mail, Phone, Lock, KeyRound, Leaf } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -14,11 +14,21 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     name: '', email: '', phone: '', gender: '', dob: '',
     password: '', confirmPassword: '', otp: '',
   });
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => setCooldown(prev => {
+      if (prev <= 1) { clearInterval(timer); return 0; }
+      return prev - 1;
+    }), 1000);
+    return () => clearInterval(timer);
+  }, [cooldown === 60]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -60,6 +70,7 @@ const SignupPage = () => {
       await otpService.sendOtp(form.email);
       showSuccessToast('OTP sent to your email!');
       setIsOtpSent(true);
+      setCooldown(60);
     } catch (err) {
       showErrorToast(err.response?.data?.message || 'Failed to send OTP');
     } finally {
@@ -132,11 +143,24 @@ const SignupPage = () => {
             </div>
 
             {isOtpSent && (
-              <Input
-                label="OTP" id="signup-otp" icon={KeyRound}
-                value={form.otp} onChange={set('otp')}
-                placeholder="Enter 6-digit OTP" required error={errors.otp}
-              />
+              <div>
+                <Input
+                  label="OTP" id="signup-otp" icon={KeyRound}
+                  value={form.otp} onChange={set('otp')}
+                  placeholder="Enter 6-digit OTP" required error={errors.otp}
+                />
+                <p className="text-xs text-neutral-500 mt-1.5">
+                  Didn&apos;t receive it?{' '}
+                  {cooldown > 0 ? (
+                    <span className="text-neutral-400">Resend in {cooldown}s</span>
+                  ) : (
+                    <button type="button" onClick={handleSendOtp} disabled={sendingOTP}
+                      className="text-primary-600 font-medium hover:text-primary-700 disabled:opacity-50 cursor-pointer">
+                      {sendingOTP ? 'Resending...' : 'Resend OTP'}
+                    </button>
+                  )}
+                </p>
+              </div>
             )}
 
             <Input

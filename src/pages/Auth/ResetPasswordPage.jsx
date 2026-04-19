@@ -87,7 +87,7 @@ const ResetPasswordPage = () => {
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Didn&apos;t receive code?{' '}
             <button type="button" onClick={handleResendOtp} disabled={resending}
-              className="text-primary-600 font-medium hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-50">
+              className="text-primary-600 font-medium hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-50 cursor-pointer">
               {resending ? 'Resending...' : 'Resend OTP'}
             </button>
           </p>
