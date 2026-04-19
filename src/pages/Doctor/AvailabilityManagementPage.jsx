@@ -18,6 +18,7 @@ import {
     CardContent,
 } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Modal";
 import { EmptyState } from "../../components/ui/EmptyState";
 import {
     showErrorToast,
@@ -53,6 +54,7 @@ const AvailabilityManagementPage = () => {
     const [endTime, setEndTime] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [loadingDate, setLoadingDate] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     // Load all 7 days in parallel on mount
     const loadAllDates = useCallback(async () => {
@@ -136,7 +138,17 @@ const AvailabilityManagementPage = () => {
         setEndTime("");
     };
 
-    const handleSaveDateSlots = async () => {
+    const isLockedDate = (date) => {
+        if (!date) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((d - today) / (24 * 60 * 60 * 1000));
+        return diffDays >= 0 && diffDays <= 7;
+    };
+
+    const doSave = async () => {
         try {
             setIsSaving(true);
             await doctorService.setOwnAvailabilityForDate(
@@ -144,7 +156,6 @@ const AvailabilityManagementPage = () => {
                 dateSlots,
             );
             showSuccessToast("Date availability updated successfully.");
-            // Refresh this date in the map
             setSlotMap((prev) => ({
                 ...prev,
                 [selectedDate]: { slots: dateSlots, source: "date_specific" },
@@ -157,6 +168,19 @@ const AvailabilityManagementPage = () => {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleSaveDateSlots = () => {
+        if (isLockedDate(selectedDate)) {
+            setConfirmOpen(true);
+        } else {
+            doSave();
+        }
+    };
+
+    const handleConfirmSave = async () => {
+        setConfirmOpen(false);
+        await doSave();
     };
 
     const handleRemoveSlot = async (slot) => {
@@ -411,6 +435,51 @@ const AvailabilityManagementPage = () => {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Confirmation modal for locked dates (today – day 7) */}
+            <Modal
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                title="Confirm Slot Save"
+                size="sm"
+                footer={
+                    <div className="flex gap-3">
+                        <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => setConfirmOpen(false)}
+                            disabled={isSaving}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            className="flex-1"
+                            loading={isSaving}
+                            onClick={handleConfirmSave}
+                        >
+                            Yes, Save Slots
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="flex items-start gap-3 py-1">
+                    <ShieldAlert className="w-5 h-5 text-warning-600 shrink-0 mt-0.5" />
+                    <div className="space-y-2">
+                        <p className="text-sm font-semibold text-neutral-800">
+                            This date is within the locked window (today – day 7).
+                        </p>
+                        <p className="text-sm text-neutral-600">
+                            Once saved, these slots <strong>cannot be removed</strong>. Patients may book them immediately.
+                        </p>
+                        <p className="text-sm text-neutral-600">
+                            Saving <strong>{dateSlots.length} slot{dateSlots.length !== 1 ? "s" : ""}</strong> for{" "}
+                            <strong>
+                                {selectedDate && new Date(selectedDate).toLocaleDateString("en-IN", { weekday: "long", day: "2-digit", month: "long" })}
+                            </strong>.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

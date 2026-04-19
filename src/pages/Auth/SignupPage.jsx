@@ -108,7 +108,7 @@ const SignupPage = () => {
             <Input
               label="Full Name" id="signup-name" icon={User}
               value={form.name} onChange={set('name')}
-              placeholder="John Doe" required error={errors.name}
+              placeholder="Vamsi" required error={errors.name}
             />
 
             <div className="flex gap-2 items-end">
