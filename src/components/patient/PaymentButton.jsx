@@ -37,7 +37,7 @@ const PaymentButton = ({ appointmentId, amount, onSuccess }) => {
             const order = orderRes.data;
 
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: order.keyId,
                 amount: order.amount,
                 currency: order.currency,
                 name: "AyurAyush",
