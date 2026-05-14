@@ -9,9 +9,10 @@ import {
     showSuccessToast,
 } from "../../utils/toastMessageHelper";
 
-const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
+const TodayQueue = () => {
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState([]);
+    const [queueType, setQueueType] = useState("ayurveda");
     const [selectedDoctorId, setSelectedDoctorId] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
     const [callingId, setCallingId] = useState(null);
@@ -162,8 +163,8 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
     };
 
     const handleQueueTypeChange = (type) => {
-        if (type !== externalQueueType) {
-            if (onQueueTypeChange) onQueueTypeChange(type);
+        if (type !== queueType) {
+            setQueueType(type);
             setSelectedDoctorId("all");
             setStatusFilter("all");
         }
@@ -176,7 +177,7 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
         return Number(match[1]) * 60 + Number(match[2]);
     };
 
-    const filteredByQueueType = appointments.filter((apt) => (apt.queueType || "normal") === externalQueueType);
+    const filteredByQueueType = appointments.filter((apt) => (apt.queueType || "normal") === queueType);
 
     const uniqueDoctors = [];
     const docSet = new Set();
@@ -220,7 +221,7 @@ const TodayQueue = ({ externalQueueType = "ayurveda", onQueueTypeChange }) => {
                         key={type.id}
                         onClick={() => handleQueueTypeChange(type.id)}
                         className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
-                            externalQueueType === type.id
+                            queueType === type.id
                                 ? "border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400"
                                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                         }`}
