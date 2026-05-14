@@ -27,7 +27,7 @@ const ResetPasswordPage = () => {
     const newErrors = {};
     if (!form.otp.trim()) newErrors.otp = 'OTP is required';
     if (!form.newPassword) newErrors.newPassword = 'New password is required';
-    else if (form.newPassword.length < 6) newErrors.newPassword = 'Password must be at least 6 characters';
+    else if (form.newPassword.length < 8) newErrors.newPassword = 'Password must be at least 8 characters';
     if (!form.confirmPassword) newErrors.confirmPassword = 'Confirm your new password';
     else if (form.newPassword !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     setErrors(newErrors);
@@ -78,7 +78,7 @@ const ResetPasswordPage = () => {
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="OTP" id="reset-otp" icon={KeyRound} value={form.otp} onChange={handleChange('otp')} placeholder="Enter 6-digit OTP" required error={errors.otp} />
-            <Input label="New Password" id="reset-new-password" type="password" icon={Lock} value={form.newPassword} onChange={handleChange('newPassword')} placeholder="••••••••" required error={errors.newPassword} hint="Minimum 6 characters" />
+            <Input label="New Password" id="reset-new-password" type="password" icon={Lock} value={form.newPassword} onChange={handleChange('newPassword')} placeholder="••••••••" required error={errors.newPassword} hint="Minimum 8 characters" />
             <Input label="Confirm Password" id="reset-confirm-password" type="password" icon={Lock} value={form.confirmPassword} onChange={handleChange('confirmPassword')} placeholder="••••••••" required error={errors.confirmPassword} />
             <Button type="submit" fullWidth loading={loading}>Reset Password</Button>
           </form>

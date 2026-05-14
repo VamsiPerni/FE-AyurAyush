@@ -43,7 +43,7 @@ const SignupPage = () => {
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
     else if (!/^\+?\d{10,13}$/.test(form.phone.replace(/\s/g, ''))) errs.phone = 'Enter a valid phone number';
     if (!form.password) errs.password = 'Password is required';
-    else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters';
+    else if (form.password.length < 8) errs.password = 'Password must be at least 8 characters';
     if (!form.confirmPassword) errs.confirmPassword = 'Please confirm your password';
     else if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     if (isOtpSent && !form.otp.trim()) errs.otp = 'OTP is required';
@@ -189,7 +189,7 @@ const SignupPage = () => {
               label="Password" id="signup-password" type="password" icon={Lock}
               value={form.password} onChange={set('password')}
               placeholder="••••••••" required error={errors.password}
-              hint="Minimum 6 characters"
+              hint="Minimum 8 characters"
             />
 
             <Input

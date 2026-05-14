@@ -24,7 +24,7 @@ const ChangePasswordPage = () => {
     const newErrors = {};
     if (!form.currentPassword) newErrors.currentPassword = 'Current password is required';
     if (!form.newPassword) newErrors.newPassword = 'New password is required';
-    else if (form.newPassword.length < 6) newErrors.newPassword = 'Password must be at least 6 characters';
+    else if (form.newPassword.length < 8) newErrors.newPassword = 'Password must be at least 8 characters';
     else if (form.newPassword === form.currentPassword) newErrors.newPassword = 'New password must be different from the current one';
     if (!form.confirmPassword) newErrors.confirmPassword = 'Confirm your new password';
     else if (form.newPassword !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
@@ -68,7 +68,7 @@ const ChangePasswordPage = () => {
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="Current Password" id="change-current-password" type="password" icon={Lock} value={form.currentPassword} onChange={handleChange('currentPassword')} placeholder="Enter current password" required error={errors.currentPassword} />
-            <Input label="New Password" id="change-new-password" type="password" icon={Lock} value={form.newPassword} onChange={handleChange('newPassword')} placeholder="Enter new password" required error={errors.newPassword} hint="Minimum 6 characters" />
+            <Input label="New Password" id="change-new-password" type="password" icon={Lock} value={form.newPassword} onChange={handleChange('newPassword')} placeholder="Enter new password" required error={errors.newPassword} hint="Minimum 8 characters" />
             <Input label="Confirm New Password" id="change-confirm-password" type="password" icon={Lock} value={form.confirmPassword} onChange={handleChange('confirmPassword')} placeholder="Confirm new password" required error={errors.confirmPassword} />
             <Button type="submit" fullWidth loading={loading}>Update Password</Button>
           </form>
