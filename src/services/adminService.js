@@ -168,6 +168,48 @@ export const adminService = {
         return response.data;
     },
 
+    checkDoctorDeactivationEligibility: async (doctorId) => {
+        try {
+            const response = await axiosInstance.get(
+                `/admin/doctors/${encodeURIComponent(doctorId)}/check-deactivation`,
+            );
+            return { isSuccess: true, data: response.data.data };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                message: error.response?.data?.message || "Something went wrong",
+            };
+        }
+    },
+
+    deactivateDoctorAccount: async (doctorId) => {
+        try {
+            const response = await axiosInstance.patch(
+                `/admin/doctors/${encodeURIComponent(doctorId)}/status`,
+            );
+            return { isSuccess: true, data: response.data.data };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                message: error.response?.data?.message || "Something went wrong",
+            };
+        }
+    },
+
+    activateDoctorAccount: async (doctorId) => {
+        try {
+            const response = await axiosInstance.patch(
+                `/admin/doctors/${encodeURIComponent(doctorId)}/activate`,
+            );
+            return { isSuccess: true, data: response.data.data };
+        } catch (error) {
+            return {
+                isSuccess: false,
+                message: error.response?.data?.message || "Something went wrong",
+            };
+        }
+    },
+
     offlineBookAppointment: async (data) => {
         const response = await axiosInstance.post(
             "/admin/appointments/offline-book",

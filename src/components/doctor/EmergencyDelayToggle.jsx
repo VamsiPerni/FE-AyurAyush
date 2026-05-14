@@ -43,6 +43,8 @@ const EmergencyDelayToggle = ({ emergencyState, onStatusChange }) => {
             const response = await doctorService.deactivateEmergencyDelay();
             if (response.isSuccess) {
                 toast.success('Emergency mode deactivated. Returning to normal operations.');
+                setIsModalOpen(false);
+                setReason('');
                 if (onStatusChange) onStatusChange(response.data);
             }
         } catch (error) {
@@ -102,7 +104,8 @@ const EmergencyDelayToggle = ({ emergencyState, onStatusChange }) => {
                         <Button 
                             onClick={handleDeactivate}
                             isLoading={isLoading}
-                            className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 w-full sm:w-auto"
+                            disabled={isLoading}
+                            className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <XCircle className="w-4 h-4 mr-2" />
                             Resolve & Clear Warning

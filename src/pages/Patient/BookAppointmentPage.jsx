@@ -12,6 +12,7 @@ import {
     CreditCard,
     Lock,
     MessageSquare,
+    Sparkles,
 } from "lucide-react";
 import { patientService } from "../../services/patientService";
 import { paymentService } from "../../services/paymentService";
@@ -858,6 +859,41 @@ const BookAppointmentPage = () => {
                                 />
                             ) : (
                                 <div className="space-y-6">
+                                    {/* Recommended for You section */}
+                                    {(() => {
+                                        const recommended = (selectedConversation?.summary?.recommendedSpecialist || "").toLowerCase().trim();
+                                        if (!recommended) return null;
+                                        const recommendedDoctors = filteredDoctors.filter((doc) => {
+                                            const spec = (doc.specialization || "").toLowerCase();
+                                            return spec.includes(recommended) || recommended.includes(spec);
+                                        });
+                                        if (!recommendedDoctors.length) return null;
+                                        return (
+                                            <div className="space-y-3 rounded-xl border-2 border-primary-200 bg-primary-50/40 p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Sparkles className="w-4 h-4 text-primary-600" />
+                                                    <div>
+                                                        <h4 className="text-sm font-semibold text-primary-800">Recommended for You</h4>
+                                                        <p className="text-xs text-primary-600 mt-0.5">
+                                                            Based on your symptoms, AI suggests a <span className="font-semibold">{selectedConversation.summary.recommendedSpecialist}</span> specialist.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {recommendedDoctors.map((doc) => (
+                                                        <DoctorCard
+                                                            key={`rec-${doc.doctorId || doc._id}`}
+                                                            doctor={doc}
+                                                            onSelect={handleDoctorSelect}
+                                                            mostlyTreats={getMostlyTreatsLabel(doc)}
+                                                            isRecommended
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {[
                                         {
                                             key: "General Care",

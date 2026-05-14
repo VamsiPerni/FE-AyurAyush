@@ -17,6 +17,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Badge } from "../../components/ui/Badge";
 import { Table } from "../../components/ui/Table";
+import { Modal } from "../../components/ui/Modal";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { TableSkeleton } from "../../components/ui/Skeleton";
 import {
@@ -41,6 +42,13 @@ const ManageDoctorsPage = () => {
     const [experienceFilter, setExperienceFilter] = useState("all");
     const [feeFilter, setFeeFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("name_asc");
+
+    const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+    const [deactivateTarget, setDeactivateTarget] = useState(null);
+    const [deactivateEligibility, setDeactivateEligibility] = useState(null);
+    const [checkingEligibility, setCheckingEligibility] = useState(false);
+    const [activateModalOpen, setActivateModalOpen] = useState(false);
+    const [activateTarget, setActivateTarget] = useState(null);
 
     const resetFilters = () => {
         setSearchQuery("");
@@ -131,42 +139,74 @@ const ManageDoctorsPage = () => {
         loadDoctors();
     }, []);
 
-    const handleToggleStatus = async (id, currentStatus) => {
-        const isCurrentlyActive = currentStatus === "active";
-        const action = isCurrentlyActive ? "deactivate" : "activate";
+    const handleToggleClick = (id, name, isActive) => {
+        if (isActive) {
+            handleDeactivateClick(id, name);
+        } else {
+            setActivateTarget({ id, name });
+            setActivateModalOpen(true);
+        }
+    };
 
-        if (!window.confirm(`Are you sure you want to ${action} this doctor?`))
-            return;
+    const handleConfirmActivate = async () => {
+        if (!activateTarget) return;
+        try {
+            setTogglingId(activateTarget.id);
+            const result = await adminService.activateDoctorAccount(activateTarget.id);
+            if (result.isSuccess) {
+                showSuccessToast("Doctor activated successfully.");
+                setActivateModalOpen(false);
+                setActivateTarget(null);
+                await loadDoctors();
+            } else {
+                showErrorToast(result.message || "Failed to activate doctor.");
+            }
+        } catch (err) {
+            showErrorToast(err.response?.data?.message || "Failed to activate doctor.");
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    const handleDeactivateClick = async (id, name) => {
+        setDeactivateTarget({ id, name });
+        setCheckingEligibility(true);
+        setDeactivateEligibility(null);
+        setDeactivateModalOpen(true);
 
         try {
-            setTogglingId(id);
-
-            // Map to toggle fallback dynamically if the specification requires specific backend mapping
-            if (typeof adminService.toggleDoctorStatus === "function") {
-                await adminService.toggleDoctorStatus(id);
-            } else if (
-                typeof adminService.updateDoctorAvailability === "function"
-            ) {
-                // Fallback parameter mutation based on my previous adminService inspections
-                await adminService.updateDoctorAvailability(id, {
-                    status: isCurrentlyActive ? "inactive" : "active",
-                });
+            const result = await adminService.checkDoctorDeactivationEligibility(id);
+            if (result.isSuccess) {
+                setDeactivateEligibility(result.data);
             } else {
-                throw new Error(
-                    "Toggle method not explicitly mapped in Service layer",
-                );
+                showErrorToast(result.message || "Failed to check eligibility");
+                setDeactivateModalOpen(false);
             }
-
-            showSuccessToast(
-                `Doctor successfully ${isCurrentlyActive ? "deactivated" : "activated"}.`,
-            );
-            await loadDoctors(); // Refresh table entirely natively
         } catch (err) {
-            showErrorToast(
-                err.response?.data?.message ||
-                    err.message ||
-                    "Failed to update doctor status.",
-            );
+            showErrorToast("Failed to check eligibility");
+            setDeactivateModalOpen(false);
+        } finally {
+            setCheckingEligibility(false);
+        }
+    };
+
+    const handleConfirmDeactivate = async () => {
+        if (!deactivateTarget) return;
+
+        try {
+            setTogglingId(deactivateTarget.id);
+            const result = await adminService.deactivateDoctorAccount(deactivateTarget.id);
+            if (result.isSuccess) {
+                showSuccessToast("Doctor deactivated successfully.");
+                setDeactivateModalOpen(false);
+                setDeactivateTarget(null);
+                setDeactivateEligibility(null);
+                await loadDoctors();
+            } else {
+                showErrorToast(result.message || "Failed to deactivate doctor.");
+            }
+        } catch (err) {
+            showErrorToast(err.response?.data?.message || "Failed to deactivate doctor.");
         } finally {
             setTogglingId(null);
         }
@@ -205,7 +245,6 @@ const ManageDoctorsPage = () => {
 
             if (specializationFilter !== "all" && (doc.specialization || "") !== specializationFilter) return false;
 
-            // Experience filter
             if (experienceFilter !== "all") {
                 const exp = Number(doc.experience || 0);
                 if (experienceFilter === "0-3"  && !(exp >= 0  && exp <= 3))  return false;
@@ -214,7 +253,6 @@ const ManageDoctorsPage = () => {
                 if (experienceFilter === "15+"  && !(exp > 15))               return false;
             }
 
-            // Fee filter
             if (feeFilter !== "all") {
                 const fee = Number(doc.consultationFee || 0);
                 if (feeFilter === "0-500"    && !(fee >= 0    && fee <= 500))   return false;
@@ -246,7 +284,6 @@ const ManageDoctorsPage = () => {
         feeFilter !== "all" ||
         sortOrder !== "name_asc";
 
-    // Layout Table Configuration
     const columns = [
         {
             key: "doctorName",
@@ -298,7 +335,6 @@ const ManageDoctorsPage = () => {
             key: "status",
             header: "Status",
             render: (_, doc) => {
-                // Evaluate true status explicitly
                 const statusVal =
                     doc.status || (doc.isActive ? "active" : "inactive");
                 return (
@@ -335,7 +371,7 @@ const ManageDoctorsPage = () => {
                             size="sm"
                             variant={isActive ? "outline" : "success"}
                             icon={isActive ? PowerOff : Power}
-                            onClick={() => handleToggleStatus(id, statusVal)}
+                            onClick={() => handleToggleClick(id, doc.name, isActive)}
                             loading={togglingId === id}
                             className={
                                 isActive
@@ -351,7 +387,6 @@ const ManageDoctorsPage = () => {
         },
     ];
 
-    // 1. Loading State
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto space-y-6 pb-8">
@@ -366,7 +401,6 @@ const ManageDoctorsPage = () => {
         );
     }
 
-    // 2. Error State
     if (error && doctors.length === 0) {
         return (
             <div className="max-w-7xl mx-auto py-12">
@@ -409,7 +443,6 @@ const ManageDoctorsPage = () => {
             />
 
             <Card className="overflow-hidden shadow-sm border border-neutral-100 dark:border-dark-border min-h-[500px]">
-                {/* Controls Panel */}
                 <div className="bg-neutral-50/50 dark:bg-dark-elevated/50 p-5 border-b border-neutral-100 dark:border-dark-border flex flex-col md:flex-row justify-between gap-4">
                     <div className="w-full md:w-80">
                         <Input
@@ -508,7 +541,6 @@ const ManageDoctorsPage = () => {
                     </div>
                 </div>
 
-                {/* Data Configuration output */}
                 <CardContent className="p-0">
                     {filteredDoctors.length === 0 ? (
                         <div className="py-24">
@@ -553,11 +585,10 @@ const ManageDoctorsPage = () => {
                         </div>
                     )}
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100 dark:border-dark-border bg-neutral-50/50 dark:bg-dark-elevated/30">
                             <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                                Page {page} of {totalPages} &bull; {totalCount} doctors
+                                Page {page} of {totalPages} • {totalCount} doctors
                             </span>
                             <div className="flex items-center gap-1">
                                 <button
@@ -595,6 +626,136 @@ const ManageDoctorsPage = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Activation Modal */}
+            <Modal
+                isOpen={activateModalOpen}
+                onClose={() => {
+                    if (togglingId === null) {
+                        setActivateModalOpen(false);
+                        setActivateTarget(null);
+                    }
+                }}
+                title={`Activate ${activateTarget?.name || "Doctor"}`}
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-neutral-600">
+                        Are you sure you want to activate <strong>{activateTarget?.name}</strong>? They will regain full access immediately.
+                    </p>
+                    <div className="flex gap-3 pt-4 border-t border-neutral-100">
+                        <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => { setActivateModalOpen(false); setActivateTarget(null); }}
+                            disabled={togglingId !== null}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="success"
+                            className="flex-1"
+                            onClick={handleConfirmActivate}
+                            loading={togglingId !== null}
+                        >
+                            Activate
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Deactivation Modal */}}
+            <Modal
+                isOpen={deactivateModalOpen}
+                onClose={() => {
+                    if (!checkingEligibility && togglingId === null) {
+                        setDeactivateModalOpen(false);
+                        setDeactivateTarget(null);
+                        setDeactivateEligibility(null);
+                    }
+                }}
+                title={`Deactivate ${deactivateTarget?.name || "Doctor"}`}
+                size="lg"
+            >
+                {checkingEligibility ? (
+                    <div className="py-8 text-center">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                        <p className="mt-4 text-neutral-600">Checking eligibility...</p>
+                    </div>
+                ) : deactivateEligibility?.canDeactivate ? (
+                    <div className="space-y-4">
+                        <div className="bg-success-50 border border-success-200 rounded-lg p-4">
+                            <p className="text-sm text-success-700 font-medium">
+                                ✓ Doctor can be deactivated. No upcoming appointments in the next 7 days.
+                            </p>
+                        </div>
+                        <p className="text-sm text-neutral-600">
+                            Are you sure you want to deactivate <strong>{deactivateTarget?.name}</strong>? They will lose all access immediately.
+                        </p>
+                        <div className="flex gap-3 pt-4 border-t border-neutral-100">
+                            <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => {
+                                    setDeactivateModalOpen(false);
+                                    setDeactivateTarget(null);
+                                    setDeactivateEligibility(null);
+                                }}
+                                disabled={togglingId !== null}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="danger"
+                                className="flex-1"
+                                onClick={handleConfirmDeactivate}
+                                loading={togglingId !== null}
+                            >
+                                Deactivate
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="bg-error-50 border border-error-200 rounded-lg p-4">
+                            <p className="text-sm text-error-700 font-medium">
+                                ⚠ Cannot deactivate: {deactivateEligibility?.reason}
+                            </p>
+                        </div>
+                        {deactivateEligibility?.conflictingAppointments?.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-neutral-700">Conflicting Appointments:</p>
+                                <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {deactivateEligibility.conflictingAppointments.map((apt) => (
+                                        <div key={apt.appointmentId} className="bg-neutral-50 rounded-lg p-3 text-sm">
+                                            <p className="font-medium text-neutral-800">{apt.patientName}</p>
+                                            <p className="text-neutral-600">
+                                                {new Date(apt.date).toLocaleDateString("en-IN")} at {apt.timeSlot}
+                                            </p>
+                                            <p className="text-xs text-neutral-500">Status: {apt.status}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        <p className="text-sm text-neutral-600">
+                            Please resolve these appointments before deactivating the doctor.
+                        </p>
+                        <div className="flex gap-3 pt-4 border-t border-neutral-100">
+                            <Button
+                                className="flex-1"
+                                onClick={() => {
+                                    setDeactivateModalOpen(false);
+                                    setDeactivateTarget(null);
+                                    setDeactivateEligibility(null);
+                                }}
+                            >
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
