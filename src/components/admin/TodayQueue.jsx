@@ -9,7 +9,7 @@ import {
     showSuccessToast,
 } from "../../utils/toastMessageHelper";
 
-const TodayQueue = () => {
+const TodayQueue = ({ onQueueTypeChange } = {}) => {
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState([]);
     const [queueType, setQueueType] = useState("ayurveda");
@@ -167,6 +167,7 @@ const TodayQueue = () => {
             setQueueType(type);
             setSelectedDoctorId("all");
             setStatusFilter("all");
+            onQueueTypeChange?.(type);
         }
     };
 
